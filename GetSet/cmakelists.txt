@@ -1,0 +1,8 @@
+add_library(GetSet 
+	GetSet.hxx
+	GetSetDictionary.h
+	GetSetDictionary.cpp
+	StringUtil.hxx
+	tinyxml2.h
+	tinyxml2.cpp
+)

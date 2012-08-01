@@ -1,0 +1,11 @@
+set(GetSetGui_QOBJ_H GetSetWidget.h GetSetSettingsWindow.h )
+QT4_WRAP_CPP(GetSetGui_MOC ${GetSetGui_QOBJ_H})
+
+add_library(GetSetGui
+	GetSetWidget.h
+	GetSetWidget.cpp
+	GetSetSettingsWindow.h
+	GetSetSettingsWindow.cpp
+	${GetSetGui_MOC}
+)
+add_dependencies(GetSetGui GetSet)

@@ -1,0 +1,24 @@
+cmake_minimum_required(VERSION 2.8)
+
+project(GetSetTest)
+
+find_package(Qt4 REQUIRED)
+
+include(${QT_USE_FILE})
+add_definitions(${QT_DEFINITIONS})
+
+
+# GetSet
+include_directories(.)
+add_subdirectory(./GetSet "${CMAKE_CURRENT_BINARY_DIR}/GetSet")
+
+# GetSetGui
+include_directories(.)
+add_subdirectory(./GetSetGui "${CMAKE_CURRENT_BINARY_DIR}/GetSetGui")
+
+
+add_executable(GetSetTest
+	main.cpp
+)
+
+target_link_libraries(GetSetTest GetSet GetSetGui ${QT_LIBRARIES} )
