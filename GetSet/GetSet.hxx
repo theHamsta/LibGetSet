@@ -17,8 +17,8 @@
 //  limitations under the License.
 //
 
-#ifndef __GetSet_h
-#define __GetSet_h
+#ifndef __GetSet_hxx
+#define __GetSet_hxx
 
 #include "GetSetDictionary.h"
 
@@ -65,7 +65,7 @@ public:
 			p->setString(toString(v));
 	}
 
-	/// Cast operator directly to BasicType (behaves almost like a  c++ variable of BasicType)
+	/// Cast operator directly to BasicType (behaves almost like a c++ variable of BasicType)
 	operator BasicType() const
 	{
 		using namespace GetSetInternal;
@@ -116,10 +116,16 @@ public:
 			CLASS_BODY																						\
 		protected:																							\
 			void forceType() {																				\
-				GetSetInternal::GetSetDataInterface* p=dict.getDatainterface(section,key);					\
-				if (p && ! dynamic_cast<GetSetInternal::GetSetData##SPECIAL_TYPE*>(p)) { delete p; p=0x0; }	\
-				if (!p) {																					\
-					dict.get()[section][key]=new GetSetInternal::GetSetData##SPECIAL_TYPE();				\
+				using namespace GetSetInternal;																\
+				GetSetDataInterface* p=dict.getDatainterface(section,key);									\
+				if (!p || (p && ! dynamic_cast<GetSetData##SPECIAL_TYPE*>(p) )) {							\
+					GetSetData##SPECIAL_TYPE *ret=new GetSetData##SPECIAL_TYPE();							\
+					if (p) {																				\
+						ret->setString(p->getString());														\
+						dict.signalDestroy(section,key);													\
+						delete p; p=0x0;																	\
+					}																						\
+					dict.get()[section][key]=ret;															\
 					dict.signalCreate(section,key);															\
 				}																							\
 			}																								\
@@ -154,4 +160,4 @@ GETSET_SPECIALIZATION(File,std::string, GETSET_TAG(std::string,Extensions) GETSE
 #undef GETSET_SPECIALIZATION
 #undef GETSET_TAG
 
-#endif // __GetSet_h
+#endif // __GetSet_hxx

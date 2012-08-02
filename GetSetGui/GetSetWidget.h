@@ -17,8 +17,8 @@
 //  limitations under the License.
 //
 
-#ifndef SIMPLE_PROPERTY_EDITOR_H
-#define SIMPLE_PROPERTY_EDITOR_H
+#ifndef __GetSetWidget.h
+#define __GetSetWidget.h
 
 #include "GetSet/GetSetDictionary.h"
 
@@ -74,5 +74,4 @@ public:
 	virtual void notifyDestroy(const std::string& list, const std::string& key);
 };
 
-#endif // SIMPLE_PROPERTY_EDITOR_H
-
+#endif // __GetSetWidget.h

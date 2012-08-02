@@ -2,6 +2,8 @@ add_library(GetSet
 	GetSet.hxx
 	GetSetDictionary.h
 	GetSetDictionary.cpp
+	GetSetCmdLineParser.h
+	GetSetCmdLineParser.cpp
 	StringUtil.hxx
 	tinyxml2.h
 	tinyxml2.cpp

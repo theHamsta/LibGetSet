@@ -20,7 +20,7 @@ int main(int argc, char** argv)
 	int nIterations=GetSet<int>("Test 1", "Number of Iterations"); // == 13
 	
 	//
-	// Special types, such as DIrectory, File, Slider, Enum, Trigger etc...
+	// Special types, such as Directory, File, Slider, Enum, Trigger etc...
 	//
 	
 	// Creating a Slider:
@@ -40,6 +40,20 @@ int main(int argc, char** argv)
 	GetSet<std::string>("Test 2", "Some Directory")="./out";
 	GetSet<double>("Test 1", "Some Double Value")=0.5;
 	
+	//GetSetCmdLineParser cmd/*(dictionary,autoAll)*/;
+	//cmd.flagShort("o","Test 2","Some Directory");
+	//cmd.flagLong("output-dir","Test 2","Some Directory");
+	//cmd.flagAuto("Test 1","Some Directory", addSectionName);
+	//cmd.flagAutoSection("Test 1", addSectionName);
+	//cmd.flagUnnamed(0,"Test 1","Some Directory");
+	//cmd.require<std::string>("Test 1","Some Directory");
+	//bool okay=cmd.parse(argc,argv);
+	//cmd.getUnnamedArgs()[2];
+	//cmd.getUnhandledArgs()[0];
+	//cmd.parse();
+	//cmd.getXML();
+
+
 	//
 	// Listing to Events
 	//

@@ -17,8 +17,8 @@
 //  limitations under the License.
 //
 
-#ifndef SIMPLE_SETTINGS_DIALOG_H
-#define SIMPLE_SETTINGS_DIALOG_H
+#ifndef __GetSetSettingsWindow.h
+#define __GetSetSettingsWindow.h
 
 #include "GetSetWidget.h"
 
@@ -56,4 +56,4 @@ public:
 	virtual ~GetSetSettingsWindow();
 };
 
-#endif // SIMPLE_SETTINGS_DIALOG_H
+#endif // __GetSetSettingsWindow.h
