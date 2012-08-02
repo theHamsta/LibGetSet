@@ -49,9 +49,9 @@ public:
 
 	GetSet(const std::string& s, const std::string k)
 		: dict(GetSetDictionary::globalDictionary()), section(s), key(k) { create(); }
-
-	/// Set the value of a GetSet property directly via assignment operator
-	void operator=(const BasicType& v)
+	
+	/// Set the value of a GetSet property (same as: assigment operator)
+	void setValue(const BasicType& v)
 	{
 		using namespace GetSetInternal;
 		GetSetDataInterface* p=dict.getDatainterface(section,key);
@@ -65,8 +65,8 @@ public:
 			p->setString(toString(v));
 	}
 
-	/// Cast operator directly to BasicType (behaves almost like a c++ variable of BasicType)
-	operator BasicType() const
+	/// Get the value of a GetSet property (same as: please use cast operator)
+	const BasicType getValue() const
 	{
 		using namespace GetSetInternal;
 		GetSetDataInterface* p=dict.getDatainterface(section,key);
@@ -77,14 +77,21 @@ public:
 			return stringTo<BasicType>(p->getString());
 	}
 
+	/// Set the value of a GetSet property directly via assignment operator
+	inline void operator=(const BasicType& v) { setValue(v); }
+
+	/// Cast operator directly to BasicType (behaves almost like a c++ variable of BasicType)
+	inline operator BasicType() const { return getValue(); }
+
+
 	/// Get the value of the property as string
-	std::string getString() const
+	virtual std::string getString() const
 	{
 		return dict.getDatainterface(section,key)->getString();
 	}
 
 	/// Set the value of this property from a string
-	void setString(const std::string& value)
+	virtual void setString(const std::string& value)
 	{
 		dict.getDatainterface(section,key)->setString(value);
 		dict.signalChange(section,key);
@@ -112,7 +119,7 @@ public:
 			SPECIAL_TYPE(const std::string& s, const std::string k)											\
 				: GetSet<BASE_TYPE>(GetSetDictionary::globalDictionary()){ section=s; key=k; forceType(); }	\
 			void operator=(const BASE_TYPE& v) { setString(toString(v)); }									\
-			operator BASE_TYPE() const { return stringTo<BASE_TYPE>(getString()); }							\
+			operator BASE_TYPE() const { return getValue(); }												\
 			CLASS_BODY																						\
 		protected:																							\
 			void forceType() {																				\
@@ -139,11 +146,11 @@ public:
 /// A GetSet&lt;double&gt; with additional range information, so that it could be represented as a slider
 GETSET_SPECIALIZATION(Slider,double, GETSET_TAG(double, Min) GETSET_TAG(double, Max) )
 
-/// A pulldown menu with a number of choices (provided as a semicolon seperated list of strings)
-GETSET_SPECIALIZATION(Enum,int, GETSET_TAG(std::string, Choices) )
+/// A pulldown menu with a number of choices
+GETSET_SPECIALIZATION(Enum,int,GETSET_TAG(std::vector<std::string>, Choices) virtual std::string getString() const { return getChoices()[getValue()]; } )
 
 /// A button
-GETSET_SPECIALIZATION(Trigger,std::string,)
+GETSET_SPECIALIZATION(Trigger,std::string, void action() {dict.signalChange(section,key);} )
 
 /// A static text with some information. StaticTexts are not included in ini-Files and are useful as seperators or user-info in GUI.
 GETSET_SPECIALIZATION(StaticText,std::string, )

@@ -64,7 +64,7 @@ namespace GetSetInternal {
 		return typeid(T).name();
 	}
 
-	// specializations 
+	// Specializations 
 	#define DEFINE_TYPE_NAME_STRING(X)  template<> inline std::string getTypeName<X>() {return #X;}
 	DEFINE_TYPE_NAME_STRING(bool)
 	DEFINE_TYPE_NAME_STRING(int)
@@ -75,6 +75,9 @@ namespace GetSetInternal {
 	DEFINE_TYPE_NAME_STRING(std::vector<std::string>)
 	DEFINE_TYPE_NAME_STRING(std::vector<double>)
 	DEFINE_TYPE_NAME_STRING(std::vector<int>)
+
+	/// Try to create a property by the type provided as string. returns null on failure.
+	GetSetDataInterface* declareProperty(const std::string& section, const std::string& key, const std::string& type);
 
 } // GetSetInternal
 

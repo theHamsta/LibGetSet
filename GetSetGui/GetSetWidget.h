@@ -17,8 +17,8 @@
 //  limitations under the License.
 //
 
-#ifndef __GetSetWidget.h
-#define __GetSetWidget.h
+#ifndef __GetSetWidget_h
+#define __GetSetWidget_h
 
 #include "GetSet/GetSetDictionary.h"
 
@@ -74,4 +74,4 @@ public:
 	virtual void notifyDestroy(const std::string& list, const std::string& key);
 };
 
-#endif // __GetSetWidget.h
+#endif // __GetSetWidget_h

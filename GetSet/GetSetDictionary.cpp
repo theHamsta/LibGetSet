@@ -53,12 +53,37 @@ GetSetDictionary::Dictionary& GetSetDictionary::get()
 	return properties;
 }
 
+namespace GetSetInternal {
+#define GETSET_DATA_TYPE_STR(X) if (type==#X) param=new GetSetData<X>();
+#define GETSET_SPECIAL_TYPE_STR(X)   if (type==#X) param=new GetSetData##X();
+	GetSetDataInterface* declareProperty(const std::string& section, const std::string& key, const std::string& type)
+	{
+		GetSetInternal::GetSetDataInterface * param=0x0;
+		GETSET_DATA_TYPE_STR(bool)
+		GETSET_DATA_TYPE_STR(int)
+		GETSET_DATA_TYPE_STR(unsigned)
+		GETSET_DATA_TYPE_STR(float)
+		GETSET_DATA_TYPE_STR(double)
+		GETSET_DATA_TYPE_STR(std::string)
+		GETSET_DATA_TYPE_STR(std::vector<std::string>)
+		GETSET_DATA_TYPE_STR(std::vector<double>)
+		GETSET_DATA_TYPE_STR(std::vector<int>)
+		GETSET_SPECIAL_TYPE_STR(Slider)
+		GETSET_SPECIAL_TYPE_STR(Enum)
+		GETSET_SPECIAL_TYPE_STR(Trigger)
+		GETSET_SPECIAL_TYPE_STR(StaticText)
+		GETSET_SPECIAL_TYPE_STR(Directory)
+		GETSET_SPECIAL_TYPE_STR(File)
+		return param;
+	}
+#undef GETSET_PARAM_FOR_TYPE_STR
+#undef GETSET_SPECIAL_TYPE_STR
+} // namespace 
+
 //
-// XML support
+// XML support GetSetInternal
 //
 
-#define GETSET_DATA_TYPE_STR(X) if (type==#X) param=new GetSetInternal::GetSetData<X>();
-#define GETSET_SPECIAL_TYPE_STR(X)   if (type==#X) param=new GetSetInternal::GetSetData##X();
 void GetSetDictionary::loadSection(tinyxml2::XMLElement* node, const std::string& section)
 {
 	while (node)
@@ -69,23 +94,8 @@ void GetSetDictionary::loadSection(tinyxml2::XMLElement* node, const std::string
 			std::string key=node->Attribute("Name");
 			std::string type=node->Attribute("Type");
 			std::string value=node->GetText();
-			// Type selection (create a GetSetData* string provided by "Type" attribute)
-			GetSetInternal::GetSetDataInterface * param=0x0;
-			GETSET_DATA_TYPE_STR(bool)
-			GETSET_DATA_TYPE_STR(int)
-			GETSET_DATA_TYPE_STR(unsigned)
-			GETSET_DATA_TYPE_STR(float)
-			GETSET_DATA_TYPE_STR(double)
-			GETSET_DATA_TYPE_STR(std::string)
-			GETSET_DATA_TYPE_STR(std::vector<std::string>)
-			GETSET_DATA_TYPE_STR(std::vector<double>)
-			GETSET_DATA_TYPE_STR(std::vector<int>)
-			GETSET_SPECIAL_TYPE_STR(Slider)
-			GETSET_SPECIAL_TYPE_STR(Enum)
-			GETSET_SPECIAL_TYPE_STR(Trigger)
-			GETSET_SPECIAL_TYPE_STR(StaticText)
-			GETSET_SPECIAL_TYPE_STR(Directory)
-			GETSET_SPECIAL_TYPE_STR(File)
+			// Type selection (create some type of GetSetData provided by "Type" attribute)
+			GetSetInternal::GetSetDataInterface* param=GetSetInternal::declareProperty(section,key,type);
 			if (param==0x0)
 			{
 				std::cerr << "Unknown Type \"" << type << "\" ignored. Using std::string!" << std::endl;
@@ -118,8 +128,7 @@ void GetSetDictionary::loadSection(tinyxml2::XMLElement* node, const std::string
 		node=node->NextSiblingElement();
 	}
 }
-#undef GETSET_PARAM_FOR_TYPE_STR
-#undef GETSET_SPECIAL_TYPE_STR
+
 
 void GetSetDictionary::parseXML(const std::string& xml)
 {

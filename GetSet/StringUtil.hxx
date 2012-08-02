@@ -76,10 +76,10 @@ template <typename T> inline std::vector<T> stringToVector(const std::string& in
 	return ret;
 }
 
-// Specializations of toString and stringTo for select vector-types assuming seperating whitespace
+// Specializations of toString and stringTo for select vector-types assuming seperating semicolon
 #define STRING_UTIL_VECTOR_SPECIALIZATION(TYPE) \
-	template <> inline std::string toString<>(const std::vector<TYPE>& in) {return vectorToString(in);} \
-	template <> inline std::vector<TYPE> stringTo<>(const std::string& in) {return stringToVector<TYPE>(in);}
+	template <> inline std::string toString<>(const std::vector<TYPE>& in) {return vectorToString(in,";");} \
+	template <> inline std::vector<TYPE> stringTo<>(const std::string& in) {return stringToVector<TYPE>(in,';');}
 
 STRING_UTIL_VECTOR_SPECIALIZATION(bool)
 STRING_UTIL_VECTOR_SPECIALIZATION(int)

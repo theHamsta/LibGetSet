@@ -17,8 +17,8 @@
 //  limitations under the License.
 //
 
-#ifndef __GetSetSettingsWindow.h
-#define __GetSetSettingsWindow.h
+#ifndef __GetSetSettingsWindow_h
+#define __GetSetSettingsWindow_h
 
 #include "GetSetWidget.h"
 
