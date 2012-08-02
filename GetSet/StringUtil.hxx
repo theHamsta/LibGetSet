@@ -48,8 +48,8 @@ template <> inline std::string stringTo<>(const std::string& in) { return in; }
 template <> inline std::string toString<>(const bool& in) { return in ? "true" : "false"; }
 template <> inline bool stringTo<>(const std::string& in)
 {
+	if (in=="" || in=="false" || in=="no") return false;
 	if (in=="true" || in=="yes") return true;
-	if (in=="false" || in=="no") return false;
 	return stringTo<int>(in)>0;
 }
 

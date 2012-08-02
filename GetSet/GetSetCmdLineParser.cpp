@@ -46,7 +46,7 @@ bool GetSetCmdLineParser::parse(int argc, char **argv)
 			else
 			{
 				// It really is a flag and the argument is up next
-				if (flag[0]!='-')
+				if (flag[0]=='-')
 				{
 					if (i==argc-1)
 					{
@@ -164,7 +164,7 @@ void GetSetCmdLineParser::flagAutoSection(const std::string& section, bool inclu
 		flagAuto(section,it->first,includeSectionInFlag);
 }
 
-void GetSetCmdLineParser::flagUnnamed(int index, const std::string& section, const std::string& key)
+void GetSetCmdLineParser::flagIndexed(int index, const std::string& section, const std::string& key)
 {
 	flags[toString(index)]=StringPair(section,key);
 }

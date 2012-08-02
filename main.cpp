@@ -2,6 +2,7 @@
 
 #include "GetSet/GetSet.hxx"
 #include "GetSetGui/GetSetSettingsWindow.h"
+#include "GetSet/GetSetCmdLineParser.h"
 
 #include <iostream>
 
@@ -19,45 +20,34 @@ int main(int argc, char** argv)
 	GetSet<int>("Test 1", "Number of Iterations")=13;
 	int nIterations=GetSet<int>("Test 1", "Number of Iterations"); // == 13
 	
-	//
-	// Special types, such as Directory, File, Slider, Enum, Trigger etc...
-	//
-	
-	// Creating a Slider:
-	GetSetGui::Slider("Test 1", "Some Double Value").setMin(-5);
-	GetSetGui::Slider("Test 1", "Some Double Value").setMax(2.1);
 
 	// Creating a button
 	GetSetGui::Trigger("Test 1", "XML")="Print to cout";
 
-	// Files and directories
-	GetSetGui::Directory("Test 2", "Some Directory");	
-	GetSetGui::File out("Test 2", "Output File");
-	out.setExtensions("Images (*.jpg *.png)");
-	out.setCreateNew(true);
 
-	// Setting Values via GetSet<...>, also for special types
-	GetSet<std::string>("Test 2", "Some Directory")="./out";
-	GetSet<double>("Test 1", "Some Double Value")=0.5;
-	
-	//GetSetCmdLineParser cmd/*(dictionary,autoAll)*/;
-	//cmd.flagShort("o","Test 2","Some Directory");
-	//cmd.flagLong("output-dir","Test 2","Some Directory");
-	//cmd.flagAuto("Test 1","Some Directory", addSectionName);
-	//cmd.flagAutoSection("Test 1", addSectionName);
-	//cmd.flagUnnamed(0,"Test 1","Some Directory");
-	//cmd.require<std::string>("Test 1","Some Directory");
-	//bool okay=cmd.parse(argc,argv);
-	//cmd.getUnnamedArgs()[2];
-	//cmd.getUnhandledArgs()[0];
-	//cmd.parse();
-	//cmd.getXML();
+	GetSet<std::string>("Test 2", "Some Directory")="./out"; // Value is preserved when type changes to Directory
+
+	// Files and directories
+	GetSetGui::Directory("Test 2", "Some Directory");
 
 
 	//
 	// Listing to Events
 	//
 	GetSetHandler callback(gui);
+
+	//
+	// Command Line Interface
+	//
+	
+	GetSetCmdLineParser cmd(false);
+
+	cmd.flagAuto("Test 1","Number of Iterations");
+	cmd.flag("-o","Test 2","Some Directory");
+	cmd.require("Test 2","Some Directory");
+	cmd.flagIndexed(0,"Test 2", "Input File");
+
+	cmd.parse(argc,argv);
 
 	//
 	// Automatically generate a GUI (in this case using Qt)

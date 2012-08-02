@@ -57,12 +57,10 @@ public:
 		GetSetDataInterface* p=dict.getDatainterface(section,key);
 		GetSetData<BasicType>* sameType=dynamic_cast<GetSetData<BasicType>*>(p);
 		if (sameType)
-		{
 			sameType->value=v;
-			dict.signalChange(section,key);
-		}
 		else
 			p->setString(toString(v));
+		dict.signalChange(section,key);
 	}
 
 	/// Get the value of a GetSet property (same as: please use cast operator)
