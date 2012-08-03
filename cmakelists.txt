@@ -13,14 +13,7 @@ find_package(Qt4 REQUIRED)
 include(${QT_USE_FILE})
 add_definitions(${QT_DEFINITIONS})
 
-### (SUB-)LIBRARIES
-
-# The headerfiles of GetSet and GetSetGui libraries reside in their respective subdirs
-include_directories(.)
-
-# GetSet and GetSetGui Libraries
-add_subdirectory(./GetSet "${CMAKE_CURRENT_BINARY_DIR}/GetSet")
-add_subdirectory(./GetSetGui "${CMAKE_CURRENT_BINARY_DIR}/GetSetGui")
+include_directories("${PROJECT_SOURCE_DIR}")
 
 ### CLI EXECUTABLE
 
@@ -31,8 +24,12 @@ add_executable(GetSetCLI
 add_dependencies(GetSetCLI GetSet GetSetGui)
 target_link_libraries(GetSetCLI GetSet GetSetGui ${QT_LIBRARIES})
 
+# GetSet and GetSetGui Libraries
+add_subdirectory(./GetSet "${CMAKE_CURRENT_BINARY_DIR}/GetSet")
+add_subdirectory(./GetSetGui "${CMAKE_CURRENT_BINARY_DIR}/GetSetGui")
+
 # Define install location for the CLI destinations
-install(TARGETS GetSetCLI EXPORT GetSetLibraryDepends RUNTIME DESTINATION "${CMAKE_INSTALL_PREFIX}/bin")  
+install(TARGETS GetSetCLI EXPORT GetSetDepends RUNTIME DESTINATION "${CMAKE_INSTALL_PREFIX}/bin")  
 
 ### INSTALLER
 
@@ -51,8 +48,9 @@ export(TARGETS GetSet GetSetGui GetSetCLI FILE "${PROJECT_BINARY_DIR}/GetSetDepe
 export(PACKAGE GetSet)
 
 # Configure build tree paths and version
-#configure_file(GetSetBuildTreeSettings.cmake.in "${PROJECT_BINARY_DIR}/GetSetBuildTreeSettings.cmake" @ONLY)
-#configure_file(GetSetConfigVersion.cmake.in "${PROJECT_BINARY_DIR}/GetSetConfigVersion.cmake" @ONLY)
+configure_file(GetSetBuildTreeSettings.cmake.in "${PROJECT_BINARY_DIR}/GetSetBuildTreeSettings.cmake" @ONLY)
+configure_file(GetSetConfigVersion.cmake.in "${PROJECT_BINARY_DIR}/GetSetConfigVersion.cmake" @ONLY)
 
 # Install the export set for use with the install-tree (creates .cmake files in installation)
-install(EXPORT GetSetLibraryDepends DESTINATION "${CMAKE_INSTALL_PREFIX}" COMPONENT dev)
+install(EXPORT GetSetDepends DESTINATION "${CMAKE_INSTALL_PREFIX}" COMPONENT dev)
+install(FILES "${PROJECT_BINARY_DIR}/GetSetConfig.cmake" DESTINATION "${CMAKE_INSTALL_PREFIX}" COMPONENT dev)
