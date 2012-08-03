@@ -14,7 +14,7 @@ else()
 endif()
 
 # Our library dependencies (contains definitions for IMPORTED targets)
-include("${GETSET_CMAKE_DIR}/GetSetLibraryDepends.cmake")
+include("${GETSET_CMAKE_DIR}/GetSetDepends.cmake")
 
 # These are IMPORTED targets created by GetSetLibraryDepends.cmake
 set(GETSET_LIBRARIES GetSet GetSetGui)

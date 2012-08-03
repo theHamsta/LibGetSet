@@ -13,6 +13,9 @@ add_library(GetSetGui STATIC
 
 # GetSetGui depends on GetSet
 add_dependencies(GetSetGui GetSet)
-# define installation destinations
-install(FILES GetSetWidget.h GetSetSettingsWindow.h DESTINATION include/GetSetGui)
-install(TARGETS GetSetGui RUNTIME DESTINATION bin LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
+
+# Define headers to install
+set_target_properties(GetSetGui PROPERTIES PUBLIC_HEADER "GetSetWidget.h;GetSetSettingsWindow.h")
+
+# Define installation destinations
+install(TARGETS GetSetGui LIBRARY DESTINATION lib ARCHIVE DESTINATION lib PUBLIC_HEADER DESTINATION include/GetSetGui)

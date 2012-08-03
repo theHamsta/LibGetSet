@@ -24,7 +24,7 @@ add_subdirectory(./GetSetGui "${CMAKE_CURRENT_BINARY_DIR}/GetSetGui")
 
 ### CLI EXECUTABLE
 
-# GetSetTest
+# GetSetCLI: tool to create a GUI from an xml-file to configure command line apps
 add_executable(GetSetCLI
 	main.cpp
 )
@@ -32,8 +32,8 @@ add_dependencies(GetSetCLI GetSet GetSetGui)
 target_link_libraries(GetSetCLI GetSet GetSetGui ${QT_LIBRARIES})
 
 # Define install location for the CLI destinations
-install(TARGETS GetSetCLI EXPORT GetSetLibraryDepends RUNTIME DESTINATION "${PROJECT_BINARY_DIR}/bin" LIBRARY DESTINATION "${PROJECT_BINARY_DIR}/lib" ARCHIVE DESTINATION "${PROJECT_BINARY_DIR}/lib")  
- 
+install(TARGETS GetSetCLI EXPORT GetSetLibraryDepends RUNTIME DESTINATION "${CMAKE_INSTALL_PREFIX}/bin")  
+
 ### INSTALLER
 
 # Build a CPack driven installer package
@@ -44,29 +44,15 @@ set (CPACK_PACKAGE_VERSION_MINOR ${GetSet_VERSION_MINOR})
 include (CPack)
 
 ### SOURCE DISTRIBUTION (find_package)
- 
-# Make relative paths absolute (FIXME: why?)
-foreach(p LIB BIN INCLUDE CMAKE)
-set(var INSTALL_${p}_DIR)
-if(NOT IS_ABSOLUTE "${${var}}")
-set(${var} "${CMAKE_INSTALL_PREFIX}/${${var}}")
-endif()
-endforeach()
 
 # Add all targets to the build-tree export set
 export(TARGETS GetSet GetSetGui GetSetCLI FILE "${PROJECT_BINARY_DIR}/GetSetDepends.cmake")
-
-# Export the package for use from the build-tree
-# (this registers the build-tree with a global CMake-registry)
+# This registers the build-tree with a global CMake-registry
 export(PACKAGE GetSet)
- 
-# Create a GetSetBuildTreeSettings.cmake file for the use from the build tree
-configure_file(GetSetBuildTreeSettings.cmake.in "${PROJECT_BINARY_DIR}/GetSetBuildTreeSettings.cmake" @ONLY)
 
-# Create the GetSetConfig.cmake and GetSetConfigVersion files
-file(RELATIVE_PATH CONF_REL_INCLUDE_DIR "${INSTALL_CMAKE_DIR}" "${INSTALL_INCLUDE_DIR}")
-configure_file(GetSetConfigVersion.cmake.in "${PROJECT_BINARY_DIR}/GetSetConfigVersion.cmake" @ONLY)
- 
-# Install the export set for use with the install-tree
-#install(EXPORT GetSetLibraryDepends DESTINATION "${INSTALL_DATA_DIR}/GetSet/CMake" COMPONENT dev)
-install(EXPORT GetSetLibraryDepends DESTINATION "${INSTALL_CMAKE_DIR}/GetSet/CMake" COMPONENT dev)
+# Configure build tree paths and version
+#configure_file(GetSetBuildTreeSettings.cmake.in "${PROJECT_BINARY_DIR}/GetSetBuildTreeSettings.cmake" @ONLY)
+#configure_file(GetSetConfigVersion.cmake.in "${PROJECT_BINARY_DIR}/GetSetConfigVersion.cmake" @ONLY)
+
+# Install the export set for use with the install-tree (creates .cmake files in installation)
+install(EXPORT GetSetLibraryDepends DESTINATION "${CMAKE_INSTALL_PREFIX}" COMPONENT dev)

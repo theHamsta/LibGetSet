@@ -101,8 +101,8 @@ inline void ltrim(std::string& str, const std::string& t = " \t")
 /// Trim
 inline void trim(std::string& str, const std::string& t = " \t")
 {
-	ltrim(str,t);
 	rtrim(str,t);
+	ltrim(str,t);
 } 
 
 /// Remove the part right of last occurence of delim and return it
