@@ -40,14 +40,16 @@ int main(int argc, char** argv)
 	// Command Line Interface
 	//
 	
-	GetSetCmdLineParser cmd(false);
+	GetSetCmdLineParser().parse(argc,argv);
 
-	cmd.flagAuto("Test 1","Number of Iterations");
-	cmd.flag("-o","Test 2","Some Directory");
-	cmd.require("Test 2","Some Directory");
-	cmd.flagIndexed(0,"Test 2", "Input File");
+	//GetSetCmdLineParser cmd(false);
 
-	cmd.parse(argc,argv);
+	//cmd.flagAuto("Test 1","Number of Iterations");
+	//cmd.flag("-o","Test 2","Some Directory");
+	//cmd.require("Test 2","Some Directory");
+	//cmd.flagIndexed(0,"Test 2", "Input File");
+
+	//cmd.parse(argc,argv);
 
 	//
 	// Automatically generate a GUI (in this case using Qt)

@@ -1,4 +1,5 @@
-add_library(GetSet 
+# build GetSet library
+add_library(GetSet STATIC 
 	GetSet.hxx
 	GetSetDictionary.h
 	GetSetDictionary.cpp
@@ -8,3 +9,7 @@ add_library(GetSet
 	tinyxml2.h
 	tinyxml2.cpp
 )
+
+# define install destinations
+install(FILES GetSet.hxx StringUtil.hxx GetSetDictionary.h GetSetCmdLineParser.h DESTINATION include/GetSet)
+install(TARGETS GetSet RUNTIME DESTINATION bin LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)

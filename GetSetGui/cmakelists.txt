@@ -1,11 +1,18 @@
+# Qt requires moc-ing
 set(GetSetGui_QOBJ_H GetSetWidget.h GetSetSettingsWindow.h )
 QT4_WRAP_CPP(GetSetGui_MOC ${GetSetGui_QOBJ_H})
 
-add_library(GetSetGui
+# build library
+add_library(GetSetGui STATIC
 	GetSetWidget.h
 	GetSetWidget.cpp
 	GetSetSettingsWindow.h
 	GetSetSettingsWindow.cpp
 	${GetSetGui_MOC}
 )
+
+# GetSetGui depends on GetSet
 add_dependencies(GetSetGui GetSet)
+# define installation destinations
+install(FILES GetSetWidget.h GetSetSettingsWindow.h DESTINATION include/GetSetGui)
+install(TARGETS GetSetGui RUNTIME DESTINATION bin LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
