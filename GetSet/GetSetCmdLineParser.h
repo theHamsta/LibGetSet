@@ -26,13 +26,16 @@
 class GetSetCmdLineParser {
 public:
 	typedef std::pair<std::string, std::string> StringPair;
-	typedef std::map<std::string, StringPair >	MapStrStrPair;
+	typedef std::map<std::string, StringPair>	MapStrStrPair;
 
+	/// Construct a GetSetCmdLineParser. If autoAll is specified, all GetSet properties will be automatically added with a long flag --section-key.
 	GetSetCmdLineParser(bool autoAll=true, GetSetDictionary& dictionary=GetSetDictionary::globalDictionary());
 
 	/// Parse command line arguments. Set properties for all section/key pairs as defined by calls to flag*(...) or XML
-	bool parse(int argc, char **argv);
+	bool parse(int argc, char **argv, bool printSynopsisOnFailure=true);
 
+	/// A brief text listing all command line flags
+	std::string synopsis() const;
 
 	/// Returns an XML that defines the command line flags as defined by calls to flag*(...) or XML
 	std::string getXML() const;
@@ -49,10 +52,24 @@ public:
 
 	// Define Flag is the same as instantiating GetSet<type>(section,key) prior to calling flag(cmdflag,section,key)
 	template <typename BasicType>
-	void defineFlag(const std::string& cmdflag, const std::string& section, const std::string& key)
+	GetSetCmdLineParser& defineFlag(const std::string& cmdflag, const std::string& section, const std::string& key, bool required=false)
 	{
 		GetSet<BasicType>(section,key);
 		flag(cmdflag,section,key);
+		if (required)
+			require(section, key);
+		return *this;
+	}
+
+	// Define an unnamed command line argument.
+	template <typename BasicType>
+	GetSetCmdLineParser& defineIndex(int idx , const std::string& section, const std::string& key, bool required=false)
+	{
+		GetSet<BasicType>(section,key);
+		flag(toString(idx),section,key);
+		if (required)
+			require(section, key);
+		return *this;
 	}
 	
 	/// Define a command line flag for a section/key pair. flag can be shortflag eg. "-o" or long flag eg. "--output-dir" but should always start with '-'

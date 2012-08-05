@@ -63,7 +63,7 @@ public:
 		dict.signalChange(section,key);
 	}
 
-	/// Get the value of a GetSet property (same as: please use cast operator)
+	/// Get the value of a GetSet property (please use cast operator)
 	const BasicType getValue() const
 	{
 		using namespace GetSetInternal;
@@ -141,11 +141,28 @@ public:
 	void set##TAG(const TYPE& value) { dict.get()[section][key]->attributes[#TAG]=toString(value); }		\
 	TYPE get##TAG() const {return stringTo<TYPE>(dict.get()[section][key]->attributes[#TAG]);}
 
+// The Enum class is a little more complex, because it has features of both GetSet<std::string> and GetSet<int>
+#define GETSET_ENUM_CODE																					\
+	GETSET_TAG(std::vector<std::string>, Choices)															\
+	void setChoices(const std::string& value) { dict.get()[section][key]->attributes["Choices"]=value; }	\
+	inline void operator=(const std::string& v) { setString(v); }											\
+	inline operator std::string() const { return getString(); }												\
+	virtual std::string getString() const { return getChoices()[getValue()]; }								\
+	virtual void setString(const std::string& in) {															\
+		std::vector<std::string> c=getChoices();															\
+		for (int i=0;i<(int)c.size();i++)																	\
+			if (c[i]==in) {																					\
+				setValue(i);																				\
+				return;																						\
+			}																								\
+		setValue(stringTo<int>(in));																		\
+	}
+
+/// A pulldown menu with a number of choices.
+GETSET_SPECIALIZATION(Enum,int, GETSET_ENUM_CODE)
+
 /// A GetSet&lt;double&gt; with additional range information, so that it could be represented as a slider
 GETSET_SPECIALIZATION(Slider,double, GETSET_TAG(double, Min) GETSET_TAG(double, Max) )
-
-/// A pulldown menu with a number of choices
-GETSET_SPECIALIZATION(Enum,int,GETSET_TAG(std::vector<std::string>, Choices) virtual std::string getString() const { return getChoices()[getValue()]; } )
 
 /// A button
 GETSET_SPECIALIZATION(Trigger,std::string, void action() {dict.signalChange(section,key);} )
@@ -157,11 +174,13 @@ GETSET_SPECIALIZATION(StaticText,std::string, )
 GETSET_SPECIALIZATION(ReadOnlyText,std::string, )
 
 /// A directory
-GETSET_SPECIALIZATION(Directory,std::string, );
+GETSET_SPECIALIZATION(Directory,std::string, )
 
 /// A file (or multiple semicolon seperated files if Multiple is set). Extensions is astring such as "Images (*.png *.xpm *.jpg);;All files (*)"
-GETSET_SPECIALIZATION(File,std::string, GETSET_TAG(std::string,Extensions) GETSET_TAG(bool, CreateNew) GETSET_TAG(bool, Multiple) );
+GETSET_SPECIALIZATION(File,std::string, GETSET_TAG(std::string,Extensions) GETSET_TAG(bool, CreateNew) GETSET_TAG(bool, Multiple) )
 
+
+#undef GETSET_ENUM_CODE
 #undef GETSET_SPECIALIZATION
 #undef GETSET_TAG
 

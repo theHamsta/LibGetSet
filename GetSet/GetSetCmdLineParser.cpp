@@ -16,13 +16,19 @@ GetSetCmdLineParser::GetSetCmdLineParser(bool autoAll, GetSetDictionary& diction
 // Main function: parse the command line
 //
 
-bool GetSetCmdLineParser::parse(int argc, char **argv)
+bool GetSetCmdLineParser::parse(int argc, char **argv, bool printSynopsisOnFailure)
 {
 	for (int i=1;i<argc;i++)
 	{
 		std::string arg;
 		// Make sure the next on argv is a flag and starts with '-'
-		std::string flag=argv[i];;
+		std::string flag=argv[i];
+		if (flag=="--xml")
+		{
+			std::string xml=getXML();
+			std::cout << xml;
+			exit(0); // the app shouldn't do anything else
+		}
 		if (flag[0]!='-')
 		{
 			// We expected a flag but found an unnamed argument
@@ -30,7 +36,6 @@ bool GetSetCmdLineParser::parse(int argc, char **argv)
 			flag=toString(unnamedArgs.size());
 			unnamedArgs.push_back(arg);
 		}
-
 		// arg is actually a command line flag
 		if (flags.find(flag)!=flags.end())
 		{
@@ -70,8 +75,45 @@ bool GetSetCmdLineParser::parse(int argc, char **argv)
 		else
 			unhandledArgs.push_back(StringPair(arg, (i==argc-1) ? "" : argv[++i]));
 	}
-	return unhandledArgs.empty() && required.empty();
+	bool success=unhandledArgs.empty() && required.empty();
+	// Some information if parsing failed. 2do nicer and more standard output formatting
+	if (!success && printSynopsisOnFailure)
+	{
+		std::cerr << "Faile to parse command line arguments.\n";
+		if (!required.empty())
+		{
+			std::cerr << "The following required arguments were not provided:\n";
+			for (std::map<std::string,std::set<std::string> >::iterator it=required.begin();it!=required.end();++it)
+				for (std::set<std::string>::iterator it2=it->second.begin();it2!=it->second.end();++it2)
+					std::cerr << "[" << it->first << "]" << *it2 << "\n";
+		}
+		if (!unhandledArgs.empty())
+		{
+			std::cerr << "The following arguments were not recognized:\n";
+			for (std::vector<StringPair>::iterator it=unhandledArgs.begin();it!=unhandledArgs.end();++it)
+				std::cerr << it->first << ":" << it->second;
+		}
+		std::cout << "Known Arguments:\n" << synopsis();
+
+	}
+	return success;
 }
+
+std::string GetSetCmdLineParser::synopsis() const
+{
+	std::string ret;
+	for (MapStrStrPair::const_iterator it=flags.begin();it!=flags.end();++it)
+	{
+		const std::string& section=it->second.first;
+		const std::string& key=it->second.second;
+		std::map<std::string,std::set<std::string> >::const_iterator rit=required.find(section);
+		bool r=(rit!=required.end() && rit->second.find(key)!= rit->second.end());
+		if (r) ret+=it->first + ": [" + section + "]" + key + "\n";
+		else ret+="(" + it->first + " [" + section + "]" + key + ")\n";
+	}
+	return ret;
+}
+
 
 //
 // XML support
@@ -87,15 +129,14 @@ std::string GetSetCmdLineParser::getXML() const
 		std::map<std::string,std::set<std::string> >::const_iterator rit=required.find(section);
 		bool r=(rit!=required.end() && rit->second.find(key)!= rit->second.end());
 		xml << "<CommandLineFlag "
-			<< "Section=\"" << it->first
+			<< "Section=\"" << section
 			<< "\" Key=\"" << key
-			<< "\" Type=\"" << (dict.getDatainterface(section,key) ? dict.getDatainterface(section,key)->getType() : GetSetInternal::getTypeName<std::string>())
 			<< "\" Required=\"" << toString(r)
-			<< ">";
+			<< "\">";
 		xml << it->first;
 		xml << "</CommandLineFlag>\n";
 	}
-	return xml.str();
+	return dict.getXML()+"\n"+xml.str();
 }
 
 void GetSetCmdLineParser::parseXML(const std::string& xml)

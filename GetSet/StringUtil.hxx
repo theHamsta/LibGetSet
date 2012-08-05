@@ -163,4 +163,22 @@ std::vector<std::pair<int,std::string> > inline
 	return ret;
 }
 
+inline void fileWriteString(const std::string& filename, const std::string& contents)
+{
+	std::ofstream file(filename.c_str());
+	file << contents;
+	file.close();
+}
+
+inline std::string fileReadString(const std::string filename)
+{
+	std::ifstream file(filename.c_str());
+	if (!file.is_open() && file.good())
+		return "";
+	std::string all;
+	getline(file,all,'\0');
+	file.close();
+	return all;
+}
+
 #endif // __StringUtil_hxx

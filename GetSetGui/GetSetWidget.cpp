@@ -247,6 +247,14 @@ void GetSetWidget::notifyCreate(const std::string& section, const std::string& k
 			connect(button, SIGNAL(clicked()), this, SLOT(selectFolder()));
 		m_layout->addRow(key.c_str(),item);
 	}
+	else if (dynamic_cast<GetSetDataReadOnlyText*>(p)!=0x0)
+	{
+		QLineEdit* item=new QLineEdit(p->getString().c_str());
+		m_owned[key]=item;
+		item->setObjectName(key.c_str());
+		item->setEnabled(false);
+		m_layout->addRow(key.c_str(),item);
+	}
 	else if (p)
 	{
 		QLineEdit* item=new QLineEdit(p->getString().c_str());

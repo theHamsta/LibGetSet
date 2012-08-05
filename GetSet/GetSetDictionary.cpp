@@ -72,6 +72,7 @@ namespace GetSetInternal {
 		GETSET_SPECIAL_TYPE_STR(Enum)
 		GETSET_SPECIAL_TYPE_STR(Trigger)
 		GETSET_SPECIAL_TYPE_STR(StaticText)
+		GETSET_SPECIAL_TYPE_STR(ReadOnlyText)
 		GETSET_SPECIAL_TYPE_STR(Directory)
 		GETSET_SPECIAL_TYPE_STR(File)
 		return param;
