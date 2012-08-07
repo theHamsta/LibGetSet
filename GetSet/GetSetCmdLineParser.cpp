@@ -4,6 +4,8 @@
 
 #include "tinyxml2.h"
 
+#define SAFE_STR(X) ( X==0 ? "" : X)
+
 GetSetCmdLineParser::GetSetCmdLineParser(bool autoAll, GetSetDictionary& dictionary)
 	: dict(dictionary)
 {
@@ -18,6 +20,7 @@ GetSetCmdLineParser::GetSetCmdLineParser(bool autoAll, GetSetDictionary& diction
 
 bool GetSetCmdLineParser::parse(int argc, char **argv, bool printSynopsisOnFailure)
 {
+
 	for (int i=1;i<argc;i++)
 	{
 		std::string arg;
@@ -29,7 +32,7 @@ bool GetSetCmdLineParser::parse(int argc, char **argv, bool printSynopsisOnFailu
 			std::cout << xml;
 			exit(0); // the app shouldn't do anything else
 		}
-		if (flag[0]!='-')
+		if (!flag.empty() && flag[0]!='-')
 		{
 			// We expected a flag but found an unnamed argument
 			arg=flag;
@@ -44,9 +47,7 @@ bool GetSetCmdLineParser::parse(int argc, char **argv, bool printSynopsisOnFailu
 			GetSetInternal::GetSetDataInterface *p=dict.getDatainterface(section,key);
 			std::string type;
 			if (p) type=p->getType();
-			if (type=="bool") // booleans are inverted. No argument value needed
-				GetSet<bool>(section,key)=!GetSet<bool>(section,key);
-			else if (type=="Trigger") // triggers are just called. No argument value needed either
+			if (type=="Trigger") // triggers are just called. No argument value needed either
 				GetSetGui::Trigger(section,key).action();
 			else
 			{
@@ -97,6 +98,7 @@ bool GetSetCmdLineParser::parse(int argc, char **argv, bool printSynopsisOnFailu
 
 	}
 	return success;
+	
 }
 
 std::string GetSetCmdLineParser::synopsis() const
@@ -147,18 +149,19 @@ void GetSetCmdLineParser::parseXML(const std::string& xml)
 	tinyxml2::XMLElement* node = t.FirstChildElement();
 	while (node)
 	{
-		if (node->Name()=="CommandLineFlag")
+		std::string tag=node->Name();
+		if (tag=="CommandLineFlag")
 		{
-			std::string section=node->Attribute("Section");
-			std::string key=node->Attribute("Key");
-			std::string type=node->Attribute("Type");
+			std::string section=SAFE_STR(node->Attribute("Section"));
+			std::string key=SAFE_STR(node->Attribute("Key"));
+			std::string type=SAFE_STR(node->Attribute("Type"));
 			std::string cmdflag=node->GetText();
-			GetSetInternal::declareProperty(section,key,type);
+			if (!type.empty())
+				GetSetInternal::declareProperty(section,key,type);
 			flag(cmdflag,section,key);
 		}
 		node=node->NextSiblingElement();
 	}
-
 }
 
 //
@@ -213,4 +216,9 @@ void GetSetCmdLineParser::flagIndexed(int index, const std::string& section, con
 void GetSetCmdLineParser::require(const std::string& section, const std::string& key)
 {
 	required[section].insert(key);
+}
+
+const GetSetCmdLineParser::MapStrStrPair& GetSetCmdLineParser::getFlags() const
+{
+	return flags;
 }

@@ -88,6 +88,10 @@ public:
 	/// Tells the parser that this property is not optional. If its value is not specified, parse(...) will return false.
 	void require(const std::string& section, const std::string& key);
 
+
+	/// Access to flags for advanced uses
+	const MapStrStrPair& getFlags() const;
+
 protected:
 	/// Stores all Flags (and numbers for indexed params) together with a section/key pair
 	MapStrStrPair				flags;

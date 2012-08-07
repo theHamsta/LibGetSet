@@ -23,9 +23,7 @@
 #include "GetSet.hxx"
 
 
-///////////////////////////////////
 // Global Dictionary
-
 GetSetDictionary& GetSetDictionary::globalDictionary()
 {
 	static GetSetDictionary global;
@@ -87,14 +85,16 @@ namespace GetSetInternal {
 
 void GetSetDictionary::loadSection(tinyxml2::XMLElement* node, const std::string& section)
 {
+	#define SAFE_STR(X) ( X==0 ? "" : X)
 	while (node)
 	{
 		std::string kind=node->Name();
 		if (kind=="Key")
 		{
-			std::string key=node->Attribute("Name");
-			std::string type=node->Attribute("Type");
-			std::string value=node->GetText();
+
+			std::string key=SAFE_STR(node->Attribute("Name"));
+			std::string type=SAFE_STR(node->Attribute("Type"));
+			std::string value=SAFE_STR(node->GetText());
 			// Type selection (create some type of GetSetData provided by "Type" attribute)
 			GetSetInternal::GetSetDataInterface* param=GetSetInternal::declareProperty(section,key,type);
 			if (param==0x0)
@@ -102,7 +102,7 @@ void GetSetDictionary::loadSection(tinyxml2::XMLElement* node, const std::string
 				std::cerr << "Unknown Type \"" << type << "\" ignored. Using std::string!" << std::endl;
 				param=new GetSetInternal::GetSetData<std::string>();
 			}
-			// add to dictionary6
+			// add to dictionary
 			param->setString(value);
 			if (properties[section].find(key) != properties[section].end())
 				delete properties[section][key];
@@ -191,7 +191,7 @@ void GetSetDictionary::parseIni(const std::string& ini)
 		getline(linestr,value,'\0');
 		trim(key);
 		trim(value);
-		GetSet<std::string>(section,key)=value;
+		GetSet<std::string>(*this,section,key)=value;
 	} // for lines
 }
 

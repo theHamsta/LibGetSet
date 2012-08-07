@@ -72,7 +72,7 @@ template <typename T> inline std::vector<T> stringToVector(const std::string& in
 	std::istringstream str(in);
 	for (;std::getline(str,item,delim);str&&!str.eof())
 		ret.push_back(stringTo<T>(item));
-	if (item.empty()) ret.pop_back();
+	if (item.empty()&&!ret.empty()) ret.pop_back();
 	return ret;
 }
 
