@@ -6,7 +6,7 @@
 
 # Compute paths
 get_filename_component(GETSET_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
-set(GETSET_INCLUDE_DIRS "${GETSET_CMAKE_DIR}/include")
+set(GETSET_INCLUDE_DIRS "${GETSET_CMAKE_DIR}/GetSet" "${GETSET_CMAKE_DIR}/GetSetGui" "${GETSET_CMAKE_DIR}/")
 
 # Our library dependencies (contains definitions for IMPORTED targets)
 include("${GETSET_CMAKE_DIR}/GetSetDepends.cmake")

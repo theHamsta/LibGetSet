@@ -17,16 +17,23 @@ include_directories("${PROJECT_SOURCE_DIR}")
 
 ### CLI EXECUTABLE
 
+# GetSetConfig: tool to configure ini-Files based on an XML-description
+add_executable(GetSetConfig
+	main_xml.cpp
+)
+add_dependencies(GetSetConfig GetSet GetSetGui)
+target_link_libraries(GetSetConfig GetSet GetSetGui ${QT_LIBRARIES})
+
 # GetSetCLI: tool to create a GUI from an xml-file to configure command line apps
 add_executable(GetSetCLI
-	main.cpp
+	main_cli.cpp
 )
 add_dependencies(GetSetCLI GetSet GetSetGui)
 target_link_libraries(GetSetCLI GetSet GetSetGui ${QT_LIBRARIES})
 
 # An example using GetSet for command line input, no Qt needed. GUI can be generated with GetSetCLI.
 add_executable(CLITestApp
-	main_cli.cpp
+	main_test.cpp
 )
 add_dependencies(CLITestApp GetSet GetSetGui)
 target_link_libraries(CLITestApp GetSet)
@@ -36,7 +43,7 @@ add_subdirectory(./GetSet "${CMAKE_CURRENT_BINARY_DIR}/GetSet")
 add_subdirectory(./GetSetGui "${CMAKE_CURRENT_BINARY_DIR}/GetSetGui")
 
 # Define install location for the CLI destinations
-install(TARGETS GetSetCLI EXPORT GetSetDepends RUNTIME DESTINATION "${CMAKE_INSTALL_PREFIX}/bin")  
+install(TARGETS GetSetConfig GetSetCLI CLITestApp EXPORT GetSetDepends RUNTIME DESTINATION "${CMAKE_INSTALL_PREFIX}/bin")  
 
 ### INSTALLER
 
