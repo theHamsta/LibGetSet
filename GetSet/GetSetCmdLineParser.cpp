@@ -157,7 +157,7 @@ void GetSetCmdLineParser::parseXML(const std::string& xml)
 			std::string type=SAFE_STR(node->Attribute("Type"));
 			std::string cmdflag=node->GetText();
 			if (!type.empty())
-				GetSetInternal::declareProperty(section,key,type);
+				dict.declare(section,key,type);
 			flag(cmdflag,section,key);
 		}
 		node=node->NextSiblingElement();

@@ -54,7 +54,7 @@ GetSetDictionary::Dictionary& GetSetDictionary::get()
 namespace GetSetInternal {
 #define GETSET_DATA_TYPE_STR(X) if (type==#X) param=new GetSetData<X>();
 #define GETSET_SPECIAL_TYPE_STR(X)   if (type==#X) param=new GetSetData##X();
-	GetSetDataInterface* declareProperty(const std::string& section, const std::string& key, const std::string& type)
+	GetSetDataInterface* createDataInterface(const std::string& type)
 	{
 		GetSetInternal::GetSetDataInterface * param=0x0;
 		GETSET_DATA_TYPE_STR(bool)
@@ -96,7 +96,7 @@ void GetSetDictionary::loadSection(tinyxml2::XMLElement* node, const std::string
 			std::string type=SAFE_STR(node->Attribute("Type"));
 			std::string value=SAFE_STR(node->GetText());
 			// Type selection (create some type of GetSetData provided by "Type" attribute)
-			GetSetInternal::GetSetDataInterface* param=GetSetInternal::declareProperty(section,key,type);
+			GetSetInternal::GetSetDataInterface* param=GetSetInternal::createDataInterface(type);
 			if (param==0x0)
 			{
 				std::cerr << "Unknown Type \"" << type << "\" ignored. Using std::string!" << std::endl;
@@ -145,6 +145,7 @@ std::string GetSetDictionary::getXML() const
 	tinyxml2::XMLPrinter printer;
 	for (Dictionary::const_iterator sectionit=properties.begin();sectionit!=properties.end();++sectionit)
 	{
+		if (sectionit->second.empty()) continue;
 		const std::string& section(sectionit->first);
 		printer.OpenElement("Section");
 		printer.PushAttribute("Name",section.c_str());
@@ -223,6 +224,22 @@ GetSetDictionary::~GetSetDictionary()
 {
 	while(!properties.empty())
 		clear(properties.begin()->first);
+}
+
+bool GetSetDictionary::declare(const std::string& section, const std::string& key, const std::string& type)
+{
+	GetSetInternal::GetSetDataInterface* new_param=GetSetInternal::createDataInterface(type);
+	GetSetInternal::GetSetDataInterface* old_param=getDatainterface(section,key);
+	if (!new_param) return false;
+	if (old_param)
+	{
+		new_param->setString(old_param->getString());
+		signalDestroy(section,key);
+		delete old_param;
+	}
+	properties[section][key]=new_param;
+	signalCreate(section,key);
+	return true;
 }
 
 void GetSetDictionary::erase(const std::string& section, const std::string& key)

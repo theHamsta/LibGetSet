@@ -77,7 +77,7 @@ namespace GetSetInternal {
 	DEFINE_TYPE_NAME_STRING(std::vector<int>)
 
 	/// Try to create a property by the type provided as string. returns null on failure.
-	GetSetDataInterface* declareProperty(const std::string& section, const std::string& key, const std::string& type);
+	GetSetDataInterface* createDataInterface(const std::string& type);
 
 } // GetSetInternal
 
@@ -106,7 +106,10 @@ public:
 	/// Returns a string with all values in Ini-file format
 	std::string		getIni() const;
 
-	/// Remove a single parameter from the dictionary
+	/// Declare a type for a property. Returns false if type is unknown
+	bool declare(const std::string& section, const std::string& key, const std::string& type);
+
+	/// Remove a single property from the dictionary
 	void erase(const std::string& section, const std::string& key);
 
 	/// Clear a section in this dictionary, deleting all its properties

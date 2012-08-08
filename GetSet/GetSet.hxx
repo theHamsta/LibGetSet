@@ -147,7 +147,10 @@ public:
 	void setChoices(const std::string& value) { dict.get()[section][key]->attributes["Choices"]=value; }	\
 	inline void operator=(const std::string& v) { setString(v); }											\
 	inline operator std::string() const { return getString(); }												\
-	virtual std::string getString() const { return getChoices()[getValue()]; }								\
+	virtual std::string getString() const {																	\
+		std::vector<std::string> c=getChoices();int i=getValue();											\
+		if (i<0||i>=(int)c.size()) return ""; else return c[i];												\
+	}																										\
 	virtual void setString(const std::string& in) {															\
 		std::vector<std::string> c=getChoices();															\
 		for (int i=0;i<(int)c.size();i++)																	\

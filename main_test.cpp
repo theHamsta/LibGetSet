@@ -40,9 +40,6 @@ int main(int argc, char** argv)
 // Just some properties for demo purposes
 void defineSomeArgs()
 {
-
-
-
 	// Define some differently typed properties
 	GetSet<int>("Bla Settings","Negative Value")=-456;
 	GetSet<bool>("Bla Settings","Boolean Value")=false;

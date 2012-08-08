@@ -10,8 +10,12 @@ add_library(GetSet STATIC
 	tinyxml2.cpp
 )
 
+# set version of the library
+set_target_properties(GetSet PROPERTIES VERSION ${GETSET_VERSION})
+
 # Define headers to install
 set_target_properties(GetSet PROPERTIES PUBLIC_HEADER "GetSet.hxx;GetSetDictionary.h;GetSetCmdLineParser.h;StringUtil.hxx")
 
 # define install destinations
-install(TARGETS GetSet RUNTIME DESTINATION bin LIBRARY DESTINATION lib ARCHIVE DESTINATION lib PUBLIC_HEADER DESTINATION include/GetSet)
+#install(TARGETS GetSet RUNTIME DESTINATION bin LIBRARY DESTINATION lib ARCHIVE DESTINATION lib PUBLIC_HEADER DESTINATION ${INCLUDE_INSTALL_DIR}/GetSet)
+install(TARGETS GetSet EXPORT GetSetExport LIBRARY DESTINATION ${LIB_INSTALL_DIR} ARCHIVE DESTINATION ${LIB_INSTALL_DIR} RUNTIME DESTINATION ${BIN_INSTALL_DIR} PUBLIC_HEADER DESTINATION ${INCLUDE_INSTALL_DIR}/GetSet )
