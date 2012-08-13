@@ -19,6 +19,7 @@
 
 #include "GetSetSettingsWindow.h"
 
+#include <QtGui/QApplication>
 
 #include <QtGui/QTabWidget>
 #include <QtGui/QPushButton>
@@ -28,6 +29,18 @@
 // debug
 #include <iostream>
 
+
+int GetSetSettingsWindow::runQtApp(const std::string& windowTitle, int argc, char **argv)
+{
+	QApplication app(argc,argv);
+
+	GetSetSettingsWindow window;
+	window.setWindowTitle(windowTitle.c_str());
+	window.setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::CustomizeWindowHint | Qt::WindowSystemMenuHint);
+	window.show();
+	
+	return app.exec();
+}
 
 void GetSetSettingsWindow::create(GetSetDictionary& dict, const std::vector<std::string>& tabs)
 {

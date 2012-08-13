@@ -1,7 +1,14 @@
-get_filename_component(myDir ${CMAKE_CURRENT_LIST_FILE} PATH)
-get_filename_component(rootDir ${myDir} ABSOLUTE)
+get_filename_component(myDir ${CMAKE_CURRENT_LIST_FILE} PATH) # get the directory where I myself am
+get_filename_component(rootDir ${myDir} ABSOLUTE) # get the chosen install prefix
 
-# include directories
+# set the version of myself
+set(GETSET_VERSION_MAJOR 0)
+set(GETSET_VERSION_MINOR 9)
+set(GETSET_VERSION_PATCH )
+set(GETSET_VERSION ${GETSET_VERSION_MAJOR}.${GETSET_VERSION_MINOR}.${GETSET_VERSION_PATCH} )
+
+# what is my include directory
+# set(GETSET_INCLUDE_DIRS "${rootDir}/include")
 set(GETSET_INCLUDE_DIRS "${rootDir}/" "${rootDir}/GetSet" "${rootDir}/GetSetGui")
 
 # import the exported targets
