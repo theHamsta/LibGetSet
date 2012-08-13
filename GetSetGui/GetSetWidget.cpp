@@ -130,11 +130,12 @@ void GetSetWidget::destroy()
 	if (layout())
 	{
 		QLayoutItem* item;
-		while ( ( item = layout()->takeAt( 0 ) ) != NULL )
-		{
-			delete item->widget();
-			delete item;
-		}
+		//while ( ( ) != NULL )
+		//{
+		//	item = layout()->takeAt(0);
+		//	delete item->widget();
+		//	delete item;
+		//}
 		delete layout();
 	}
 	m_owned.clear();
