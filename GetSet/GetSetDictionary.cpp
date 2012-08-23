@@ -1,323 +1,67 @@
-//
-//  Library: GetSet
-//  c++ library for load/saving *typed* and *named* properties and automatic GUI.
-//  
-//  Copyright (c) by André Aichert (aaichert@gmail.com)
-//    
-//  Licensed under the Apache License, Version 2.0 (the "License");
-//  you may not use this file except in compliance with the License.
-//  You may obtain a copy of the License at
-//  
-//    http://www.apache.org/licenses/LICENSE-2.0
-//    
-//  Unless required by applicable law or agreed to in writing, software
-//  distributed under the License is distributed on an "AS IS" BASIS,
-//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//  See the License for the specific language governing permissions and
-//  limitations under the License.
-//
-
 #include "GetSetDictionary.h"
 
-#include "tinyxml2.h"
-#include "GetSet.hxx"
-
-
-// Global Dictionary
-GetSetDictionary& GetSetDictionary::globalDictionary()
-{
-	static GetSetDictionary global;
-	return global;
-}
 
 //
-// Dictionary Implementation
+// GetSetDictionary
 //
 
-GetSetInternal::GetSetDataInterface* GetSetDictionary::getDatainterface(const std::string& section, const std::string& key) const
+GetSetDictionary* GetSetDictionary::_instance=0x0;
+
+GetSetDictionary::GetSetDictionary()
+	// "this" is the root of a tree and all nodes hold a reference to the root, including the root itself.
+	// This is correct as long as GetSetSection(...) only stores the reference for later use.
+	: GetSetSection("",*this)
+{}
+
+GetSetDictionary::~GetSetDictionary() {}
+	
+void GetSetDictionary::save(GetSetInternal::GetSetInOut& file) const
 {
-	Dictionary::const_iterator secit=properties.find(section);
-	if (secit==properties.end())
-		return 0x0;
-	Section::const_iterator keyit=secit->second.find(key);
-	if (keyit==secit->second.end())
-		return 0x0;
-	else
-		return keyit->second;
+	GetSetSection::save(file);
 }
 
-GetSetDictionary::Dictionary& GetSetDictionary::get()
+void GetSetDictionary::load(GetSetInternal::GetSetInOut& file)
 {
-	return properties;
+	file.retreiveAll(*this);
 }
 
-namespace GetSetInternal {
-#define GETSET_DATA_TYPE_STR(X) if (type==#X) param=new GetSetData<X>();
-#define GETSET_SPECIAL_TYPE_STR(X)   if (type==#X) param=new GetSetData##X();
-	GetSetDataInterface* createDataInterface(const std::string& type)
-	{
-		GetSetInternal::GetSetDataInterface * param=0x0;
-		GETSET_DATA_TYPE_STR(bool)
-		GETSET_DATA_TYPE_STR(int)
-		GETSET_DATA_TYPE_STR(unsigned)
-		GETSET_DATA_TYPE_STR(float)
-		GETSET_DATA_TYPE_STR(double)
-		GETSET_DATA_TYPE_STR(std::string)
-		GETSET_DATA_TYPE_STR(std::vector<std::string>)
-		GETSET_DATA_TYPE_STR(std::vector<double>)
-		GETSET_DATA_TYPE_STR(std::vector<int>)
-		GETSET_SPECIAL_TYPE_STR(Slider)
-		GETSET_SPECIAL_TYPE_STR(Enum)
-		GETSET_SPECIAL_TYPE_STR(Trigger)
-		GETSET_SPECIAL_TYPE_STR(StaticText)
-		GETSET_SPECIAL_TYPE_STR(ReadOnlyText)
-		GETSET_SPECIAL_TYPE_STR(Directory)
-		GETSET_SPECIAL_TYPE_STR(File)
-		return param;
-	}
-#undef GETSET_PARAM_FOR_TYPE_STR
-#undef GETSET_SPECIAL_TYPE_STR
-} // namespace 
+GetSetDictionary& GetSetDictionary::global()
+{
+	if (!_instance) _instance=new GetSetDictionary;
+	return *_instance;
+}
+
 
 //
-// XML support GetSetInternal
+// GetSetDictionary::Observer
 //
 
-void GetSetDictionary::loadSection(tinyxml2::XMLElement* node, const std::string& section)
+GetSetDictionary::Observer::Observer(GetSetDictionary& d)
+	: GetSetInternal::Access(d)
 {
-	#define SAFE_STR(X) ( X==0 ? "" : X)
-	while (node)
-	{
-		std::string kind=node->Name();
-		if (kind=="Key")
-		{
-
-			std::string key=SAFE_STR(node->Attribute("Name"));
-			std::string type=SAFE_STR(node->Attribute("Type"));
-			std::string value=SAFE_STR(node->GetText());
-			// Type selection (create some type of GetSetData provided by "Type" attribute)
-			GetSetInternal::GetSetDataInterface* param=GetSetInternal::createDataInterface(type);
-			if (param==0x0)
-			{
-				std::cerr << "Unknown Type \"" << type << "\" ignored. Using std::string!" << std::endl;
-				param=new GetSetInternal::GetSetData<std::string>();
-			}
-			// add to dictionary
-			param->setString(value);
-			if (properties[section].find(key) != properties[section].end())
-				delete properties[section][key];
-			const tinyxml2::XMLAttribute* attrib=node->FirstAttribute();
-			// special attributes
-			while (attrib)
-			{
-				if (std::string(attrib->Name())!="Name" && std::string(attrib->Name())!="Type")
-					param->attributes[attrib->Name()]=attrib->Value();
-				attrib=attrib->Next();
-			}
-			// finish up
-			properties[section][key]=param;
-			signalCreate(section,key);
-			signalChange(section,key);
-		}
-		else if (kind=="Section")
-		{
-			std::string subsection=section;
-			if (!subsection.empty()) subsection.push_back('.');
-			subsection+=node->Attribute("Name");
-			loadSection(node->FirstChildElement(),subsection);
-		}
-		node=node->NextSiblingElement();
-	}
-}
-
-
-void GetSetDictionary::parseXML(const std::string& xml)
-{
-	tinyxml2::XMLDocument t;
-	t.Parse(xml.c_str());
-	std::string section, key, value;
-	tinyxml2::XMLElement* node = t.FirstChildElement();	
-	loadSection(node);
-}
-
-std::string GetSetDictionary::getXML() const
-{
-	tinyxml2::XMLPrinter printer;
-	for (Dictionary::const_iterator sectionit=properties.begin();sectionit!=properties.end();++sectionit)
-	{
-		if (sectionit->second.empty()) continue;
-		const std::string& section(sectionit->first);
-		printer.OpenElement("Section");
-		printer.PushAttribute("Name",section.c_str());
-		for (Section::const_iterator keyit=sectionit->second.begin();keyit!=sectionit->second.end();++keyit)
-		{
-			const std::string& key(keyit->first);
-			const GetSetInternal::GetSetDataInterface& p(*(keyit->second));
-			printer.OpenElement("Key");
-			printer.PushAttribute("Name",key.c_str());
-			printer.PushAttribute("Type",p.getType().c_str());
-			for (std::map<std::string,std::string>::const_iterator tag=p.attributes.begin();tag!=p.attributes.end(); ++tag)
-				printer.PushAttribute(tag->first.c_str(),tag->second.c_str());
-			printer.PushText(p.getString().c_str());	
-			printer.CloseElement();
-		}
-		printer.CloseElement();
-	}
-	return printer.CStr();
-}
-
-//
-// ini-File support
-//
-
-void GetSetDictionary::parseIni(const std::string& ini)
-{
-	std::string section="Global";
-	std::istringstream strstr(ini);
-	for (int lineNumber=0; !strstr.eof(); lineNumber++)
-	{
-		std::string line;
-		getline(strstr,line,'\n');
-		// ignore comments and empty lines
-		if (line.length()<2 || line[0]=='#' || (line[0]=='/' && line[1]=='/') )
-			continue;
-		if (line[0]=='[')
-		{
-			section=line.substr(1,line.length()-2);
-			continue;
-		}
-		std::istringstream linestr(line);
-		std::string key,value;
-		getline(linestr,key,'=');
-		getline(linestr,value,'\0');
-		trim(key);
-		trim(value);
-		GetSet<std::string>(*this,section,key)=value;
-	} // for lines
-}
-
-std::string GetSetDictionary::getIni() const
-{
-	std::ostringstream ini;
-	for (Dictionary::const_iterator it=properties.begin();it!=properties.end();++it)
-	{
-		ini << "\n[" << it->first << "]\n\n";
-		const Section& s(it->second);
-		for (Section::const_iterator pit=s.begin();pit!=s.end();++pit)
-		{
-			const GetSetInternal::GetSetDataInterface& property(*(pit->second));
-			if (property.attributes.find("SaveToFile")!=property.attributes.end()
-				&& property.getType()!="Trigger" && property.getType()!="StaticText")
-					continue; // skip Triggers and StaticText
-			ini << pit->first << " = " << property.getString() << "\n";
-		}
-		ini << "\n\n";
-	}
-	return ini.str();
-}
-
-//
-// Cleaning up
-//
-
-GetSetDictionary::~GetSetDictionary()
-{
-	while(!properties.empty())
-		clear(properties.begin()->first);
-}
-
-bool GetSetDictionary::declare(const std::string& section, const std::string& key, const std::string& type)
-{
-	GetSetInternal::GetSetDataInterface* new_param=GetSetInternal::createDataInterface(type);
-	GetSetInternal::GetSetDataInterface* old_param=getDatainterface(section,key);
-	if (!new_param) return false;
-	if (old_param)
-	{
-		new_param->setString(old_param->getString());
-		signalDestroy(section,key);
-		delete old_param;
-	}
-	properties[section][key]=new_param;
-	signalCreate(section,key);
-	return true;
-}
-
-void GetSetDictionary::erase(const std::string& section, const std::string& key)
-{
-	Dictionary::iterator s=properties.find(section);
-	if (s!=properties.end())
-	{
-		Section::iterator p=s->second.find(key);
-		if (p!=s->second.end())
-		{
-			delete p->second;
-			s->second.erase(p);
-			signalDestroy(section,key);
-			if (s->second.empty())
-			{
-				properties.erase(s);
-				signalDestroy(section);
-			}
-		}
-	}
-}
-
-void GetSetDictionary::clear(const std::string& section)
-{
-	Dictionary::iterator it=properties.find(section);
-	if (it!=properties.end())
-		for (Section::iterator keyit=it->second.begin();keyit!=it->second.end();++keyit)
-		{
-			delete keyit->second;
-			signalDestroy(section,keyit->first);
-		}
-	signalDestroy(section);
-	properties.erase(it);
-}
-
-//
-// Signal/Observer implementation
-// 
-
-void GetSetDictionary::signalChange(const std::string& section,const std::string& key)
-{
-	for (std::set<Observer*>::const_iterator it=registered_observers.begin();it!=registered_observers.end();++it)
-		(*it)->notifyChange(section,key);
-}
-
-void GetSetDictionary::signalCreate(const std::string& section,const std::string& key)
-{
-	for (std::set<Observer*>::const_iterator it=registered_observers.begin();it!=registered_observers.end();++it)
-		(*it)->notifyCreate(section,key);
-}
-
-void GetSetDictionary::signalDestroy(const std::string& section,const std::string& key)
-{
-	for (std::set<Observer*>::const_iterator it=registered_observers.begin();it!=registered_observers.end();++it)
-		(*it)->notifyDestroy(section,key);
-}
-
-GetSetDictionary::Observer::Observer(GetSetDictionary& subject) : dict(subject)
-{
-	dict.registered_observers.insert(this);
+	d.registered_observers.insert(this);
 }
 
 GetSetDictionary::Observer::~Observer()
 {
-	dict.registered_observers.erase(this);
+	dictionary.registered_observers.erase(this);
 }
 
-GetSetHandler::GetSetHandler(void (*change)(const std::string&,const std::string&))
-	: GetSetDictionary::Observer(GetSetDictionary::globalDictionary())
+//
+// GetSetHandler
+//
+
+GetSetHandler::GetSetHandler(void (*change)(const std::string& section, const std::string& key))
+	: GetSetDictionary::Observer(GetSetDictionary::global())
 	, change_handler(change)
 {}
-	
-GetSetHandler::GetSetHandler(GetSetDictionary& subject, void (*change)(const std::string&,const std::string&))
+
+GetSetHandler::GetSetHandler(GetSetDictionary& subject, void (*change)(const std::string& section, const std::string& key))
 	: GetSetDictionary::Observer(subject)
 	, change_handler(change)
 {}
 
-void GetSetHandler::notifyChange(const std::string& s,const std::string& k)
+void GetSetHandler::notifyChange(const std::string& section, const std::string& key)
 {
-	if (change_handler) change_handler(s,k);
+	change_handler(section,key);
 }

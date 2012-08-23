@@ -1,21 +1,17 @@
-# build GetSet library
-add_library(GetSet STATIC 
-	GetSet.hxx
-	GetSetDictionary.h
-	GetSetDictionary.cpp
-	GetSetCmdLineParser.h
-	GetSetCmdLineParser.cpp
-	StringUtil.hxx
-	tinyxml2.h
-	tinyxml2.cpp
-)
+cmake_minimum_required(VERSION 2.8)
 
-# set version of the library
+set(GETSET_HEADERS "StringUtil.hxx;GetSet.hxx;GetSetDictionary.h;GetSetInternal.h;GetSetFile.h;GetSetXML.h;GetSetCmdLine.h")
+
+add_library(GetSet
+	${GETSET_HEADERS}
+	GetSetDictionary.cpp
+	GetSetInternal.cpp
+	GetSetFile.cpp
+	GetSetXML.cpp
+	GetSetCmdLine.cpp
+)
 set_target_properties(GetSet PROPERTIES VERSION ${GETSET_VERSION})
 
-# Define headers to install
-set_target_properties(GetSet PROPERTIES PUBLIC_HEADER "GetSet.hxx;GetSetDictionary.h;GetSetCmdLineParser.h;StringUtil.hxx")
+install(FILES ${GETSET_HEADERS} DESTINATION ${INCLUDE_INSTALL_DIR}/GetSet )
 
-# define install destinations
-#install(TARGETS GetSet RUNTIME DESTINATION bin LIBRARY DESTINATION lib ARCHIVE DESTINATION lib PUBLIC_HEADER DESTINATION ${INCLUDE_INSTALL_DIR}/GetSet)
-install(TARGETS GetSet EXPORT GetSetExport LIBRARY DESTINATION ${LIB_INSTALL_DIR} ARCHIVE DESTINATION ${LIB_INSTALL_DIR} RUNTIME DESTINATION ${BIN_INSTALL_DIR} PUBLIC_HEADER DESTINATION ${INCLUDE_INSTALL_DIR}/GetSet )
+install(TARGETS GetSet EXPORT GetSetExport ARCHIVE DESTINATION ${LIB_INSTALL_DIR})

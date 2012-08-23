@@ -19,8 +19,6 @@
 
 #include "GetSetSettingsWindow.h"
 
-#include <QtGui/QApplication>
-
 #include <QtGui/QTabWidget>
 #include <QtGui/QPushButton>
 #include <QtGui/QVBoxLayout>
@@ -29,18 +27,6 @@
 // debug
 #include <iostream>
 
-
-int GetSetSettingsWindow::runQtApp(const std::string& windowTitle, int argc, char **argv)
-{
-	QApplication app(argc,argv);
-
-	GetSetSettingsWindow window;
-	window.setWindowTitle(windowTitle.c_str());
-	window.setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::CustomizeWindowHint | Qt::WindowSystemMenuHint);
-	window.show();
-	
-	return app.exec();
-}
 
 void GetSetSettingsWindow::create(GetSetDictionary& dict, const std::vector<std::string>& tabs)
 {
@@ -62,32 +48,25 @@ void GetSetSettingsWindow::create(GetSetDictionary& dict, const std::vector<std:
 
 }
 
-GetSetSettingsWindow::GetSetSettingsWindow(GetSetDictionary& dict, const std::vector<std::string>& tabs, const std::string& title, QWidget *parent)
-	:QWidget(parent)
+GetSetSettingsWindow::GetSetSettingsWindow(const std::string& path, GetSetDictionary& dict ,const std::string& title, const std::string& listOfTabs, QWidget *parent)
+	: QWidget(parent)
+	, Access(dict)
 {
 	setWindowTitle(title.c_str());
-	if (tabs.empty())
-	{
-		std::vector<std::string> all;
-		for (GetSetDictionary::Dictionary::iterator it=dict.get().begin();it!=dict.get().end();++it)
-			all.push_back(it->first);
-		create(dict,all);
-	}
-	else
-		create(dict,tabs);
-}
 
-GetSetSettingsWindow::GetSetSettingsWindow(const std::vector<std::string>& tabs, const std::string& title, QWidget *parent)
-	:QWidget(parent)
-{
-	setWindowTitle(title.c_str());
-	GetSetDictionary& dict(GetSetDictionary::globalDictionary());
+	std::vector<std::string> tabs=stringToVector<std::string>(listOfTabs,';');
+
 	if (tabs.empty())
 	{
 		std::vector<std::string> all;
-		for (GetSetDictionary::Dictionary::iterator it=dict.get().begin();it!=dict.get().end();++it)
-			all.push_back(it->first);
-		create(dict,all);
+		GetSetInternal::GetSetSection * section=dynamic_cast<GetSetInternal::GetSetSection *>(Access::getProperty(path));
+		if (section)
+		{
+			for (GetSetInternal::GetSetSection::PropertyByName::const_iterator it=section->getSection().begin();it!=section->getSection().end();++it)
+				if (dynamic_cast<GetSetInternal::GetSetSection *>(it->second))
+					all.push_back(it->first);
+			create(dict,all);
+		}
 	}
 	else
 		create(dict,tabs);

@@ -1,97 +1,44 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.6.4)
 
-### PROJECT VERSION
-
-project(GetSet CXX)
+### PROJECT AND VERSION
+project(GetSet)
 set(GETSET_VERSION_MAJOR 0)
 set(GETSET_VERSION_MINOR 9)
-set(GETSET_VERSION ${GETSET_VERSION_MAJOR}.${GETSET_VERSION_MINOR} )
-
-# set up install directories. INCLUDE_INSTALL_DIR and LIB_INSTALL_DIR must not be absolute paths
-set(LIB_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/lib )
-#set(CMAKECONFIG_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/cmake/GetSet ) 
-set(CMAKECONFIG_INSTALL_DIR ${CMAKE_INSTALL_PREFIX} )
-set(INCLUDE_INSTALL_DIR include )
-set(BIN_INSTALL_DIR bin)
+set(GETSET_VERSION_PATCH 1)
+set(GETSET_VERSION ${GETSET_VERSION_MAJOR}.${GETSET_VERSION_MINOR}.${GETSET_VERSION_PATCH} )
 
 ### EXTERNAL DEPENDENCIES
-
 find_package(Qt4 REQUIRED)
-
 include(${QT_USE_FILE})
 add_definitions(${QT_DEFINITIONS})
 
-include_directories("${PROJECT_SOURCE_DIR}")
+### DIRECTORIES
+# INCLUDE_INSTALL_DIR and LIB_INSTALL_DIR must not be absolute paths
+set(LIB_INSTALL_DIR_SUFFIX "")
+# CACHE STRING "The directories where to install libraries to")
+set(LIB_INSTALL_DIR lib${LIB_INSTALL_DIR_SUFFIX})
+set(CMAKECONFIG_INSTALL_DIR ${LIB_INSTALL_DIR}) 
 
-### CLI/Config EXECUTABLES
+set(INCLUDE_INSTALL_DIR "include")
+set(BIN_INSTALL_DIR "bin")
 
-# GetSetConfig: tool to configure ini-Files based on an XML-description
-add_executable(GetSetConfig
-	main_xml.cpp
-)
-add_dependencies(GetSetConfig GetSet GetSetGui)
-target_link_libraries(GetSetConfig GetSet GetSetGui ${QT_LIBRARIES})
+### SOURCE CODE
+add_subdirectory(GetSet)
+add_subdirectory(GetSetGui)
+#add_subdirectory(GetSetFactory)
+add_subdirectory(Apps)
 
-# GetSetCLI: tool to create a GUI from an xml-file to configure command line apps
-add_executable(GetSetCLI
-	main_cli.cpp
-)
-add_dependencies(GetSetCLI GetSet GetSetGui)
-target_link_libraries(GetSetCLI GetSet GetSetGui ${QT_LIBRARIES})
-
-# An example using GetSet for command line input, no Qt needed. GUI can be generated with GetSetCLI.
-add_executable(CLITestApp
-	main_test.cpp
-)
-add_dependencies(CLITestApp GetSet GetSetGui)
-target_link_libraries(CLITestApp GetSet)
-
-# GetSet and GetSetGui Libraries
-add_subdirectory(./GetSet "${CMAKE_CURRENT_BINARY_DIR}/GetSet")
-add_subdirectory(./GetSetGui "${CMAKE_CURRENT_BINARY_DIR}/GetSetGui")
-
-### INSTALLER
-
-# Build a CPack driven installer package
-include (InstallRequiredSystemLibraries)
-set (CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/License.txt")
-set (CPACK_PACKAGE_VERSION_MAJOR ${GETSET_VERSION_MAJOR})
-set (CPACK_PACKAGE_VERSION_MINOR ${GETSET_VERSION_MINOR})
-include (CPack)
-
-### SOURCE DISTRIBUTION (find_package)
-
-# This registers the build-tree with a global CMake-registry
-export(PACKAGE GetSet)
-
-# Configure version
-configure_file(GetSetConfigVersion.cmake.in "${PROJECT_BINARY_DIR}/GetSetConfigVersion.cmake" @ONLY)
-
-# Define binaries to install
-install(TARGETS GetSetConfig GetSetCLI CLITestApp EXPORT GetSetExport RUNTIME DESTINATION "${CMAKE_INSTALL_PREFIX}/${BIN_INSTALL_DIR}")  
-
-# This "exports" all targets which have been put into the export set "GetSetExport".
-# This means that cmake generates a file with the given filename, which can later on be loaded
-# by projects using this package.
-# This file contains add_library(GetSet IMPORTED) statements for each target in the export set, so
-# when loaded later on cmake will create "imported" library targets from these, which can be used
-# in many ways in the same way as a normal library target created via a normal add_library().
+# Export all targets into the export set "GetSetExport".
 install(EXPORT GetSetExport DESTINATION ${CMAKECONFIG_INSTALL_DIR} FILE GetSetTargets.cmake )
 
-# figure out the relative path from the installed Config.cmake file to the install prefix (which may be at
-# runtime different from the chosen CMAKE_INSTALL_PREFIX if under Windows the package was installed anywhere)
-# This relative path will be configured into the GetSetConfig.cmake
+# figure out the relative path from the installed Config.cmake file to the install prefix
 file(RELATIVE_PATH relInstallDir ${CMAKE_INSTALL_PREFIX}/${CMAKECONFIG_INSTALL_DIR} ${CMAKE_INSTALL_PREFIX} )
 
-# Create a GetSetConfig.cmake file. <name>Config.cmake files are searched by find_package()
-# automatically. We configure that file so that we can put any information we want in it,
-# e.g. version numbers, include directories, etc.
+# Create GetSetConfig.cmake and GetSetConfigVersion.cmake files for find_package()
 configure_file(GetSetConfig.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/GetSetConfig.cmake @ONLY )
-
-# Additionally, when cmake has found a GetSetConfig.cmake, it can check for a GetSetConfigVersion.cmake
-# in the same directory when figuring out the version of the package when a version
-# has been specified in the find_package() call, e.g. find_package(GetSet 0.9)
 configure_file(GetSetConfigVersion.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/GetSetConfigVersion.cmake @ONLY )
 
 # Install these two files into the same directory as the generated exports-file.
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/GetSetConfig.cmake ${CMAKE_CURRENT_BINARY_DIR}/GetSetConfigVersion.cmake DESTINATION ${CMAKECONFIG_INSTALL_DIR} )
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/GetSetConfigVersion.cmake ${CMAKE_CURRENT_BINARY_DIR}/GetSetConfigVersion.cmake DESTINATION ${CMAKECONFIG_INSTALL_DIR})
+
+### Installer 2do

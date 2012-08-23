@@ -20,11 +20,18 @@
 #ifndef __StringUtil_hxx
 #define __StringUtil_hxx
 
+#include <algorithm>
 #include <iostream>
 #include <iomanip>
 #include <sstream>
 #include <fstream>
 #include <vector>
+
+/// Reset value (call constructor or zeros c-types, see specializations)
+template <typename T> inline void reset(T& v)
+{
+	v=T();
+}
 
 // Type general conversion to string
 template <typename T> inline std::string toString(const T& in)
@@ -38,6 +45,7 @@ template <typename T> inline std::string toString(const T& in)
 template <typename T> inline T stringTo(const std::string& in)
 {
 	T value;
+	reset(value);
 	std::istringstream strstr(in);
 	strstr >> value;
 	return value;
@@ -77,14 +85,15 @@ template <typename T> inline std::vector<T> stringToVector(const std::string& in
 }
 
 // Specializations of toString and stringTo for select vector-types assuming seperating semicolon
-#define STRING_UTIL_VECTOR_SPECIALIZATION(TYPE) \
+#define GETSET_DEFINE_TYPE(TYPE) \
 	template <> inline std::string toString<>(const std::vector<TYPE>& in) {return vectorToString(in,";");} \
 	template <> inline std::vector<TYPE> stringTo<>(const std::string& in) {return stringToVector<TYPE>(in,';');}
+GETSET_DEFINE_TYPE(std::string)
+#include "GetSetBaseTypes.h"
 
-STRING_UTIL_VECTOR_SPECIALIZATION(bool)
-STRING_UTIL_VECTOR_SPECIALIZATION(int)
-STRING_UTIL_VECTOR_SPECIALIZATION(double)
-STRING_UTIL_VECTOR_SPECIALIZATION(std::string)
+// Specializations
+#define GETSET_DEFINE_TYPE(X)  template<> inline void reset<X>(X& v) {v=0;}
+#include "GetSetBaseTypes.h"
 
 /// Right trim
 inline void rtrim(std::string &str , const std::string& t = " \t")
@@ -123,11 +132,29 @@ inline std::string splitRight(std::string& str, const std::string& delim)
 	return right;
 }
 
+/// Remove the part left of first occurence of delim and return it
+inline std::string splitLeft(std::string& str, const std::string& delim)
+{
+	std::string::size_type loc=str.find_first_of(delim);
+	std::string left;
+	if (loc!=std::string::npos)
+	{
+		left=str.substr(0,loc);
+		str=str.substr(loc+1,std::string::npos);
+	}
+	else
+	{
+		left=str;
+		str.clear();
+	}
+	return left;
+}
+
 /// Remove filename from an absolute path and return it
 inline std::string splitNameFromPath(std::string& path)
 {
 	std::string name=splitRight(path,"/\\");
-	if (path.empty()) path=".";
+	if (path.empty()) path="/";
 	return name;
 }
 
@@ -141,7 +168,7 @@ template <typename T> inline std::string toString(T in, int width, char fill='0'
 
 /// Scan for files matching path pattern prefix###postfix, where ### is a number between 0 and max
 std::vector<std::pair<int,std::string> > inline
-	listFileNameEnum(std::string prefix, std::string postfix, int width, int minidx=0, int maxidx=0)
+	listFileNames(std::string prefix, std::string postfix, int width, int minidx=0, int maxidx=0)
 {
 	if (maxidx==0)
 	{
@@ -163,6 +190,7 @@ std::vector<std::pair<int,std::string> > inline
 	return ret;
 }
 
+/// write text to file
 inline void fileWriteString(const std::string& filename, const std::string& contents)
 {
 	std::ofstream file(filename.c_str());
@@ -170,6 +198,7 @@ inline void fileWriteString(const std::string& filename, const std::string& cont
 	file.close();
 }
 
+/// Read a complete text file
 inline std::string fileReadString(const std::string filename)
 {
 	std::ifstream file(filename.c_str());
@@ -180,5 +209,38 @@ inline std::string fileReadString(const std::string filename)
 	file.close();
 	return all;
 }
+
+/// Make all lower-case no whitespace strings
+inline void normalize(std::string& name)
+{
+	std::transform(name.begin(),name.end(),name.begin(),tolower);
+	std::replace(name.begin(),name.end(),' ','-');
+	std::replace(name.begin(),name.end(),'/','-');
+}
+
+/// Parse XML-Style attributes into an std::map of strings
+inline void parseAttribs(const std::string& in, std::map<std::string,std::string>& out)
+{
+	int pos=0;
+	std::string key,value;
+	for (;;)
+	{
+		int next=in.find("=",pos);
+		int v1=in.find("\"",next);
+		int v2=in.find("\"",v1+1);
+		if (next<0||v1<0||v2<0)
+			return;
+		if (v2>0)
+		{
+			key=in.substr(pos,next-pos);
+			value=in.substr(v1+1,v2-v1-1);
+			trim(key);
+			trim(value);
+			out[key]=value;
+			pos=v2+1;
+		}
+	}
+}
+
 
 #endif // __StringUtil_hxx

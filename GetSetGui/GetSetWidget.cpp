@@ -30,21 +30,22 @@
 #include <QtGui/QSpinBox>
 #include <QtGui/QFileDialog>
 #include <QtGui/QHBoxLayout>
+#include <QtGui/QKeyEvent>
 
-#include "GetSet/GetSet.hxx"
+#include "../GetSet/GetSet.hxx"
 
 #include <iostream>
 
 void GetSetWidget::trigger()
 {
 	std::string key=sender()->objectName().toAscii().data();
-	dict.signalChange(m_section,key);
+	signalChange(m_section,key);
 }
 
 void GetSetWidget::selectFile()
 {
 	std::string key=sender()->objectName().toAscii().data();
-	GetSetGui::File file(dict,m_section,key);
+	GetSetGui::File file(m_section,key,dictionary);
 	std::string path;
 	QString currentDir=QFileInfo(QFile(file.getString().c_str())).absoluteDir().absolutePath();
 //	QString extensions=vectorToString(file.getExtensions(),";;").c_str();
@@ -72,11 +73,21 @@ void GetSetWidget::selectFile()
 void GetSetWidget::selectFolder()
 {
 	std::string key=sender()->objectName().toAscii().data();
-	GetSetGui::Directory folder(dict,m_section,key);
+	GetSetGui::Directory folder(m_section,key,dictionary);
 	QString path = QFileDialog::getExistingDirectory(this, "Select A Directory",folder.getString().c_str());
 	if ( path.isNull())
 		return;
 	folder=path.toAscii().data();
+}
+
+void GetSetWidget::openSubSection()
+{
+	std::string key=sender()->objectName().toAscii().data();
+	std::string section=m_section.empty()?key:m_section+"/"+key;
+	GetSetWidget* w=new GetSetWidget(dictionary, section);
+	w->setAttribute(Qt::WA_DeleteOnClose, true);
+	w->setWindowFlags(Qt::Tool);
+	w->show();
 }
 
 void GetSetWidget::editingFinished()
@@ -85,14 +96,16 @@ void GetSetWidget::editingFinished()
 	QLineEdit* l=dynamic_cast<QLineEdit*>(sender());
 	if (!l) return;
 	std::string value=l->text().toStdString();
-	GetSet<std::string>(dict,m_section,key)=value;
+	GetSet<std::string> property(m_section,key,dictionary);
+	if (property.getString()!=value)
+		property=value;
 }
 
 void GetSetWidget::sliderMoved(int value)
 {
 	if (m_expectChange) { m_expectChange=0; return; }
 	std::string key=sender()->objectName().toAscii().data();
-	GetSetGui::Slider slider(dict,m_section,key);
+	GetSetGui::Slider slider(m_section,key,dictionary);
 	double	d=(double)value/1000.;
 	slider=d;
 }
@@ -100,13 +113,13 @@ void GetSetWidget::sliderMoved(int value)
 void GetSetWidget::setValue(int value)
 {
 	std::string key=sender()->objectName().toAscii().data();
-	GetSet<std::string>(dict,m_section,key)=toString(value);
+	GetSet<std::string>(m_section,key,dictionary)=toString(value);
 }
 
 void GetSetWidget::setValue(const QString& value)
 {
 	std::string key=sender()->objectName().toAscii().data();
-	GetSet<std::string>(dict,m_section,key)=value.toAscii().data();
+	GetSet<std::string>(m_section,key,dictionary)=value.toAscii().data();
 }
 
 void GetSetWidget::init()
@@ -117,7 +130,9 @@ void GetSetWidget::init()
 
 	setLayout(m_layout);
 
-	for (std::map<std::string,GetSetInternal::GetSetDataInterface*>::iterator it=dict.get()[m_section].begin();it!=dict.get()[m_section].end();++it)
+	GetSetInternal::GetSetSection * section=(GetSetInternal::GetSetSection *)Access::getProperty(m_section);
+
+	for (GetSetInternal::GetSetSection::PropertyByName::const_iterator it=section->getSection().begin();it!=section->getSection().end();++it)
 	{
 		this->notifyCreate(m_section, it->first);
 		this->notifyChange(m_section, it->first);
@@ -128,16 +143,7 @@ void GetSetWidget::init()
 void GetSetWidget::destroy()
 {
 	if (layout())
-	{
-		QLayoutItem* item;
-		//while ( ( ) != NULL )
-		//{
-		//	item = layout()->takeAt(0);
-		//	delete item->widget();
-		//	delete item;
-		//}
 		delete layout();
-	}
 	m_owned.clear();
 }
 
@@ -156,7 +162,13 @@ GetSetWidget::~GetSetWidget()
 
 GetSetDictionary& GetSetWidget::getDictionary()
 {
-	return dict;
+	return dictionary;
+}
+
+void GetSetWidget::keyPressEvent(QKeyEvent *e)
+{
+    if (e->key() == Qt::Key_Escape && parentWidget()==0x0)
+		close();
 }
 
 void GetSetWidget::notifyCreate(const std::string& section, const std::string& key)
@@ -166,12 +178,33 @@ void GetSetWidget::notifyCreate(const std::string& section, const std::string& k
 	QObject* anything = m_layout->findChild<QObject*>(key.c_str());
 	if (anything) return;
 
-	GetSetInternal::GetSetDataInterface* p=dict.getDatainterface(section,key);
 
 	using namespace GetSetGui;
 	using namespace GetSetInternal;
+	GetSetNode*	p=getProperty(section.empty() ? key : section+"/"+key);
 
-	if (dynamic_cast<GetSetDataTrigger*>(p)!=0x0)
+	if (dynamic_cast<GetSetSection*>(p)!=0x0)
+	{
+		QWidget *item = new QWidget();
+		QLineEdit	*editfield=new QLineEdit(p->getString().c_str(),item);
+		editfield->setEnabled(false);
+		QPushButton *button=new QPushButton("...",item);
+		button->setFixedWidth(50);
+		QHBoxLayout *hlayout = new QHBoxLayout();
+		hlayout->setContentsMargins(0,0,0,0);
+		hlayout->addWidget(editfield);
+		hlayout->addWidget(button);
+		item->setLayout(hlayout);
+		editfield->setObjectName(key.c_str());
+		button->setObjectName(key.c_str());
+		item->setObjectName(key.c_str());
+		m_owned[key]=item;
+		item->setObjectName(key.c_str());
+		connect(editfield, SIGNAL(editingFinished()), this, SLOT(editingFinished()));
+		connect(button, SIGNAL(clicked()), this, SLOT(openSubSection()));
+		m_layout->addRow(key.c_str(),item);
+	}
+	else if (dynamic_cast<GetSetKeyButton*>(p)!=0x0)
 	{
 		QPushButton* item=new QPushButton(p->getString().c_str());
 		m_owned[key]=item;
@@ -179,7 +212,7 @@ void GetSetWidget::notifyCreate(const std::string& section, const std::string& k
 		connect(item, SIGNAL(clicked()), this, SLOT(trigger()) );
 		m_layout->addRow(key.c_str(),item);
 	}
-	else if (dynamic_cast<GetSetData<bool>*>(p)!=0x0)
+	else if (dynamic_cast<GetSetKey<bool>*>(p)!=0x0)
 	{
 		QCheckBox* item = new QCheckBox();
 		m_owned[key]=item;
@@ -187,10 +220,10 @@ void GetSetWidget::notifyCreate(const std::string& section, const std::string& k
 		connect(item, SIGNAL(stateChanged(int)), this, SLOT(setValue(int)));
 		m_layout->addRow(key.c_str(),item);
 	}
-	else if (dynamic_cast<GetSetDataEnum*>(p)!=0x0)
+	else if (dynamic_cast<GetSetKeyEnum*>(p)!=0x0)
 	{
 		QComboBox* item = new QComboBox();
-		std::vector<std::string> enumerator=Enum(dict,section,key).getChoices();
+		std::vector<std::string> enumerator=Enum(section,key,dictionary).getChoices();
 		for (std::vector<std::string>::iterator it=enumerator.begin(); it!=enumerator.end(); ++it)
 			item->addItem(it->c_str());
 		m_owned[key]=item;
@@ -198,14 +231,14 @@ void GetSetWidget::notifyCreate(const std::string& section, const std::string& k
 		connect(item, SIGNAL(currentIndexChanged(int)), this, SLOT(setValue(int)));		
 		m_layout->addRow(key.c_str(),item);
 	}
-	else if (dynamic_cast<GetSetDataStaticText*>(p)!=0x0) // 2do implement differently
+	else if (dynamic_cast<GetSetKeyStaticText*>(p)!=0x0) // 2do implement differently
 	{
 		QLabel* item = new QLabel();
 		m_owned[key]=item;
 		item->setObjectName(key.c_str());
 		m_layout->addRow(item);
 	}
-	else if (dynamic_cast<GetSetData<int>*>(p)!=0x0)
+	else if (dynamic_cast<GetSetKey<int>*>(p)!=0x0)
 	{
 		QSpinBox* item = new QSpinBox();
 		item->setMinimum(-32768);
@@ -215,19 +248,19 @@ void GetSetWidget::notifyCreate(const std::string& section, const std::string& k
 		connect(item, SIGNAL(valueChanged(int)), this, SLOT(setValue(int)));
 		m_layout->addRow(key.c_str(),item);
 	}
-	else if (dynamic_cast<GetSetDataSlider*>(p)!=0x0)
+	else if (dynamic_cast<GetSetKeySlider*>(p)!=0x0)
 	{
 		QSlider* item = new QSlider(Qt::Horizontal);
 		if (p->attributes["Min"]=="") p->attributes["Min"]="0";
 		if (p->attributes["Max"]=="") p->attributes["Max"]="1";
-		item->setMaximum(Slider(dict,section,key).getMax()*1000);
-		item->setMinimum(Slider(dict,section,key).getMin()*1000);
+		item->setMaximum(Slider(section,key,dictionary).getMax()*1000);
+		item->setMinimum(Slider(section,key,dictionary).getMin()*1000);
 		m_owned[key]=item;
 		item->setObjectName(key.c_str());
 		connect(item, SIGNAL(valueChanged(int)), this, SLOT(sliderMoved(int)));
 		m_layout->addRow(key.c_str(),item);
 	}
-	else if (dynamic_cast<GetSetDataDirectory*>(p)!=0x0 || dynamic_cast<GetSetDataFile*>(p)!=0x0)
+	else if (dynamic_cast<GetSetKeyDirectory*>(p)!=0x0 || dynamic_cast<GetSetKeyFile*>(p)!=0x0)
 	{
 		QWidget *item = new QWidget();
 		QLineEdit	*editfield=new QLineEdit(p->getString().c_str(),item);
@@ -244,13 +277,13 @@ void GetSetWidget::notifyCreate(const std::string& section, const std::string& k
 		m_owned[key]=item;
 		item->setObjectName(key.c_str());
 		connect(editfield, SIGNAL(editingFinished()), this, SLOT(editingFinished()));
-		if (dynamic_cast<GetSetDataFile*>(p))
+		if (dynamic_cast<GetSetKeyFile*>(p))
 			connect(button, SIGNAL(clicked()), this, SLOT(selectFile()));
 		else
 			connect(button, SIGNAL(clicked()), this, SLOT(selectFolder()));
 		m_layout->addRow(key.c_str(),item);
 	}
-	else if (dynamic_cast<GetSetDataReadOnlyText*>(p)!=0x0)
+	else if (dynamic_cast<GetSetKeyReadOnlyText*>(p)!=0x0)
 	{
 		QLineEdit* item=new QLineEdit(p->getString().c_str());
 		m_owned[key]=item;
@@ -282,54 +315,54 @@ void GetSetWidget::notifyChange(const std::string& section, const std::string& k
 		// put the slider first in line since sliders tend to create lots of events
 		QSlider* item=dynamic_cast<QSlider*>(w);
 		item->blockSignals(true);
-		item->setValue((int)(1000.*GetSet<double>(dict,section,key)));
+		item->setValue((int)(1000.*GetSet<double>(section,key,dictionary)));
 		item->blockSignals(false);
 	}
 	else if (dynamic_cast<QPushButton*>(w))
 	{
-		dynamic_cast<QPushButton*>(w)->setText(GetSet<std::string>(dict,section,key).getString().c_str());
+		dynamic_cast<QPushButton*>(w)->setText(GetSet<std::string>(section,key,dictionary).getString().c_str());
 	}
 	else if (dynamic_cast<QCheckBox*>(w))
 	{
 		QCheckBox* item=dynamic_cast<QCheckBox*>(w);
 		item->blockSignals(true);
-		item->setChecked(GetSet<bool>(dict,section,key));		
+		item->setChecked(GetSet<bool>(section,key,dictionary));		
 		item->blockSignals(false);
 	}
 	else if (dynamic_cast<QComboBox*>(w))
 	{
 		QComboBox* item=dynamic_cast<QComboBox*>(w);
 		item->blockSignals(true);
-		item->setCurrentIndex(GetSet<int>(dict,section,key));
+		item->setCurrentIndex(GetSet<int>(section,key,dictionary));
 		item->blockSignals(false);
 	}
 	else if (dynamic_cast<QSpinBox*>(w))
 	{
 		QSpinBox* item=dynamic_cast<QSpinBox*>(w);
 		item->blockSignals(true);
-		item->setValue(GetSet<int>(dict,section,key));
+		item->setValue(GetSet<int>(section,key,dictionary));
 		item->blockSignals(false);
 	}
 	else if (dynamic_cast<QLabel*>(w))
 	{
 		QLabel* item=dynamic_cast<QLabel*>(w);
-		item->setText(GetSet<std::string>(dict,section,key).getString().c_str());
+		item->setText(GetSet<std::string>(section,key,dictionary).getString().c_str());
 	}
 	else if (dynamic_cast<QLineEdit*>(w))
 	{
 		QLineEdit* item=dynamic_cast<QLineEdit*>(w);
 		item->blockSignals(true);
-		item->setText(GetSet<std::string>(dict,section,key).getString().c_str());
+		item->setText(GetSet<std::string>(section,key,dictionary).getString().c_str());
 		item->blockSignals(false);
 	}
-	else if (w->layout() && w->layout()->count()) // true only for file and folder (editfield+pushbutton)
+	else if (w->layout() && w->layout()->count()) // true only for file, folder and subsection (editfield+pushbutton)
 	{
 		QWidget* subwidget=w->layout()->itemAt(0)->widget();
 		QLineEdit* item=dynamic_cast<QLineEdit*>(subwidget);
 		if (item)
 		{
 			item->blockSignals(true);
-			item->setText(GetSet<std::string>(dict,section,key).getString().c_str());
+			item->setText(GetSet<std::string>(section,key,dictionary).getString().c_str());
 			item->blockSignals(false);
 		}
 	}

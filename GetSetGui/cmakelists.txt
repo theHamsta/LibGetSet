@@ -2,24 +2,19 @@
 set(GetSetGui_QOBJ_H GetSetWidget.h GetSetSettingsWindow.h )
 QT4_WRAP_CPP(GetSetGui_MOC ${GetSetGui_QOBJ_H})
 
+set(GETSETGUI_HEADERS "GetSetGui.h;${GetSetGui_QOBJ_H}")
+
 # build library
 add_library(GetSetGui STATIC
-	GetSetWidget.h
+	${GETSETGUI_HEADERS}
 	GetSetWidget.cpp
-	GetSetSettingsWindow.h
 	GetSetSettingsWindow.cpp
+	GetSetGui.cpp
 	${GetSetGui_MOC}
 )
 
-# GetSetGui depends on GetSet
-add_dependencies(GetSetGui GetSet)
-
-# set version of the library
 set_target_properties(GetSetGui PROPERTIES VERSION ${GETSET_VERSION})
 
-# Define headers to install
-set_target_properties(GetSetGui PROPERTIES PUBLIC_HEADER "GetSetWidget.h;GetSetSettingsWindow.h")
+install(FILES ${GETSETGUI_HEADERS} DESTINATION ${INCLUDE_INSTALL_DIR}/GetSetGui )
 
-# define install destinations
-#install(TARGETS GetSetGui RUNTIME DESTINATION bin LIBRARY DESTINATION lib ARCHIVE DESTINATION lib PUBLIC_HEADER DESTINATION ${INCLUDE_INSTALL_DIR}/GetSetGui)
-install(TARGETS GetSetGui EXPORT GetSetExport LIBRARY DESTINATION ${LIB_INSTALL_DIR} ARCHIVE DESTINATION ${LIB_INSTALL_DIR} RUNTIME DESTINATION ${BIN_INSTALL_DIR} PUBLIC_HEADER DESTINATION ${INCLUDE_INSTALL_DIR}/GetSetGui )
+install(TARGETS GetSetGui EXPORT GetSetExport ARCHIVE DESTINATION ${LIB_INSTALL_DIR})

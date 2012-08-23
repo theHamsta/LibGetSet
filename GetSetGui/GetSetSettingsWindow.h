@@ -20,18 +20,19 @@
 #ifndef __GetSetSettingsWindow_h
 #define __GetSetSettingsWindow_h
 
+#include "../GetSet/GetSetDictionary.h"
+
 #include "GetSetWidget.h"
 
 #include <string>
 
-//#include <QtGui/QDialog>
 #include <QtGui/QWidget>
 
 class QTabWidget;
 class QPushButton;
 class QVBoxLayout;
 
-class GetSetSettingsWindow : public QWidget
+class GetSetSettingsWindow : public QWidget, public GetSetInternal::Access
 {
 	Q_OBJECT
 
@@ -43,20 +44,13 @@ protected:
 	QPushButton	*m_ok;
 	QVBoxLayout *m_mainLayout;
 
-
-
 	/// (Re-)Create the tabs and GetSetWidgets
 	void create(GetSetDictionary& dict, const std::vector<std::string>& tabs);
 
 public:
-	/// If the only GUI this program uses is a Settings window, simply call this function at the end of main.
-	static int runQtApp(const std::string& windowTitle, int argc, char **argv);
 
 	/// Settings dialog with a selection of sections from a dictionary
-	GetSetSettingsWindow(GetSetDictionary& dict, const std::vector<std::string>& tabs=std::vector<std::string>(), const std::string& title="Settings", QWidget *parent=0x0);
-
-	/// Settings dialog with a selection of sections from the global dictionary
-	GetSetSettingsWindow(const std::vector<std::string>& tabs=std::vector<std::string>(), const std::string& title="Settings", QWidget *parent=0x0);
+	GetSetSettingsWindow(const std::string& path="", GetSetDictionary& dict=GetSetDictionary::global() ,const std::string& title="Settings", const std::string& listOfTabs="", QWidget *parent=0x0);
 
 	virtual ~GetSetSettingsWindow();
 };

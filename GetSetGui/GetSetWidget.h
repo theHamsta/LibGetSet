@@ -20,7 +20,7 @@
 #ifndef __GetSetWidget_h
 #define __GetSetWidget_h
 
-#include "GetSet/GetSetDictionary.h"
+#include "../GetSet/GetSetDictionary.h"
 
 #include <string>
 
@@ -56,6 +56,7 @@ private slots:
 	void trigger();
 	void selectFile();
 	void selectFolder();
+	void openSubSection();
 	void editingFinished();
 	void sliderMoved(int value);
 	void setValue(int value);
@@ -67,6 +68,9 @@ public:
 
 	/// Access to dictionary this section resides in
 	GetSetDictionary& getDictionary();
+
+	/// Close window on ESC key (if we have no parent)
+	void keyPressEvent(QKeyEvent *e);
 
 	// GetSetDictionary::Observer
 	virtual void notifyCreate(const std::string& list, const std::string& key);
