@@ -25,7 +25,6 @@ set(BIN_INSTALL_DIR "bin")
 ### SOURCE CODE
 add_subdirectory(GetSet)
 add_subdirectory(GetSetGui)
-#add_subdirectory(GetSetFactory)
 add_subdirectory(Apps)
 
 # Export all targets into the export set "GetSetExport".
@@ -42,3 +41,8 @@ configure_file(GetSetConfigVersion.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/GetSetCo
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/GetSetConfigVersion.cmake ${CMAKE_CURRENT_BINARY_DIR}/GetSetConfigVersion.cmake DESTINATION ${CMAKECONFIG_INSTALL_DIR})
 
 ### Installer 2do
+
+# Windows only : copy .dlls to bin folder. FIXME
+#if (WIN32)
+#    install(FILES ${QT_BINARY_DIR}/QtCore4.dll ${QT_BINARY_DIR}/QtGui4.dll DESTINATION ${BIN_INSTALL_DIR})
+#endif (WIN32)

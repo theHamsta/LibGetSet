@@ -28,6 +28,8 @@
 
 class GetSetDictionary;
 
+#include "TypeString.hxx"
+
 //
 // GetSet internal -- Please refer to GetSet<T> in GetSet.hxx to use this framework.
 //
@@ -68,23 +70,6 @@ namespace GetSetInternal {
 		}
 	};
 
-
-	/// Get a c++ type name as string
-	template <typename T> inline std::string getTypeName()
-	{
-		return typeid(T).name();
-	}
-
-	// Specializations
-	template<> inline std::string getTypeName<std::string>() {return "string";}
-	template<> inline std::string getTypeName<std::vector<std::string> >() {return "vector<string>";}
-	#define GETSET_TYPE_STR(X)  template<> inline std::string getTypeName<X>() {return #X;}
-	#include "GetSetBaseTypes.h"
-	#undef GETSET_TYPE_STR
-	#define GETSET_TYPE_STR(X)  template<> inline std::string getTypeName<vector<X> >() {return "vector<"#X">";}
-	#include "GetSetBaseTypes.h"
-	#undef GETSET_TYPE_STR
-
 	/// This function is defined in GetSet.hxx, because it uses its local types
 	GetSetNode* createSpecial(const std::string& type);
 
@@ -103,10 +88,10 @@ namespace GetSetInternal {
 				if (type=="string") node=new GetSetKey<std::string>();
 				else if (type=="vector<string>") node=new GetSetKey<std::vector<std::string> >();
 				#define GETSET_TYPE_STR(X) else if (type==#X) node=new GetSetKey<X>();
-				#include "GetSetBaseTypes.h"
+				#include "BaseTypes.hxx"
 				#undef GETSET_TYPE_STR
 				#define GETSET_TYPE_STR(X) else if (type=="vector<"#X">") node=new GetSetKey<std::vector<X> >();
-				#include "GetSetBaseTypes.h"
+				#include "BaseTypes.hxx"
 				#undef GETSET_TYPE_STR
 			}
 			// For unkown types we just use std::string because it can hold /any/ value
