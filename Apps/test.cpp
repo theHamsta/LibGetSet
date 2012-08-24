@@ -1,9 +1,8 @@
 #include "GetSet/GetSet.hxx"
-#include "GetSet/GetSetCmdLine.h"
-#include "GetSet/GetSetFile.h"
 #include "GetSet/GetSetXML.h"
+#include "GetSet/ObjectFactory.h"
 
-#include "GetSetGui\GetSetGui.h"
+#include "GetSetGui/GetSetGui.h"
 
 #include <iostream>
 
@@ -34,6 +33,23 @@ private:
 	}
 };
 
+///
+class Vehicle {
+public:
+};
+
+///
+class Car {
+public:
+};
+
+///
+class PickUp : public Car {
+
+public:
+
+};
+
 void gui(const std::string& section, const std::string& key)
 {
 	std::cout << section << " - " << key << std::endl;
@@ -50,8 +66,6 @@ int main(int argc, char **argv)
 		p.key<bool>("c")=false;
 		GetSetGui::File(p.getPath("Input Image"),p.getDictionary()).setExtensions("Image Files (*.png *.jpg);;All Files (*.*)");
 	}
-
-	
 
 //	GetSetProperies.load(GetSetIO::XmlFile("out.xml"));
 	

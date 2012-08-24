@@ -26,6 +26,7 @@
 #include <sstream>
 #include <fstream>
 #include <vector>
+#include <map>
 
 /// Reset value (call constructor or zeros c-types, see specializations)
 template <typename T> inline void reset(T& v)
@@ -85,15 +86,15 @@ template <typename T> inline std::vector<T> stringToVector(const std::string& in
 }
 
 // Specializations of toString and stringTo for select vector-types assuming seperating semicolon
-#define GETSET_DEFINE_TYPE(TYPE) \
+#define _DEFINE_TYPE(TYPE) \
 	template <> inline std::string toString<>(const std::vector<TYPE>& in) {return vectorToString(in,";");} \
 	template <> inline std::vector<TYPE> stringTo<>(const std::string& in) {return stringToVector<TYPE>(in,';');}
-GETSET_DEFINE_TYPE(std::string)
-#include "GetSetBaseTypes.h"
+_DEFINE_TYPE(std::string)
+#include "BaseTypes.hxx"
 
 // Specializations
-#define GETSET_DEFINE_TYPE(X)  template<> inline void reset<X>(X& v) {v=0;}
-#include "GetSetBaseTypes.h"
+#define _DEFINE_TYPE(X)  template<> inline void reset<X>(X& v) {v=0;}
+#include "BaseTypes.hxx"
 
 /// Right trim
 inline void rtrim(std::string &str , const std::string& t = " \t")

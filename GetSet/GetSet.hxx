@@ -90,8 +90,20 @@ public:
 		property->setString(value);
 		signalChange(section,key);
 	}
-};
 
+	/// Set a brief descriptino for this property 
+	void setDescription(const std::string& desc)
+	{
+		property->attributes["Description"]=desc;
+	}
+
+	/// Get a brief descriptino for this property 
+	const std::string& setDescription()
+	{
+		return property->attributes["Description"];
+	}
+
+};
 
 /// A very simple helper class to navigate
 class GetSetPath
@@ -108,7 +120,7 @@ public:
 	{}
 
 	/// Use parenthesis operator to navigate
-	GetSetPath operator()(const std::string& key)
+	GetSetPath operator()(const std::string& key) const
 	{
 		return GetSetPath(getPath(key),dictionary);
 	}
@@ -125,7 +137,7 @@ public:
 
 	/// Use key&lt;BasicType&gt;("MyKey") to get/set a property value
 	template <typename BasicType>
-	inline GetSet<BasicType> key(const std::string& k)
+	inline GetSet<BasicType> key(const std::string& k) const
 	{
 		return GetSet<BasicType>(getPath(k),dictionary);
 	}
