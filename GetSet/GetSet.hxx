@@ -23,7 +23,7 @@
 #include "GetSetDictionary.h"
 
 /// Syntactic sugar to access and change GetSet properties
-template <typename BasicType>
+template <typename BasicType=std::string>
 class GetSet : public GetSetInternal::Access
 {
 protected:
@@ -193,7 +193,7 @@ public:
 // The Enum class is a little more complex, because it has features of both GetSet<std::string> and GetSet<int>
 #define GETSET_ENUM_CODE																					\
 	GETSET_TAG(Enum,std::vector<std::string>,Choices)														\
-	Enum& setChoices(const std::string& c) {property->attributes["Choices"]=c;}								\
+	Enum& setChoices(const std::string& c) {property->attributes["Choices"]=c;return *this;}				\
 	inline void operator=(const std::string& v) { setString(v); }											\
 	inline operator std::string() const { return getString(); }												\
 	virtual std::string getString() const																	\

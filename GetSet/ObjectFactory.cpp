@@ -25,9 +25,9 @@ namespace ObjectFactory
 	}
 
 	Product* Factory::Create(const std::string& classname,  const std::string& instanceName) {
-		if (createMethodByStr().find(classname)!=createMethodByStr().end())
-			return createMethodByStr()[classname](m_config(instanceName));
-		else
+		//if (createMethodByStr().find(classname)!=createMethodByStr().end())
+		//	return createMethodByStr()[classname](m_config(instanceName));
+		//else
 			return 0x0;
 	}
 
