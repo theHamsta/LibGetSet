@@ -47,6 +47,19 @@ namespace GetSetInternal
 } // namespace GetSetInternal
 
 namespace GetSetIO {
+
+	/// Saving a file
+	void save(GetSetInternal::GetSetInOut& file, GetSetDictionary& dict=GetSetDictionary::global())
+	{
+		dict.save(file);
+	}
+
+	/// Loading a file
+	void load(GetSetInternal::GetSetInOut& file, GetSetDictionary& dict=GetSetDictionary::global())
+	{
+		dict.load(file);
+	}
+
 	/// An ini-File in "[Section.Subsection] Key=Value" format
 	class IniFile : public GetSetInternal::GetSetInOutValuesOnly
 	{
