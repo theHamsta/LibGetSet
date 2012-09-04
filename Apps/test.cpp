@@ -1,4 +1,4 @@
-#include "GetSet/GetSet.hxx"
+#include "GetSet/GetSetSpecial.hxx"
 #include "GetSet/GetSetXML.h"
 #include "GetSet/ObjectFactory.h"
 
@@ -67,11 +67,36 @@ int main(int argc, char **argv)
 		GetSetGui::File(p.getPath("Input Image"),p.getDictionary()).setExtensions("Image Files (*.png *.jpg);;All Files (*.*)");
 	}
 
-//	GetSetProperies.load(GetSetIO::XmlFile("out.xml"));
+
+	GetSetGui::File("Input/Image Files").setExtensions("Image Files (*.png *.jpg);;All Files (*)").setMultiple(true)="in0.jpg;in1.jpg";
+	std::vector<std::string> files=GetSet<std::vector<std::string> >("Input/Image Files"); // vector contains "in0.jpg" and "in1.jpg"
+
+	GetSetGui::File("Output/Table File").setExtensions("Comma Seperated Values (*.csv)").setCreateNew(true)="out.csv";
+	std::string file=GetSet<>("Output/Table File");
+
+	GetSetGui::Button("Process/Start")="Text On Button";
+
+	GetSetGui::Slider("Mask/Threshold").setMin(0.0).setMax(1.0)=0.5;
+	double t=GetSet<double>("Mask/Threshold");
+
+	GetSetGui::Enum("Alphabet/Letter").setChoices("A;B;C;D")="B";
+	int indexOfB=GetSet<int>("Alphabet/Letter");
+
+	std::vector<std::string> codecs;
+	codecs.push_back("Advanced...");
+	codecs.push_back("H.264 (MPEG-4 Part 10)");
+	codecs.push_back("DivX Media Format (DMF)");
+	GetSetGui::Enum("Video Output/Codec").setChoices(codecs)=0; // Defaults to "Advanced..."
+	GetSet<>("Video Output/Codec")="H.264 (MPEG-4 Part 10)";
+	int index=GetSet<int>("Video Output/Codec"); // return 1 (index of H.264)
+	std::cout << "Codec used = " << GetSet<>("Video Output/Codec").getString() << std::endl; // prints "Codec used = H.264 ...
+
+
+	GetSetIO::save(GetSetIO::XmlFile("out.xml"));
 	
 	DebugTree().print();
 
-	GetSetDictionary::global().save(GetSetIO::TxtFileDescription("out.txt"));
+	GetSetIO::save(GetSetIO::TxtFileDescription("out.txt"));
 	
 	GetSetHandler callback(gui);
 

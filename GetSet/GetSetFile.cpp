@@ -11,6 +11,7 @@ namespace GetSetInternal
 
 	void GetSetInOutValuesOnly::store(const std::string& section, const std::string& key, GetSetInternal::GetSetNode* value)
 	{
+		if (value->getType()=="StaticText"||value->getType()=="Button") return;
 		stored=1;
 		contents[section][key]=value->getString();
 	}

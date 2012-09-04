@@ -81,6 +81,15 @@ GetSetSection::~GetSetSection()
 	properties.clear();
 }
 
+std::string GetSetSection::getString() const
+{
+	if (properties.empty()) return "<null>";
+	PropertyByName::const_iterator it=properties.begin();
+	std::string ret=it->second->getType();
+	for (++it;it!=properties.end();++it)
+		ret+=";"+it->second->getType();
+	return ret;
+}
 
 void GetSetSection::setProperty(const std::vector<std::string>& path, GetSetNode* prop, int i)
 {

@@ -27,9 +27,9 @@ template <typename BasicType=std::string>
 class GetSet : public GetSetInternal::Access
 {
 protected:
-	//// The path to the section where this property resides
+	/// The path to the section where this property resides
 	std::string section;
-	//// The name to the associated property in section
+	/// The name to the associated property in section
 	std::string key;
 
 	/// Keep track of the associated property (not actually owned by this class)
@@ -91,7 +91,7 @@ public:
 		signalChange(section,key);
 	}
 
-	/// Set a brief descriptino for this property 
+	/// Set a brief description for this property
 	void setDescription(const std::string& desc)
 	{
 		property->attributes["Description"]=desc;
@@ -144,114 +144,7 @@ public:
 
 };
 
-
-//
-// Special GetSet types: Slider Enum Button StaticText Directory File
-//
-
-/// Specializations for GUI representations
-#define GETSET_SPECIALIZATION(SPECIAL_TYPE,BASE_TYPE,CLASS_BODY)											\
-	namespace GetSetInternal																				\
-	{																										\
-		class GetSetKey##SPECIAL_TYPE : public GetSetKey<BASE_TYPE>											\
-		{																									\
-			virtual std::string getType() const { return #SPECIAL_TYPE; }									\
-		};																									\
-	}																										\
-	namespace GetSetGui																						\
-	{																										\
-		class SPECIAL_TYPE : public GetSet<BASE_TYPE>														\
-		{																									\
-		public:																								\
-			SPECIAL_TYPE(const std::string& pathToKey, GetSetDictionary& d=GetSetDictionary::global())		\
-				: GetSet<BASE_TYPE>(d)																		\
-			{																								\
-				section=pathToKey;																			\
-				key=splitRight(section,":\\");																\
-				property=&declare<GetSetInternal::GetSetKey##SPECIAL_TYPE>(pathToKey,true);					\
-				typedProperty=dynamic_cast<GetSetInternal::GetSetKey##SPECIAL_TYPE*>(property);				\
-			}																								\
-			SPECIAL_TYPE(const std::string& pathToSection, const std::string& k,							\
-					GetSetDictionary& d=GetSetDictionary::global())											\
-						: GetSet<BASE_TYPE>(d)																\
-			{																								\
-				section=pathToSection; key=k;std::string path=section.empty()?key:section+"/"+key;			\
-				property=&declare<GetSetInternal::GetSetKey##SPECIAL_TYPE>(path,true);						\
-				typedProperty=dynamic_cast<GetSetInternal::GetSetKey##SPECIAL_TYPE*>(property);				\
-			}																								\
-			void operator=(const BASE_TYPE& v) { setValue(v); }												\
-			operator BASE_TYPE() const { return getValue(); }												\
-			CLASS_BODY																						\
-		};																									\
-	}
-// end of GETSET_SPECIALIZATION
-
-#define GETSET_TAG(SPECIAL_TYPE,TYPE,TAG)																	\
-	SPECIAL_TYPE& set##TAG(const TYPE& value) {property->attributes[#TAG]=toString(value);return *this;}	\
-	TYPE get##TAG() const {return stringTo<TYPE>(property->attributes[#TAG]);}
-
-// The Enum class is a little more complex, because it has features of both GetSet<std::string> and GetSet<int>
-#define GETSET_ENUM_CODE																					\
-	GETSET_TAG(Enum,std::vector<std::string>,Choices)														\
-	Enum& setChoices(const std::string& c) {property->attributes["Choices"]=c;return *this;}				\
-	inline void operator=(const std::string& v) { setString(v); }											\
-	inline operator std::string() const { return getString(); }												\
-	virtual std::string getString() const																	\
-	{																										\
-		std::vector<std::string> c=getChoices();int i=getValue();											\
-		if (i<0||i>=(int)c.size()) return ""; else return c[i];												\
-	}																										\
-	virtual void setString(const std::string& in)															\
-	{																										\
-		std::vector<std::string> c=getChoices();															\
-		for (int i=0;i<(int)c.size();i++)																	\
-			if (c[i]==in)																					\
-				return setValue(i);																			\
-		setValue(stringTo<int>(in));																		\
-	}
-
-/// A pulldown menu with a number of choices.
-GETSET_SPECIALIZATION(Enum,int,GETSET_ENUM_CODE)
-
-/// A GetSet&lt;double&gt; with additional range information, so that it could be represented as a slider
-GETSET_SPECIALIZATION(Slider,double, GETSET_TAG(Slider,double,Min) GETSET_TAG(Slider,double,Max) )
-
-/// A button that creates a GetSet change event when pressed.
-GETSET_SPECIALIZATION(Button,std::string, void action() {signalChange(section,key);} )
-
-/// A static text with some information. StaticTexts are not included in ini-Files (user-info in GUI)
-GETSET_SPECIALIZATION(StaticText,std::string, )
-
-/// An edit field, but read-only. Intended for output-values that the user can select and copy to clipboard.
-GETSET_SPECIALIZATION(ReadOnlyText,std::string, )
-
-/// A directory
-GETSET_SPECIALIZATION(Directory,std::string, )
-
-/// A file (or multiple semicolon seperated files). Extensions is a string such as "Images (*.png *.xpm *.jpg);;All files (*)"
-GETSET_SPECIALIZATION(File,std::string, GETSET_TAG(File,std::string,Extensions) GETSET_TAG(File,bool, CreateNew) GETSET_TAG(File,bool, Multiple) )
-
-namespace GetSetInternal {
-	/// Create a special property by string
-	inline GetSetNode* createSpecial(const std::string& type)
-	{
-		GetSetNode* node=0x0;
-		#define GETSET_TYPE_STR(X) if (type==#X) node=new GetSetKey##X();
-		// special types
-		GETSET_TYPE_STR(Slider)
-		GETSET_TYPE_STR(Enum)
-		GETSET_TYPE_STR(Button)
-		GETSET_TYPE_STR(StaticText)
-		GETSET_TYPE_STR(ReadOnlyText)
-		GETSET_TYPE_STR(Directory)
-		GETSET_TYPE_STR(File)
-		#undef GETSET_TYPE_STR
-		return node;
-	}
-}
-
-#undef GETSET_ENUM_CODE
-#undef GETSET_SPECIALIZATION
-#undef GETSET_TAG
+// Lots of preprocessor magic to generate sub-classes from GetSet<T> with different GUI behaviour
+#include "GetSetSpecial.hxx"
 
 #endif // __GetSet_hxx
