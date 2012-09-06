@@ -1,10 +1,7 @@
-#include <GetSet\GetSet.hxx>
-
-// Only needed for ini-Files:
-#include <GetSet/GetSetFile.h>
+#include <GetSet/GetSet.hxx>
 
 // only needed for Qt GUI:
-#include <GetSetGui\GetSetGui.h>
+#include <GetSetGui/GetSetGui.h>
 
 #include <iostream>
 
@@ -43,12 +40,6 @@ int main(int argc, char** argv)
 	GetSetGui::StaticText("More/Advanced/Some Info")=	"I  have no idea what \"Some Result\" is.\n"
 														"But I'm sure it's there for your convenience.";
 
-	// Loading Values from an ini-File
-	GetSetIO::load(GetSetIO::IniFile("settings.ini"));
-
-	// And saving them
-	GetSetGui::Button("More/Save Ini-File")="Save";
-
 	// Tell GetSet which function to call when something changes
 	GetSetHandler call_back(gui);
 
@@ -73,7 +64,4 @@ void gui(const std::string& section, const std::string& key)
 	if (key=="Do Something")
 		std::cout << GetSet<>("Setup","Some Text").getString() << std::endl;
 
-	// Saving all values. Note you can also load and save XML or plain text files
-	if (key=="Save Ini-File")
-		GetSetIO::save(GetSetIO::IniFile("settings.ini"));
 }

@@ -12,6 +12,9 @@ find_package(Qt4 REQUIRED)
 include(${QT_USE_FILE})
 add_definitions(${QT_DEFINITIONS})
 
+### Distinguish debug/realse binaries
+set(CMAKE_DEBUG_POSTFIX "d")
+
 ### DIRECTORIES
 set(LIB_INSTALL_DIR "lib")
 set(CMAKECONFIG_INSTALL_DIR ".")
@@ -35,3 +38,5 @@ configure_file(GetSetConfigVersion.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/GetSetCo
 
 # Install these two files into the same directory as the generated exports-file.
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/GetSetConfig.cmake ${CMAKE_CURRENT_BINARY_DIR}/GetSetConfigVersion.cmake DESTINATION ${CMAKECONFIG_INSTALL_DIR})
+# Add license
+install(FILES License.txt DESTINATION ${CMAKECONFIG_INSTALL_DIR})
