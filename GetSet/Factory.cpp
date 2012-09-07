@@ -1,4 +1,4 @@
-#include "GetSetFactory.h"
+#include "Factory.h"
 
 #include <iostream>
 #include <set>

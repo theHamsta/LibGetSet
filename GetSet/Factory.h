@@ -17,10 +17,10 @@
 //  limitations under the License.
 //
 
-#ifndef _factory_h
-#define _factory_hs
+#ifndef __Factory_h
+#define __Factory_h
 
-#include "Initializer.h"
+#include "Initializer.hxx"
 #include "TypeString.hxx"
 
 #include <map>
@@ -65,4 +65,4 @@ INITIALIZER(Register##TYPE) {											\
 }
 
 
-#endif // _factory_h
+#endif // __Factory_h

@@ -1,6 +1,7 @@
 #include "GetSet/GetSetSpecial.hxx"
 #include "GetSet/GetSetXML.h"
-#include "GetSet/ObjectFactory.h"
+#include "GetSet/Factory.h"
+#include "GetSet/Configurator.hxx"
 
 #include "GetSetGui/GetSetGui.h"
 

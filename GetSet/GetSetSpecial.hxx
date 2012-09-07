@@ -168,7 +168,8 @@ namespace GetSetInternal {
 	}
 }
 
-#undef GETSET_ENUM_CODE
+#undef GETSET_ENUM_CLASS_BODY
+#undef GETSET_ENUM_KEY_BODY
 #undef GETSET_SPECIALIZATION
 #undef GETSET_TAG
 

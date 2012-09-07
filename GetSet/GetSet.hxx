@@ -106,38 +106,41 @@ public:
 };
 
 /// A very simple helper class to navigate
-class GetSetPath
+class GetSetPath : public GetSetInternal::Access
 {
 protected:
 	//// The path to a GetSetSection
 	std::string absolutePath;
-	/// The dictionary this path is rooted in
-	mutable GetSetDictionary& dictionary;
 public:
 	GetSetPath(const std::string& path="", GetSetDictionary& dict=GetSetDictionary::global())
-		: dictionary(dict)
+		: Access(dict)
 		, absolutePath(path)
 	{}
 
 	/// Use parenthesis operator to navigate
-	GetSetPath operator()(const std::string& key) const
+	GetSetPath operator()(const std::string& key)
 	{
 		return GetSetPath(getPath(key),dictionary);
 	}
 
 	/// Access to absolute path (optionally: of a key)
-	std::string getPath(const std::string& key="") const
+	std::string getPath(const std::string& key="")
 	{
 		if (key.empty()) return absolutePath;
 		else return absolutePath.empty()?key:absolutePath+"/"+key;
 	}
 
 	/// Access to dictionary.
-	GetSetDictionary& getDictionary() const {return dictionary;}
+	GetSetDictionary& getDictionary() {return dictionary;}
+
+	bool hasKey(const std::string& k)
+	{
+		return getProperty(getPath(k))==0x0;
+	}
 
 	/// Use key&lt;BasicType&gt;("MyKey") to get/set a property value
 	template <typename BasicType>
-	inline GetSet<BasicType> key(const std::string& k) const
+	inline GetSet<BasicType> key(const std::string& k)
 	{
 		return GetSet<BasicType>(getPath(k),dictionary);
 	}

@@ -17,6 +17,9 @@
 //  limitations under the License.
 //
 
+#ifndef __TypeString_hxx
+#define __TypeString_hxx
+
 #include <string>
 #include <vector>
 
@@ -35,3 +38,4 @@ template<> inline std::string getTypeName<std::vector<std::string> >() {return "
 #define _DEFINE_TYPE(X) template<> inline std::string getTypeName<X>() {return #X;}
 #include "BaseTypes.hxx"
 
+#endif // __TypeString_hxx

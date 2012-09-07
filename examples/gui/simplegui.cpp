@@ -36,7 +36,7 @@ void gui(const std::string& section, const std::string& key)
 			std::cout << "With Verbose Output\n";
 		else
 			std::cout << "Without Verbose Output\n";
-			return;
+		return;
 	}
 
 	std::cout << "Key \"" << key << "\" in section \"" << section << "\" = " << (std::string)GetSet<>(section,key) << std::endl;

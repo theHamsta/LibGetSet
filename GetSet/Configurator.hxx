@@ -23,23 +23,33 @@
 #include "GetSet.hxx"
 
 namespace Factory {
-{
 	/// Configurator for the object factory
-	class Configurator : public GetSetInternal::Access {
+	class Configurator {
+	protected:
+		GetSetPath path;
+
 	public:
+		Configurator(GetSetDictionary& dict=GetSetDictionary::global(), const std::string& section="") : path(section,dict) {}
+
 		template <typename T>
-		void declare(const std::string& param)
-		{
-			
+		void declare(const std::string& param, T& value) {
+			if (path.hasKey(param))
+				value=path.key<T>(param);
+			else
+				path.key<T>(param)=value;
+		}
+
+		Configurator configure(const std::string& section) {
+			return Configurator(path.getDictionary(),path.getPath(section));
 		}
 
 	};
 	
 	template <class Interface>
-	Type* CreateAndConfigure(const std::string& type, Configurator& config) {
-		Type* obj=Create<Type>(type);
+	Interface* CreateAndConfigure(const std::string& type, Configurator& config) {
+		Interface* obj=Create<Interface>(type);
 		if (!obj) return obj;
-		obj->configure(config.)
+		obj->configure(config.configure(type));
 		return obj;
 	}
 
