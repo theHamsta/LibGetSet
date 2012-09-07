@@ -22,18 +22,27 @@
 
 #include "GetSet.hxx"
 
-namespace ObjectFactory
+namespace Factory {
 {
 	/// Configurator for the object factory
-	class Configurator : public GetSetPath {
-	private:
-		Configurator(const Configurator&);
-		Configurator();
+	class Configurator : public GetSetInternal::Access {
 	public:
-		Configurator configure(const std::string& key);
+		template <typename T>
+		void declare(const std::string& param)
+		{
+			
+		}
 
 	};
+	
+	template <class Interface>
+	Type* CreateAndConfigure(const std::string& type, Configurator& config) {
+		Type* obj=Create<Type>(type);
+		if (!obj) return obj;
+		obj->configure(config.)
+		return obj;
+	}
 
-} // namespace ObjectFactory
+} // namespace Factory
 
 #endif // __Configurator_h
