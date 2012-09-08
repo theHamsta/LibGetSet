@@ -35,19 +35,136 @@ private:
 };
 
 ///
-class Vehicle {
+class Vehicle : public Factory::Object {
+protected:
+	double		m_speed;
+	std::string	m_make;
+
 public:
+	Vehicle()
+		: m_speed(0)
+		, m_make("Unknown Make")
+	{}
+
+	virtual void configure(Factory::Configurator& config)
+	{
+		config.declare("Speed",m_speed);
+		config.declare("Make",m_make);
+	}
+
+
 };
 
-///
-class Car {
+class Plane : public  Vehicle {
+protected:
+	std::string m_pilot;
+
 public:
+	Plane()
+		: Vehicle()
+		, m_pilot("Unknown Pilot")
+	{}
+
+	virtual void configure(Factory::Configurator& config)
+	{
+		Vehicle::configure(config);
+		config.declare("Pilot",m_pilot);
+	}
 };
+DECLARE_TYPE(Plane,Vehicle)
+
+///
+class Car : public Vehicle {
+protected:
+	int m_wheels;
+	int m_passengers;
+
+public:
+
+	Car()
+		: Vehicle()
+		, m_wheels(4)
+		, m_passengers(5)
+	{}
+
+	virtual void configure(Factory::Configurator& config)
+	{
+		Vehicle::configure(config);
+		config.declare("Number Of Wheels",m_wheels);
+		config.declare("Max. Pasengers",m_passengers);
+	}
+
+};
+DECLARE_TYPE(Car,Vehicle)
 
 ///
 class PickUp : public Car {
+protected:
+	double m_cargo;
 
 public:
+	PickUp()
+		: Car()
+		, m_cargo(100)
+	{
+		m_passengers=2;
+	}
+
+	virtual void configure(Factory::Configurator& config)
+	{
+		Car::configure(config);
+		config.declare("Max. Cargo",m_cargo);
+	}
+
+};
+DECLARE_TYPE(PickUp,Car;Vehicle)
+
+///
+class House : public Factory::Object {
+protected:
+	std::string m_street;
+	std::string m_city;
+	int m_zipCode;
+
+public:
+	House()
+	{
+		m_street="No Street";
+		m_city="Unknown City";
+		m_zipCode=19999;
+	}
+
+	virtual void configure(Factory::Configurator& config)
+	{
+		config.declare("Street",m_street);
+		config.declare("City",m_city);
+		config.declare("Zip",m_zipCode);
+	}
+
+};
+DECLARE_TYPE(House,House)
+
+class RichPerson {
+protected:
+	std::string m_name;
+	Car			m_car;
+	Vehicle		*m_additionalVehicle0;
+	Vehicle		*m_additionalVehicle1;
+	House		m_residence;
+
+public:
+	virtual void configure(Factory::Configurator& config)
+	{
+		config.declare("Name",m_name);
+		// We own just one house so we can just use the SAME section to configure it.
+		m_residence.configure(config);
+		// But the car we want in a subsection
+		m_car.configure(config.subsection("Primary Car"));
+
+		// Then, we might own different types of car and additional vehicles. By default, a Pickup and a Plane
+		//config.create("Additional Vehicle 0",m_additionalVehicle0,"Pickup");
+		//config.create("Additional Vehicle 1",m_additionalVehicle1,"Plane");
+	}
 
 };
 
@@ -56,49 +173,35 @@ void gui(const std::string& section, const std::string& key)
 	std::cout << section << " - " << key << std::endl;
 }
 
+void print(const std::set<std::string>& obj, const std::string& what)
+{
+	std::cout << what << ":\n" << std::endl;
+	for (std::set<std::string>::iterator it=obj.begin();it!=obj.end();++it)
+		std::cout << "\t" << *it << std::endl;
+}
+
 int main(int argc, char **argv)
 {
-	char *paths[]={"Bla","Bla/Blubb","Bla/Schwupp"};
-	for (int i=0;i<3;i++)
-	{
-		GetSetPath p(paths[i]);
-		p.key<int>("a");
-		p.key<std::string>("b");
-		p.key<bool>("c")=false;
-		GetSetGui::File(p.getPath("Input Image"),p.getDictionary()).setExtensions("Image Files (*.png *.jpg);;All Files (*.*)");
-	}
 
+	Factory::Configurator config;
 
-	GetSetGui::File("Input/Image Files").setExtensions("Image Files (*.png *.jpg);;All Files (*)").setMultiple(true)="in0.jpg;in1.jpg";
-	std::vector<std::string> files=GetSet<std::vector<std::string> >("Input/Image Files"); // vector contains "in0.jpg" and "in1.jpg"
+	print(Factory::KnownTypes(),"All Objects");
+	print(Factory::KnownTypes("Vehicle"),"Vehicles");
+	print(Factory::KnownTypes("Car"),"Cars");
+	print(Factory::KnownTypes("PickUp"),"PickUps");
 
-	GetSetGui::File("Output/Table File").setExtensions("Comma Seperated Values (*.csv)").setCreateNew(true)="out.csv";
-	std::string file=GetSet<>("Output/Table File");
+	Car c;
+	c.configure(config.subsection("Some Car"));
 
-	GetSetGui::Button("Process/Start")="Text On Button";
+	RichPerson p;
+	p.configure(config.subsection("Rich Guy"));
 
-	GetSetGui::Slider("Mask/Threshold").setMin(0.0).setMax(1.0)=0.5;
-	double t=GetSet<double>("Mask/Threshold");
-
-	GetSetGui::Enum("Alphabet/Letter").setChoices("A;B;C;D")="B";
-	int indexOfB=GetSet<int>("Alphabet/Letter");
-
-	std::vector<std::string> codecs;
-	codecs.push_back("Advanced...");
-	codecs.push_back("H.264 (MPEG-4 Part 10)");
-	codecs.push_back("DivX Media Format (DMF)");
-	GetSetGui::Enum("Video Output/Codec").setChoices(codecs)=0; // Defaults to "Advanced..."
-	GetSet<>("Video Output/Codec")="H.264 (MPEG-4 Part 10)";
-	int index=GetSet<int>("Video Output/Codec"); // return 1 (index of H.264)
-	std::cout << "Codec used = " << GetSet<>("Video Output/Codec").getString() << std::endl; // prints "Codec used = H.264 ...
 
 
 	GetSetIO::save(GetSetIO::XmlFile("out.xml"));
 	
 	DebugTree().print();
 
-	GetSetIO::save(GetSetIO::TxtFileDescription("out.txt"));
-	
 	GetSetHandler callback(gui);
 
 	return GetSetGui::runQtApp("Test",argc,argv);

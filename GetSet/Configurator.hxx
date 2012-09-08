@@ -39,7 +39,7 @@ namespace Factory {
 				path.key<T>(param)=value;
 		}
 
-		Configurator configure(const std::string& section) {
+		Configurator subsection(const std::string& section) {
 			return Configurator(path.getDictionary(),path.getPath(section));
 		}
 
@@ -49,7 +49,7 @@ namespace Factory {
 	Interface* CreateAndConfigure(const std::string& type, Configurator& config) {
 		Interface* obj=Create<Interface>(type);
 		if (!obj) return obj;
-		obj->configure(config.configure(type));
+		obj->configure(config.subsection(type));
 		return obj;
 	}
 

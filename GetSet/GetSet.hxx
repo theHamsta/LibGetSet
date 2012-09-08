@@ -135,7 +135,7 @@ public:
 
 	bool hasKey(const std::string& k)
 	{
-		return getProperty(getPath(k))==0x0;
+		return getProperty(getPath(k))!=0x0;
 	}
 
 	/// Use key&lt;BasicType&gt;("MyKey") to get/set a property value

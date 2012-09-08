@@ -6,13 +6,25 @@
 #include "StringUtil.hxx"
 
 namespace Factory {
-	std::map<std::string, Factory::Object* (*)()> _make_new;
-	std::map<std::string, std::set<std::string> > _implementations; 
+
+	typedef std::map<std::string, Factory::Object* (*)()> CreateByString;
+	CreateByString& MakeNew()
+	{
+		static CreateByString _make_new;
+		return _make_new;
+	}
+
+	typedef std::map<std::string, std::set<std::string> > ImplementationsByString;
+	ImplementationsByString& Implementations()
+	{
+		static ImplementationsByString _implementations; 
+		return _implementations;
+	}
 
 	Factory::Object* CallCreateMethod(const std::string& type)
 	{
-		if (_make_new.find(type)!=_make_new.end())
-			return _make_new[type]();
+		if (MakeNew().find(type)!=MakeNew().end())
+			return MakeNew()[type]();
 		else
 			return 0x0;
 	}
@@ -21,18 +33,20 @@ namespace Factory {
 	{
 		std::cout << "Declared " << type << " implementing " << interfaces << std::endl;
 		std::vector<std::string> ivec=stringToVector<std::string>(interfaces,';');
-		_implementations[""].insert(type);
+		Implementations()[""].insert(type);
+		Implementations()[type].insert(type);
 		for (std::vector<std::string>::iterator it=ivec.begin();it!=ivec.end();++it)
 		{
 			trim(*it); // make sure there is no white space around the type
-			_implementations[*it].insert(type);
+			Implementations()[*it].insert(type);
 		}
-		_make_new[type]=create;
+		MakeNew()[type]=create;
 	}
 
 	const std::set<std::string>& KnownTypes(const std::string& interface)
 	{
-		return _implementations[interface];
+		if (interface.empty()) return Implementations()[""];
+		else return Implementations()[interface];
 	}
 
 } // namespace Factory
