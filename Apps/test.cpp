@@ -162,8 +162,8 @@ public:
 		m_car.configure(config.subsection("Primary Car"));
 
 		// Then, we might own different types of car and additional vehicles. By default, a Pickup and a Plane
-		//config.create("Additional Vehicle 0",m_additionalVehicle0,"Pickup");
-		//config.create("Additional Vehicle 1",m_additionalVehicle1,"Plane");
+		config.create("Additional Vehicle 0",m_additionalVehicle0,"Pickup");
+		config.create("Additional Vehicle 1",m_additionalVehicle1,"Plane");
 	}
 
 };

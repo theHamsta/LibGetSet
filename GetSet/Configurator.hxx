@@ -43,6 +43,10 @@ namespace Factory {
 			return Configurator(path.getDictionary(),path.getPath(section));
 		}
 
+		template <class Type>
+		void create(
+		config.create("Additional Ve
+		hicle 1",m_additionalVehicle1,"Plane");
 	};
 	
 	template <class Interface>
