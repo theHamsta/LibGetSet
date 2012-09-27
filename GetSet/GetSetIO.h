@@ -20,7 +20,7 @@
 #ifndef __GetSetFile_h
 #define __GetSetFile_h
 
-#include "GetSetInternal.h"
+#include "GetSetDictionary.h"
 
 namespace GetSetInternal
 {
@@ -47,6 +47,19 @@ namespace GetSetInternal
 } // namespace GetSetInternal
 
 namespace GetSetIO {
+
+	/// Saving a file
+	inline void save(GetSetInternal::GetSetInOut& file, GetSetDictionary& dict=GetSetDictionary::global())
+	{
+		dict.save(file);
+	}
+
+	/// Loading a file
+	inline void load(GetSetInternal::GetSetInOut& file, GetSetDictionary& dict=GetSetDictionary::global())
+	{
+		dict.load(file);
+	}
+
 	/// An ini-File in "[Section.Subsection] Key=Value" format
 	class IniFile : public GetSetInternal::GetSetInOutValuesOnly
 	{

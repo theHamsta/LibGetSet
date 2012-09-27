@@ -12,15 +12,17 @@ find_package(Qt4 REQUIRED)
 include(${QT_USE_FILE})
 add_definitions(${QT_DEFINITIONS})
 
-### DIRECTORIES
-# INCLUDE_INSTALL_DIR and LIB_INSTALL_DIR must not be absolute paths
-set(LIB_INSTALL_DIR_SUFFIX "")
-# CACHE STRING "The directories where to install libraries to")
-set(LIB_INSTALL_DIR lib${LIB_INSTALL_DIR_SUFFIX})
-set(CMAKECONFIG_INSTALL_DIR ${LIB_INSTALL_DIR}) 
+### Distinguish debug/realse binaries
+set(CMAKE_DEBUG_POSTFIX "d")
 
+### DIRECTORIES
+set(LIB_INSTALL_DIR "lib")
+set(CMAKECONFIG_INSTALL_DIR ".")
 set(INCLUDE_INSTALL_DIR "include")
 set(BIN_INSTALL_DIR "bin")
+# All binaries go into the top level, not their respective subfolders
+set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE})
+set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE})
 
 ### SOURCE CODE
 add_subdirectory(GetSet)
@@ -30,17 +32,14 @@ add_subdirectory(Apps)
 # Export all targets into the export set "GetSetExport".
 install(EXPORT GetSetExport DESTINATION ${CMAKECONFIG_INSTALL_DIR} FILE GetSetTargets.cmake )
 
-# figure out the relative path from the installed Config.cmake file to the install prefix
-file(RELATIVE_PATH relInstallDir ${CMAKE_INSTALL_PREFIX}/${CMAKECONFIG_INSTALL_DIR} ${CMAKE_INSTALL_PREFIX} )
-
 # Create GetSetConfig.cmake and GetSetConfigVersion.cmake files for find_package()
 configure_file(GetSetConfig.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/GetSetConfig.cmake @ONLY )
 configure_file(GetSetConfigVersion.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/GetSetConfigVersion.cmake @ONLY )
 
 # Install these two files into the same directory as the generated exports-file.
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/GetSetConfigVersion.cmake ${CMAKE_CURRENT_BINARY_DIR}/GetSetConfigVersion.cmake DESTINATION ${CMAKECONFIG_INSTALL_DIR})
-
-### Installer 2do
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/GetSetConfig.cmake ${CMAKE_CURRENT_BINARY_DIR}/GetSetConfigVersion.cmake DESTINATION ${CMAKECONFIG_INSTALL_DIR})
+# Add license
+install(FILES License.txt DESTINATION ${CMAKECONFIG_INSTALL_DIR})
 
 # Windows only : copy .dlls to bin folder. FIXME
 #if (WIN32)

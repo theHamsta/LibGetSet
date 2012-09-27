@@ -20,7 +20,7 @@
 #ifndef __GetSetXml_h
 #define __GetSetXml_h
 
-#include "GetSetFile.h"
+#include "GetSetIO.h"
 
 namespace GetSetIO {
 

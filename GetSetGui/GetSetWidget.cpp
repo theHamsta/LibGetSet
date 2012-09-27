@@ -32,7 +32,7 @@
 #include <QtGui/QHBoxLayout>
 #include <QtGui/QKeyEvent>
 
-#include "../GetSet/GetSet.hxx"
+#include "../GetSet/GetSetSpecial.hxx"
 
 #include <iostream>
 
@@ -55,7 +55,7 @@ void GetSetWidget::selectFile()
 		QStringList files = QFileDialog::getOpenFileNames(this, "Select Files", currentDir, extensions);
 		if (!files.empty())
 			path=files[0].toAscii().data();
-		for (int i=0;i<(int)files.size();i++)
+		for (int i=1;i<(int)files.size();i++)
 			path+=std::string(";")+files[i].toAscii().data();
 	}
 	else

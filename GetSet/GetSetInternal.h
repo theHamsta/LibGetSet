@@ -2,7 +2,7 @@
 //  Library: GetSet
 //  c++ library for load/saving *typed* and *named* properties and automatic GUI.
 //  
-//  Copyright (c) by André Aichert (aaichert@gmail.com)
+//  Copyright (c) by Andrï¿½ Aichert (aaichert@gmail.com)
 //    
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -70,10 +70,11 @@ namespace GetSetInternal {
 		}
 	};
 
-	/// This function is defined in GetSet.hxx, because it uses its local types
+	/// This function is defined in GetSet.hxx, because there are local types defined that have to be available internally.
 	GetSetNode* createSpecial(const std::string& type);
 
 	/// Way to expose select privates in GetSetDictionary. Definitions can only occur in GetSetDictionary.hxx!
+	/// The idea is, that instead of having a member of GetSetDictionary, a class derives from GetSetInternal::Access.
 	class Access
 	{
 	public:
@@ -84,7 +85,7 @@ namespace GetSetInternal {
 			GetSetInternal::GetSetNode * node=createSpecial(type);
 			if (!node)
 			{
-				// This ugly code craetes a GetSetKey from a string for c-types, std::string and std::vectors of these
+				// This (ugly) code craetes a GetSetKey from a string for c-types, std::string and std::vectors of these
 				if (type=="string") node=new GetSetKey<std::string>();
 				else if (type=="vector<string>") node=new GetSetKey<std::vector<std::string> >();
 				#define GETSET_TYPE_STR(X) else if (type==#X) node=new GetSetKey<X>();
@@ -141,7 +142,7 @@ namespace GetSetInternal {
 	};
 
 
-	/// An interface for file access
+	/// An interface for file access. See Also: GetSetIO (GetSetFile.h)
 	class GetSetInOut
 	{
 	public:
@@ -166,7 +167,7 @@ namespace GetSetInternal {
 	};
 
 
-	/// This is (sub-)Section that can hold other Keys. It is an inner node of the property tree.
+	/// This is a (sub-)Section that can hold other Keys. It is an inner node of the property tree.
 	class GetSetSection : public GetSetNode, public Access
 	{
 		/// GetSetInternal::Access classes should have access, so they can declare(...) Sections
@@ -177,6 +178,8 @@ namespace GetSetInternal {
 		typedef std::map<std::string,GetSetNode*> PropertyByName;
 		/// Direct READ-ONLY access. Only needed to walk the tree (which is rarely neccessary).
 		const PropertyByName& getSection() const;
+		/// Store values in a GetSetInOut object
+		void save(GetSetInOut& file) const;
 
 	protected:
 		/// This is where the properties reside
@@ -190,9 +193,6 @@ namespace GetSetInternal {
 		/// Not publicly constructible
 		GetSetSection(const std::string& path, GetSetDictionary& dict);
 		
-		/// Store values in a GetSetInOut object
-		void save(GetSetInOut& file) const;
-
 		/// Destroy all properties held by this object
 		virtual ~GetSetSection();
 
@@ -200,10 +200,10 @@ namespace GetSetInternal {
 
 		// We are a "Section" holding more properties
 		virtual std::string getType() const {return "Section";}
-		// Silently ignore (does not apply to this special case)
+		// Silently ignore calls to set (does not apply to this special case)
 		virtual void setString(const std::string& new_value) {}
-		// Silently ignore (does not apply to this special case)
-		virtual std::string getString() const {return "";}
+		// Obtain a short string with the types of our children (not really our value...)
+		virtual std::string getString() const;
 
 
 		/// Replace or create a property at path in the tree

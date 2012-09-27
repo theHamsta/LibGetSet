@@ -2,7 +2,7 @@
 //  Library: GetSet
 //  c++ library for load/saving *typed* and *named* properties and automatic GUI.
 //  
-//  Copyright (c) by André Aichert (aaichert@gmail.com)
+//  Copyright (c) by Andrï¿½ Aichert (aaichert@gmail.com)
 //    
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -16,6 +16,9 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 //
+
+#ifndef __TypeString_hxx
+#define __TypeString_hxx
 
 #include <string>
 #include <vector>
@@ -35,3 +38,4 @@ template<> inline std::string getTypeName<std::vector<std::string> >() {return "
 #define _DEFINE_TYPE(X) template<> inline std::string getTypeName<X>() {return #X;}
 #include "BaseTypes.hxx"
 
+#endif // __TypeString_hxx
