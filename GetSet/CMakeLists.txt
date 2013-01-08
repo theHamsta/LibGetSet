@@ -1,15 +1,13 @@
 cmake_minimum_required(VERSION 2.8)
 
-set(GETSET_HEADERS "StringUtil.hxx;GetSet.hxx;GetSetDictionary.h;GetSetInternal.h;GetSetFile.h;GetSetXML.h;GetSetCmdLine.h;ObjectFactory.h")
+set(GETSET_HEADERS "StringUtil.hxx;GetSet.hxx;GetSetDictionary.h;GetSetInternal.h;GetSetIO.h;GetSetXML.h")
 
 add_library(GetSet
 	${GETSET_HEADERS}
 	GetSetDictionary.cpp
 	GetSetInternal.cpp
-	GetSetFile.cpp
+	GetSetIO.cpp
 	GetSetXML.cpp
-	GetSetCmdLine.cpp
-	ObjectFactory.cpp
 )
 set_target_properties(GetSet PROPERTIES VERSION ${GETSET_VERSION})
 

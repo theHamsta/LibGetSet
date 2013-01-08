@@ -1,208 +1,88 @@
 #include "GetSet/GetSetSpecial.hxx"
 #include "GetSet/GetSetXML.h"
-#include "GetSet/Factory.h"
-#include "GetSet/Configurator.hxx"
 
-#include "GetSetGui/GetSetGui.h"
+#include "GetSetGui/GetSetSettingsWindow.h"
 
 #include <iostream>
 
-/// Debugging a tree:
-class DebugTree : public GetSetInternal::Access {
-public:
-	DebugTree(GetSetDictionary& dictionary=GetSetDictionary::global()) : Access(dictionary) {}
-	void print() {
-		std::string tree;
-		assemblePlot(getRoot()->getSection(),tree);
-		std::cout << tree;
-	}
-private:
-	typedef std::map<std::string,GetSetInternal::GetSetNode*> PropertyByName;
-	void assemblePlot(const PropertyByName& here, std::string& out, std::string indent="")
+#include <QtGui/QApplication>
+
+namespace GetSetIO {
+
+	/// GetSet full description in XML formtat
+	class RCLConfiglFile : public GetSetInternal::GetSetInOutValuesOnly
 	{
-		for (PropertyByName::const_iterator it=here.begin();it!=here.end();++it)
+	public:
+		RCLConfiglFile(const std::string& file);
+		virtual ~RCLConfiglFile();
+
+		virtual void save() const;
+		virtual void load();
+	};
+
+
+	RCLConfiglFile::RCLConfiglFile(const std::string& file) : GetSetInOutValuesOnly(file){}
+	
+	RCLConfiglFile::~RCLConfiglFile() { if (stored) save(); }
+
+	void RCLConfiglFile::save() const
+	{
+		std::ostringstream ini;
+		// Iterate over all values in properties map and write them to ini
+		for (MapStrMapStrStr::const_iterator section=contents.begin();section!=contents.end();++section)
 		{
-			GetSetInternal::GetSetSection* s=dynamic_cast<GetSetInternal::GetSetSection*>(it->second); 
-			if (s)
+			ini << "\n[" << section->first << "]\n";
+			for (MapStrStr::const_iterator key=section->second.begin();key!=section->second.end();++key)
+				ini << key->first << " = " << key->second << "\n";
+		}
+		fileWriteString(file,ini.str());
+	}
+
+	void RCLConfiglFile::load()
+	{
+		std::istringstream strstr(fileReadString(file));
+		std::string section,key,value;
+		for (int lineNumber=0; !strstr.eof(); lineNumber++)
+		{
+			std::string line;
+			getline(strstr,line,'\n');
+			if (line.length()<2||line[0]=='#') continue;
+			if (line[0]=='[')
 			{
-				out+=indent+" +-"+it->first+"\n";
-				assemblePlot(s->getSection(),out,indent+" | ");
+				section=line.substr(1,line.length()-2);
+				continue;
 			}
-			else
-				out+=indent+" +-"+it->first+"\n";
+			std::istringstream linestr(line);
+			getline(linestr,key,'=');
+			getline(linestr,value,'\0');
+			trim(key);
+			trim(value);
+			contents[section][key]=value;
 		}
 	}
-};
-
-///
-class Vehicle : public Factory::Object {
-protected:
-	double		m_speed;
-	std::string	m_make;
-
-public:
-	Vehicle()
-		: m_speed(0)
-		, m_make("Unknown Make")
-	{}
-
-	virtual void configure(Factory::Configurator& config)
-	{
-		config.declare("Speed",m_speed);
-		config.declare("Make",m_make);
-	}
 
 
-};
+} // namespace GetSetIO
 
-class Plane : public  Vehicle {
-protected:
-	std::string m_pilot;
 
-public:
-	Plane()
-		: Vehicle()
-		, m_pilot("Unknown Pilot")
-	{}
-
-	virtual void configure(Factory::Configurator& config)
-	{
-		Vehicle::configure(config);
-		config.declare("Pilot",m_pilot);
-	}
-};
-DECLARE_TYPE(Plane,Vehicle)
-
-///
-class Car : public Vehicle {
-protected:
-	int m_wheels;
-	int m_passengers;
-
-public:
-
-	Car()
-		: Vehicle()
-		, m_wheels(4)
-		, m_passengers(5)
-	{}
-
-	virtual void configure(Factory::Configurator& config)
-	{
-		Vehicle::configure(config);
-		config.declare("Number Of Wheels",m_wheels);
-		config.declare("Max. Pasengers",m_passengers);
-	}
-
-};
-DECLARE_TYPE(Car,Vehicle)
-
-///
-class PickUp : public Car {
-protected:
-	double m_cargo;
-
-public:
-	PickUp()
-		: Car()
-		, m_cargo(100)
-	{
-		m_passengers=2;
-	}
-
-	virtual void configure(Factory::Configurator& config)
-	{
-		Car::configure(config);
-		config.declare("Max. Cargo",m_cargo);
-	}
-
-};
-DECLARE_TYPE(PickUp,Car;Vehicle)
-
-///
-class House : public Factory::Object {
-protected:
-	std::string m_street;
-	std::string m_city;
-	int m_zipCode;
-
-public:
-	House()
-	{
-		m_street="No Street";
-		m_city="Unknown City";
-		m_zipCode=19999;
-	}
-
-	virtual void configure(Factory::Configurator& config)
-	{
-		config.declare("Street",m_street);
-		config.declare("City",m_city);
-		config.declare("Zip",m_zipCode);
-	}
-
-};
-DECLARE_TYPE(House,House)
-
-class RichPerson {
-protected:
-	std::string m_name;
-	Car			m_car;
-	Vehicle		*m_additionalVehicle0;
-	Vehicle		*m_additionalVehicle1;
-	House		m_residence;
-
-public:
-	virtual void configure(Factory::Configurator& config)
-	{
-		config.declare("Name",m_name);
-		// We own just one house so we can just use the SAME section to configure it.
-		m_residence.configure(config);
-		// But the car we want in a subsection
-		m_car.configure(config.subsection("Primary Car"));
-
-		// Then, we might own different types of car and additional vehicles. By default, a Pickup and a Plane
-		config.create("Additional Vehicle 0",m_additionalVehicle0,"Pickup");
-		config.create("Additional Vehicle 1",m_additionalVehicle1,"Plane");
-	}
-
-};
 
 void gui(const std::string& section, const std::string& key)
 {
 	std::cout << section << " - " << key << std::endl;
 }
 
-void print(const std::set<std::string>& obj, const std::string& what)
-{
-	std::cout << what << ":\n" << std::endl;
-	for (std::set<std::string>::iterator it=obj.begin();it!=obj.end();++it)
-		std::cout << "\t" << *it << std::endl;
-}
-
 int main(int argc, char **argv)
 {
+	//QApplication app(argc,argv);
 
-	Factory::Configurator config;
+	//GetSetIO::save(GetSetIO::XmlFile("out.xml"));
+	//
+	//GetSetHandler callback(gui);
 
-	print(Factory::KnownTypes(),"All Objects");
-	print(Factory::KnownTypes("Vehicle"),"Vehicles");
-	print(Factory::KnownTypes("Car"),"Cars");
-	print(Factory::KnownTypes("PickUp"),"PickUps");
-
-	Car c;
-	c.configure(config.subsection("Some Car"));
-
-	RichPerson p;
-	p.configure(config.subsection("Rich Guy"));
-
-
-
-	GetSetIO::save(GetSetIO::XmlFile("out.xml"));
-	
-	DebugTree().print();
-
-	GetSetHandler callback(gui);
-
-	return GetSetGui::runQtApp("Test",argc,argv);
+	//GetSetSettingsWindow window;
+	//window.setWindowTitle("RCL launcher");
+	//window.setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::CustomizeWindowHint | Qt::WindowSystemMenuHint);
+	//window.show();
+	//
+	//return app.exec();
 }
