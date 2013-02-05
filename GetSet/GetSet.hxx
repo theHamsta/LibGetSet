@@ -118,7 +118,7 @@ public:
 	{}
 
 	/// Use parenthesis operator to navigate
-	GetSetPath operator()(const std::string& key) const
+	GetSetPath operator()(const std::string& key)
 	{
 		return GetSetPath(getPath(key),dictionary);
 	}
@@ -140,7 +140,7 @@ public:
 
 	/// Use key&lt;BasicType&gt;("MyKey") to get/set a property value
 	template <typename BasicType>
-	inline GetSet<BasicType> key(const std::string& k) const
+	inline GetSet<BasicType> key(const std::string& k)
 	{
 		return GetSet<BasicType>(getPath(k),dictionary);
 	}

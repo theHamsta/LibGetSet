@@ -38,4 +38,14 @@ template<> inline std::string getTypeName<std::vector<std::string> >() {return "
 #define _DEFINE_TYPE(X) template<> inline std::string getTypeName<X>() {return #X;}
 #include "BaseTypes.hxx"
 
+inline bool isTypeStr(const std::string& type)
+{
+	bool isType=false;
+	#define _DEFINE_TYPE(T) \
+		if (!isType && type==#T) isType=true;
+	#include "BaseTypes.hxx"
+	#undef _DEFINE_TYPE
+	return isType;
+}
+
 #endif // __TypeString_hxx
