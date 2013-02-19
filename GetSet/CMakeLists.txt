@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 
-set(GETSET_HEADERS "BaseTypes.hxx;StringUtil.hxx;GetSet.hxx;GetSetSpecial.hxx;GetSetDictionary.h;GetSetInternal.h;GetSetIO.h;GetSetXML.h")
+set(GETSET_HEADERS "BaseTypes.hxx;TypeString.hxx;StringUtil.hxx;GetSet.hxx;GetSetSpecial.hxx;GetSetDictionary.h;GetSetInternal.h;GetSetIO.h;GetSetXML.h")
 
 add_library(GetSet
 	${GETSET_HEADERS}
@@ -13,5 +13,5 @@ set_target_properties(GetSet PROPERTIES VERSION ${GETSET_VERSION})
 
 install(FILES ${GETSET_HEADERS} DESTINATION ${INCLUDE_INSTALL_DIR}/GetSet )
 
-install(TARGETS GetSet EXPORT GetSetExport ARCHIVE DESTINATION ${LIB_INSTALL_DIR})
+install(TARGETS GetSet EXPORT GetSetExport ARCHIVE DESTINATION GetSet/${LIB_INSTALL_DIR})
 
