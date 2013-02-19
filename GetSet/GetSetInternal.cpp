@@ -1,5 +1,6 @@
 #include "GetSetInternal.h"
 #include "GetSetDictionary.h"
+#include "GetSet.hxx"
 
 namespace GetSetInternal {
 
@@ -47,8 +48,36 @@ void Access::signalDestroy(const std::string& section, const std::string& key)
 // GetSetInOut
 //
 
-GetSetInOut::GetSetInOut(const std::string& filePath) : file(filePath), stored(0) {}
-GetSetInOut::~GetSetInOut() {}
+GetSetInOut::GetSetInOut(std::istream& input, std::ostream& output) : istr(input), ostr(output) {}
+
+void GetSetInOut::store(const std::string& section, const std::string& key, GetSetInternal::GetSetNode* value)
+{
+	if (dynamic_cast<GetSetInternal::GetSetSection*>(value)) return;
+	std::string path=section.empty()?key:section+"/"+key;
+	contents[path]=value->attributes;
+	contents[path]["Value"]=value->getString();
+	contents[path]["Type"]=value->getType();
+}
+
+void GetSetInOut::retreiveAll(GetSetDictionary& dictionary)
+{
+	for (MapStrMapStrStr::iterator it=contents.begin();it!=contents.end();++it)
+	{
+		std::string type=it->second["Type"];
+		if (type.empty())
+			GetSet<>(it->first,dictionary)=it->second["Value"];
+		else
+		{
+			GetSetInternal::GetSetNode& p=GetSetInternal::Access::createProperty(dictionary,it->first,type);
+			p.attributes=it->second;
+			p.setString(p.attributes["Value"]);
+			// These two are handled internally and should not be present in the attributes.
+			p.attributes.erase(p.attributes.find("Type"));
+			p.attributes.erase(p.attributes.find("Value"));
+		}
+	}
+}
+
 
 //
 // GetSetSection

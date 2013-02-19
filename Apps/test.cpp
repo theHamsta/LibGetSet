@@ -12,8 +12,7 @@
 
 void gui(const std::string& section, const std::string& key)
 {
-
-
+	GetSetIO::save<GetSetIO::IniFile>("config.ini");
 }
 
 int main(int argc, char **argv)
@@ -24,7 +23,14 @@ int main(int argc, char **argv)
 	GetSetGui::Button("Run/Run")="Create Process...";
 	GetSetGui::Directory("Run/Working Directory");
 
-	GetSetIO::load(GetSetIO::IniFile("config.ini"));
+	// if (argc==2 && argv[1]=="--xml")
+	{
+		GetSetIO::XmlFile xml(std::cin,std::cout);
+		GetSetDictionary::global().save(xml);
+		return 0;
+	}
+
+	GetSetIO::load<GetSetIO::IniFile>("config.ini");
 	
 	GetSetHandler callback(gui);
 

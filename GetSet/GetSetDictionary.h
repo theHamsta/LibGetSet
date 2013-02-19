@@ -36,6 +36,12 @@ public:
 	/// Load from file
 	void load(GetSetInternal::GetSetInOut& file);
 
+	/// Returns true if this dictoinary contains nothing
+	bool empty()
+	{
+		return properties.empty();
+	}
+
 	/// Access to the global GetSetDictionary, which is used whenever no Dictionary is explicitly specified.
 	static GetSetDictionary& global();
 

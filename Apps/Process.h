@@ -16,7 +16,7 @@
 ///   else
 ///      std::cerr << "Failed to run process!\n";
 ///
-/// This impementatin neither supports piping into stdin, nor can it read stdout before the process ends.
+/// This impementatin does not supports piping into stdin.
 ///
 class Process {
 public:
@@ -28,6 +28,7 @@ public:
 	bool kill();										//< Kills teh process if it is still running.
 
 	int waitForExit() const;							//< Block until process dies. Returns error code of process.
+	void readPipe(std::ostream& out) const;				//< Blocking read on pipe until EOF and stream to out
 	const std::string&  getConsoleOutput() const;		//< Contents of stdout after waitForExit()
 	
 	const std::string&  getBinaryFilePath() const;		//< Path to executable
@@ -37,7 +38,7 @@ public:
 	Process& setWorkingDirectory(const std::string&);	//< Set working directory used for the next call to run()
 	Process& setCommanLineArgs(const std::string&);		//< Set command line arguments used for the next call to run()
 
-private:
+protected:
 	std::string binaryFile;
 	std::string workingDir;
 	std::string cmdLineArg;

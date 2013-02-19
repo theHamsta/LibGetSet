@@ -5,13 +5,6 @@ namespace GetSetInternal
 	/// A rudimentary non-standard conforming XML representation/parser.
 	class UglyXML {
 	public:
-		template <typename T>
-		static void freevec(std::vector<T*> &vec)
-		{
-			for (std::vector<T*>::const_iterator it=vec.begin();it!=vec.end();++it)
-				delete *it;
-			vec.clear();
-		}
 
 		struct Tag {
 			int from;
@@ -19,16 +12,14 @@ namespace GetSetInternal
 			std::string tag;
 			std::map<std::string,std::string> attrib;
 			std::string text;
-			std::vector<Tag*> tags;
+			std::vector<Tag> tags;
 		};
-		std::vector<Tag*> tags;
+		std::vector<Tag> tags;
 
 		// Try to parse an xml (definition see below)
 		bool parse(const std::string& value);
 
-		UglyXML(const std::string& value) { if (!parse(value)) std::cerr<<"UglyXML failed.\n"; }
-	
-		~UglyXML() {freevec(tags);}
+		UglyXML(const std::string& value) { if (!parse(value)) std::cerr << "UglyXML failed.\n"; }
 	};
 
 	bool parse(const std::string& value);
@@ -42,16 +33,14 @@ namespace GetSetIO
 	//
 	// XmlFile
 	//
-
-	XmlFile::XmlFile(const std::string& file) : GetSetInOutFullDescription(file) {}
-	XmlFile::~XmlFile() {if (stored) save();}
+	XmlFile::XmlFile(std::istream& input, std::ostream& output) : GetSetInternal::GetSetInOut(input, output) {}
 
 
 	//
 	// XmlFile saving (depends only on STL)
 	//
 
-	void XmlFile::save() const
+	void XmlFile::write() const
 	{
 		std::string xml="<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n<!--GetSet Description of Property Tree-->\n";
 		// A stack of open tags
@@ -99,7 +88,7 @@ namespace GetSetIO
 			xml+=indent+"</Section>\n";
 			openTags.pop_back();
 		}
-		fileWriteString(file,xml);
+		ostr << xml;
 	}
 
 
@@ -108,26 +97,29 @@ namespace GetSetIO
 	//
 
 	// local helper (recursive search of the XML DOM)
-	bool walkXml(std::vector<GetSetInternal::UglyXML::Tag*>& tags, std::string path, std::map<std::string, std::map<std::string, std::string> > &contents)
+	bool walkXml(std::vector<GetSetInternal::UglyXML::Tag>& tags, std::string path, std::map<std::string, std::map<std::string, std::string> > &contents)
 	{
 		for (int i=0;i<(int)tags.size();i++)
 		{
-			std::string key=path.empty()?tags[i]->attrib["Name"]:path+"/"+tags[i]->attrib["Name"];
-			if (tags[i]->tags.empty())
+			std::string key=path.empty()?tags[i].attrib["Name"]:path+"/"+tags[i].attrib["Name"];
+			if (tags[i].tags.empty())
 			{
-				if (tags[i]->tag!="Key") return false;
-				contents[key]=tags[i]->attrib;
-				contents[key]["Value"]=tags[i]->text;
+				if (tags[i].tag!="Key") return false;
+				contents[key]=tags[i].attrib;
+				contents[key]["Value"]=tags[i].text;
 				contents[key].erase(contents[key].find("Name"));
 			}
-			else return tags[i]->tag=="Section" && walkXml(tags[i]->tags,key,contents);
+			else if (tags[i].tag!="Section" || !walkXml(tags[i].tags,key,contents))
+				return false;
 		}
 		return true;
 	}
 
-	void XmlFile::load()
-	{
-		GetSetInternal::UglyXML xml(fileReadString(file));
+	void XmlFile::read()
+	{	
+		std::string all;
+		getline(istr,all,'\0');
+		GetSetInternal::UglyXML xml(all);
 		if (!walkXml(xml.tags,"",contents))
 		{
 			contents.clear();
@@ -149,7 +141,7 @@ namespace GetSetInternal
 
 	bool UglyXML::parse(const std::string& value)
 	{
-		std::vector<Tag*> openTags;
+		std::vector<Tag> openTags;
 		int start,end=0;
 		for (;;)
 		{
@@ -161,8 +153,7 @@ namespace GetSetInternal
 			{
 				// eof was reached, so we better not expect any more close tags
 				if (openTags.empty() && start==end) return true;
-				freevec(openTags);
-				freevec(tags);
+				tags.clear();
 				return 0;
 			}
 			if (value[start+1]=='?')
@@ -181,15 +172,15 @@ namespace GetSetInternal
 				// We expect no more tags but there is another close tag
 				if (openTags.empty())
 				{
-					freevec(tags);
+					tags.clear();
 					return false;
 				}
 				// The tag MUST match the most recently opened tag.
-				if (openTags.back()->tag==closedTag)
+				if (openTags.back().tag==closedTag)
 				{
-					openTags.back()->to=start;
-					if (openTags.back()->tags.empty())
-						openTags.back()->text=value.substr(openTags.back()->from,openTags.back()->to-openTags.back()->from);
+					openTags.back().to=start;
+					if (openTags.back().tags.empty())
+						openTags.back().text=value.substr(openTags.back().from,openTags.back().to-openTags.back().from);
 					if (openTags.size()==1)
 					{
 						tags.push_back(openTags.front());
@@ -197,15 +188,14 @@ namespace GetSetInternal
 					}
 					else
 					{
-						openTags[openTags.size()-2]->tags.push_back(openTags.back());
+						openTags[openTags.size()-2].tags.push_back(openTags.back());
 						openTags.pop_back();
 					}
 				}
 				else
 				{
 					// Closed tag does not match opened tag
-					freevec(openTags);
-					freevec(tags);
+					tags.clear();
 					return false;
 				}
 			}
@@ -213,15 +203,15 @@ namespace GetSetInternal
 			{
 				// Open tag: find end of tag text
 				int endOfText=value.find_first_of(" \t>",start);
-				openTags.push_back(new Tag());
-				openTags.back()->tag=value.substr(start+1,endOfText-start-1);
-				openTags.back()->from=end+1;
+				openTags.push_back(Tag());
+				openTags.back().tag=value.substr(start+1,endOfText-start-1);
+				openTags.back().from=end+1;
 				std::string attribstr=value.substr(endOfText,end-endOfText);
-				parseAttribs(attribstr,openTags.back()->attrib);
+				parseAttribs(attribstr,openTags.back().attrib);
 				if (!attribstr.empty() && attribstr.back()=='/')
 				{
 					// empty element tag <Tag arg="value"/> style
-					openTags.back()->to=openTags.back()->from;
+					openTags.back().to=openTags.back().from;
 					if (openTags.size()==1)
 					{
 						tags.push_back(openTags.front());
@@ -229,7 +219,7 @@ namespace GetSetInternal
 					}
 					else
 					{
-						openTags[openTags.size()-2]->tags.push_back(openTags.back());
+						openTags[openTags.size()-2].tags.push_back(openTags.back());
 						openTags.pop_back();
 					}
 				}

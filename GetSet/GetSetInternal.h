@@ -2,7 +2,7 @@
 //  Library: GetSet
 //  c++ library for load/saving *typed* and *named* properties and automatic GUI.
 //  
-//  Copyright (c) by Andr� Aichert (aaichert@gmail.com)
+//  Copyright (c) by Andre Aichert (aaichert@gmail.com)
 //    
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -142,28 +142,37 @@ namespace GetSetInternal {
 	};
 
 
-	/// An interface for file access. See Also: GetSetIO (GetSetFile.h)
+	/// An interface for file access. See Also: namespace GetSetIO
 	class GetSetInOut
 	{
 	public:
-		GetSetInOut(const std::string& filePath);
-		virtual ~GetSetInOut();
+		/// Flexible c-tor for string streams, stdio, file streams etc.
+		GetSetInOut(std::istream&, std::ostream&);
 
-		/// Store value of a key
-		virtual void store(const std::string& section, const std::string& key, GetSetInternal::GetSetNode* value) = 0;
-		/// Retreive value of a single key
-		virtual std::string retreive(const std::string& section, const std::string& key) = 0;
-		/// Retreive all values that are available and store them in dictionary
-		virtual void retreiveAll(GetSetDictionary& dictionary) = 0;
 	protected:
-		virtual void save() const = 0;
-		virtual void load() = 0;
-	
+		// In a way, this class extends the functionality of GetSetDictionary.
+		// Currently I use friendship to express this. But this is not a good design.
+		// However, nothing insider this class should be accessible to the user.
+		friend class GetSetSection;
+		friend class GetSetDictionary;
+		
+		/// Store value of a key
+		virtual void store(const std::string& section, const std::string& key, GetSetInternal::GetSetNode* value);
+		/// Retreive all values that are available and store them in dictionary
+		virtual void retreiveAll(GetSetDictionary& dictionary);
+
+		virtual void write() const = 0; 
+		virtual void read() = 0;
+
+		/// reference to the stream used for input. Usually istr==*pFile or some std::istringstream
+		std::istream&	istr;
+		/// reference to the stream used for output. Usually ostr==*pFile or ostr==std::cout
+		std::ostream&	ostr;
+
 		typedef std::map<std::string, std::string> MapStrStr;
 		typedef std::map<std::string, std::map<std::string, std::string> > MapStrMapStrStr;
 		std::map<std::string, std::map<std::string, std::string> > contents;
-		const std::string file;
-		bool stored;
+
 	};
 
 

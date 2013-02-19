@@ -1,5 +1,7 @@
 #include "Process.h"
 
+#include <sstream>
+
 #ifdef __APPLE__
 	// 2do
 #endif
@@ -24,38 +26,6 @@
 		handle=0x0;
 	}
 	
-	// Simple implementation w/o pipes
-	//bool Process::run()
-	//{
-	//	if (handle) return false;
-	//	STARTUPINFO si;
-	//	PROCESS_INFORMATION pi;
-	//	ZeroMemory(&si, sizeof(si));
-	//	ZeroMemory(&pi, sizeof(pi));
-	//	if(!CreateProcessA(	binaryFile.c_str(),
-	//						const_cast<char*>(cmdLineArg.c_str()),
-	//						NULL, NULL, FALSE, 0, NULL,
-	//						workingDir.c_str(),
-	//						&si,&pi)) 
-	//	{
-	//		handle=0x0;
-	//		return false;
-	//	}
-	//	CloseHandle( pi.hThread );
-	//	handle=pi.hProcess;
-	//	return true;
-	//}
-	//int Process::waitForExit()
-	//{
-	//	if (!handle) return -1;
-	//	unsigned long exit_code;
-	//	WaitForSingleObject(handle, INFINITE);
-	//	GetExitCodeProcess(handle, &exit_code);
-	//	CloseHandle(handle);
-	//	handle=0x0;
-	//	return (int)exit_code;
-	//}	
-
 	bool Process::isRunning() const
 	{
 		if (handle)
@@ -100,17 +70,7 @@
 		ok&=SetHandleInformation(stdoutReadHandle, HANDLE_FLAG_INHERIT, 0);
 		if (!ok) return false;
 
-		// We need to make a copy of the command line arguments.
-		// This is required by the Windows API.
-		// But since we are already at it, we append a space at the front
-		// Now, cmdLineArg can start with a character (otherwise would have to start with whitespace)
-		int l=(int)cmdLineArg.length();
-		char *cmdl_arg_tmp=new char[l+2];
-		for (int i=0;i<l;i++)
-			cmdl_arg_tmp[1+i]=cmdLineArg[i];
-		cmdl_arg_tmp[0]=' ';
-		cmdl_arg_tmp[l+1]=0;
-
+		std::string comand=binaryFile+" "+cmdLineArg;
 		// Starting the process
 		PROCESS_INFORMATION processInfo;
 		STARTUPINFOA startupInfo; 
@@ -120,14 +80,11 @@
 		startupInfo.hStdOutput = stdoutWriteHandle;
 		startupInfo.hStdInput = GetStdHandle(STD_INPUT_HANDLE);
 		startupInfo.dwFlags |= STARTF_USESTDHANDLES;
-		ok&=CreateProcessA(	binaryFile.c_str(),
-							cmdl_arg_tmp,
+		ok&=CreateProcessA(	NULL, // safe for CreateProcessA:
+							const_cast<char*>(comand.c_str()),
 							NULL, NULL, TRUE, CREATE_NO_WINDOW, NULL,
 							workingDir.empty() ? 0x0 : workingDir.c_str(),
 							&startupInfo, &processInfo);
-
-		// Finish up
-		delete [] cmdl_arg_tmp;
 		if (!ok) return false;
 		handle=processInfo.hProcess;
 		CloseHandle(stdoutWriteHandle);
@@ -135,7 +92,7 @@
 		return true;
 	}
 
-	int Process::waitForExit() const
+	void Process::readPipe(std::ostream& out) const
 	{
 		if (stdoutReadHandle)
 		{
@@ -146,16 +103,22 @@
 			while (ReadFile(stdoutReadHandle, tBuf, 256, &bytes_read, NULL) && bytes_read > 0)
 			{
 				tBuf[bytes_read]=0;
-				stdOutput+=tBuf;
+				out << tBuf;
 			}
 			stdoutReadHandle=0x0;
-		}
+		}		
+	}
 
+	int Process::waitForExit() const
+	{
+		std::ostringstream strstr;
+		readPipe(strstr);
+		stdOutput=strstr.str();
 		if (handle)
 			WaitForSingleObject(handle, INFINITE);
-
-		if (isRunning()) return -1;
-		else return exit_code;
+		DWORD exitcode;
+		GetExitCodeProcess(handle, &exitcode);		
+		return exit_code=exitcode;
 	}
 
 	const std::string&  Process::getConsoleOutput() const

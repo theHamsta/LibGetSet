@@ -2,7 +2,7 @@
 //  Library: GetSet
 //  c++ library for load/saving *typed* and *named* properties and automatic GUI.
 //  
-//  Copyright (c) by Andr� Aichert (aaichert@gmail.com)
+//  Copyright (c) by Andre Aichert (aaichert@gmail.com)
 //    
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -106,46 +106,46 @@ public:
 };
 
 /// A very simple helper class to navigate
-class GetSetPath : public GetSetInternal::Access
-{
-protected:
-	//// The path to a GetSetSection
-	std::string absolutePath;
-public:
-	GetSetPath(const std::string& path="", GetSetDictionary& dict=GetSetDictionary::global())
-		: Access(dict)
-		, absolutePath(path)
-	{}
-
-	/// Use parenthesis operator to navigate
-	GetSetPath operator()(const std::string& key)
-	{
-		return GetSetPath(getPath(key),dictionary);
-	}
-
-	/// Access to absolute path (optionally: of a key)
-	std::string getPath(const std::string& key="")
-	{
-		if (key.empty()) return absolutePath;
-		else return absolutePath.empty()?key:absolutePath+"/"+key;
-	}
-
-	/// Access to dictionary.
-	GetSetDictionary& getDictionary() {return dictionary;}
-
-	bool hasKey(const std::string& k)
-	{
-		return getProperty(getPath(k))!=0x0;
-	}
-
-	/// Use key&lt;BasicType&gt;("MyKey") to get/set a property value
-	template <typename BasicType>
-	inline GetSet<BasicType> key(const std::string& k)
-	{
-		return GetSet<BasicType>(getPath(k),dictionary);
-	}
-
-};
+//class GetSetPath : public GetSetInternal::Access
+//{
+//protected:
+//	//// The path to a GetSetSection
+//	std::string absolutePath;
+//public:
+//	GetSetPath(const std::string& path="", GetSetDictionary& dict=GetSetDictionary::global())
+//		: Access(dict)
+//		, absolutePath(path)
+//	{}
+//
+//	/// Use parenthesis operator to navigate
+//	GetSetPath operator()(const std::string& key)
+//	{
+//		return GetSetPath(getPath(key),dictionary);
+//	}
+//
+//	/// Access to absolute path (optionally: of a key)
+//	std::string getPath(const std::string& key="")
+//	{
+//		if (key.empty()) return absolutePath;
+//		else return absolutePath.empty()?key:absolutePath+"/"+key;
+//	}
+//
+//	/// Access to dictionary.
+//	GetSetDictionary& getDictionary() {return dictionary;}
+//
+//	bool hasKey(const std::string& k)
+//	{
+//		return getProperty(getPath(k))!=0x0;
+//	}
+//
+//	/// Use key&lt;BasicType&gt;("MyKey") to get/set a property value
+//	template <typename BasicType>
+//	inline GetSet<BasicType> key(const std::string& k)
+//	{
+//		return GetSet<BasicType>(getPath(k),dictionary);
+//	}
+//
+//};
 
 // Lots of preprocessor magic to generate sub-classes from GetSet<T> with different GUI behaviour
 #include "GetSetSpecial.hxx"

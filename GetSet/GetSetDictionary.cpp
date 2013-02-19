@@ -17,10 +17,12 @@ GetSetDictionary::~GetSetDictionary() {}
 void GetSetDictionary::save(GetSetInternal::GetSetInOut& file) const
 {
 	GetSetSection::save(file);
+	file.write();
 }
 
 void GetSetDictionary::load(GetSetInternal::GetSetInOut& file)
 {
+	file.read();
 	file.retreiveAll(*this);
 }
 

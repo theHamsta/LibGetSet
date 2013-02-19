@@ -22,78 +22,58 @@
 
 #include "GetSetDictionary.h"
 
-namespace GetSetInternal
-{
-	/// Intermediate interface for storage and retreival of values ONLY (no types). Subclasses MUST call save in destructor!
-	class GetSetInOutValuesOnly : public GetSetInOut
-	{
-	public:
-		GetSetInOutValuesOnly(const std::string file);
-
-		virtual void store(const std::string& section, const std::string& key, GetSetInternal::GetSetNode* value);
-		virtual std::string retreive(const std::string& section, const std::string& key);
-		virtual void retreiveAll(GetSetDictionary& dictionary);
-	};
-
-	class GetSetInOutFullDescription : public GetSetInOut {
-	public:
-		GetSetInOutFullDescription(const std::string file);
-
-		virtual void store(const std::string& section, const std::string& key, GetSetInternal::GetSetNode* value);
-		virtual std::string retreive(const std::string& section, const std::string& key);
-		virtual void retreiveAll(GetSetDictionary& dictionary);
-	};
-
-} // namespace GetSetInternal
-
 namespace GetSetIO {
 
 	/// Saving a file
-	inline void save(GetSetInternal::GetSetInOut& file, GetSetDictionary& dict=GetSetDictionary::global())
+	template <typename GetSetIO_Object>
+	bool save(const std::string& path, GetSetDictionary& dict=GetSetDictionary::global())
 	{
-		dict.save(file);
+		std::fstream file(path, std::ios::in | std::ios::out);
+		if (!file.good()) return false;
+		GetSetIO_Object io(file, file);
+		dict.save(io);
+		return true;
 	}
 
 	/// Loading a file
-	inline void load(GetSetInternal::GetSetInOut& file, GetSetDictionary& dict=GetSetDictionary::global())
+	template <typename GetSetIO_Object>
+	bool load(const std::string& path, GetSetDictionary& dict=GetSetDictionary::global())
 	{
-		dict.load(file);
+		std::ifstream file(path);
+		if (!file.good()) return false;
+		GetSetIO_Object io(file, std::cout);
+		dict.load(io);	
+		return true;
 	}
 
 	/// An ini-File in "[Section.Subsection] Key=Value" format
-	class IniFile : public GetSetInternal::GetSetInOutValuesOnly
+	class IniFile : public GetSetInternal::GetSetInOut
 	{
 	public:
-		IniFile(const std::string& file);
-		virtual ~IniFile();
-
+		IniFile(std::istream&, std::ostream&);
 	protected:
-		virtual void save() const;
-		virtual void load();
+		virtual void write() const;
+		virtual void read();
 	};
 
 	/// A simple text file with one property per line in "section/key=value" format
-	class TxtFileKeyValue : public GetSetInternal::GetSetInOutValuesOnly
+	class TxtFileKeyValue : public GetSetInternal::GetSetInOut
 	{
 	public:
-		TxtFileKeyValue(const std::string file);
-		virtual ~TxtFileKeyValue();
-
+		TxtFileKeyValue(std::istream&, std::ostream&);
 	protected:
-		virtual void save() const;
-		virtual void load();
+		virtual void write() const;
+		virtual void read();
 	};
 
 	/// A text file with one property per line containing all information (Key, Value, Type and additional info) in attribute="value" format
-	class TxtFileDescription : public GetSetInternal::GetSetInOutFullDescription
+	class TxtFileDescription : public GetSetInternal::GetSetInOut
 	{
 	public:
-		TxtFileDescription(const std::string file);
-		virtual ~TxtFileDescription();
-
+		TxtFileDescription(std::istream&, std::ostream&);
 	protected:
-		virtual void save() const;
-		virtual void load();
+		virtual void write() const;
+		virtual void read();
 	};
 
 } // namespace GetSetIO

@@ -25,14 +25,13 @@
 namespace GetSetIO {
 
 	/// GetSet full description in XML formtat
-	class XmlFile : public GetSetInternal::GetSetInOutFullDescription
+	class XmlFile : public GetSetInternal::GetSetInOut
 	{
 	public:
-		XmlFile(const std::string& file);
-		virtual ~XmlFile();
-
-		virtual void save() const;
-		virtual void load();
+		XmlFile(std::istream&, std::ostream&);
+	protected:
+		virtual void write() const;
+		virtual void read();
 	};
 
 } // namespace GetSetIO
