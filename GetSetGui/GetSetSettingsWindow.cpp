@@ -24,16 +24,13 @@
 #include <QtGui/QVBoxLayout>
 #include <QtGui/QMenu>
 
-// debug
-#include <iostream>
-
-
+// Minor leaks. FIXME
 void GetSetSettingsWindow::create(GetSetDictionary& dict, const std::vector<std::string>& tabs)
 {
 	m_tabWidget = new QTabWidget;
 	for (int i=0;i<(int)tabs.size(); i++)
 	{
-		GetSetWidget*tab=new GetSetWidget(dict,tabs[i]);
+		GetSetWidget* tab=new GetSetWidget(dict,tabs[i]);
 		tab->setObjectName(tabs[i].c_str());
 		m_tabWidget->addTab(tab,tabs[i].c_str());
 	}

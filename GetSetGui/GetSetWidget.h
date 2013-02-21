@@ -25,11 +25,12 @@
 #include <string>
 
 #include <QtGui/QWidget>
+#include <QtGui/QScrollArea>
 
 class QFormLayout;
 
 /// A QWidget based representation of a GetSetDictionary's section
-class GetSetWidget : public QWidget, protected GetSetDictionary::Observer
+class GetSetWidget : public QScrollArea, protected GetSetDictionary::Observer
 {
 	Q_OBJECT
 
@@ -37,6 +38,9 @@ protected:
 	/// string identifying the GetSet section represented by this widget
 	std::string		m_section;
 	
+	/// A widget that can be scrolled
+	QWidget*		m_content;
+
 	/// The list of properties
 	QFormLayout*	m_layout;
 

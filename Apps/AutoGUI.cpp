@@ -22,20 +22,21 @@ public:
 
 	~ConfigureProcess()
 	{
-		if (window)
-		{
-			window->close();
-			delete window;
-		}
+		closeWindow();
 	}
-
-	bool configure()
+	
+	void closeWindow()
 	{
 		if (window)
 		{
 			window->close();
 			delete window;
-		}
+		}	
+	}
+
+	bool configure()
+	{
+		closeWindow();
 		if (!setCommanLineArgs("--xml").run())
 			return false;
 		waitForExit();
@@ -54,17 +55,10 @@ public:
 		window->close();
 		GetSetIO::save<GetSetIO::IniFile>(config_file,configuration);
 		setCommanLineArgs(config_file).run();
-		readPipe(std::cout);
-		return waitForExit();
+		return waitForExit(true);
 	}
 
 protected:
-
-	void gui_handler(const std::string& section, const std::string& key)
-	{
-		GetSetIO::save<GetSetIO::IniFile>(config_file,configuration);
-	}
-
 	bool good;
 	std::string				config_file;
 	GetSetDictionary		configuration;
@@ -72,7 +66,6 @@ protected:
 };
 
 ConfigureProcess *childProcess=0x0;
-
 
 void gui(const std::string& section, const std::string& key)
 {

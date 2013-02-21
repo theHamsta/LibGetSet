@@ -1,6 +1,7 @@
 #include "Process.h"
 
 #include <sstream>
+#include <iostream>
 
 #ifdef __APPLE__
 	// 2do
@@ -70,7 +71,7 @@
 		ok&=SetHandleInformation(stdoutReadHandle, HANDLE_FLAG_INHERIT, 0);
 		if (!ok) return false;
 
-		std::string comand=binaryFile+" "+cmdLineArg;
+		std::string command=binaryFile+" "+cmdLineArg;
 		// Starting the process
 		PROCESS_INFORMATION processInfo;
 		STARTUPINFOA startupInfo; 
@@ -81,7 +82,7 @@
 		startupInfo.hStdInput = GetStdHandle(STD_INPUT_HANDLE);
 		startupInfo.dwFlags |= STARTF_USESTDHANDLES;
 		ok&=CreateProcessA(	NULL, // safe for CreateProcessA:
-							const_cast<char*>(comand.c_str()),
+							const_cast<char*>(command.c_str()),
 							NULL, NULL, TRUE, CREATE_NO_WINDOW, NULL,
 							workingDir.empty() ? 0x0 : workingDir.c_str(),
 							&startupInfo, &processInfo);
@@ -92,7 +93,7 @@
 		return true;
 	}
 
-	void Process::readPipe(std::ostream& out) const
+	void Process::readPipe(std::ostream& out, bool print) const
 	{
 		if (stdoutReadHandle)
 		{
@@ -104,15 +105,17 @@
 			{
 				tBuf[bytes_read]=0;
 				out << tBuf;
+				if (print)
+					std::cout << tBuf;
 			}
 			stdoutReadHandle=0x0;
 		}		
 	}
 
-	int Process::waitForExit() const
+	int Process::waitForExit(bool print) const
 	{
 		std::ostringstream strstr;
-		readPipe(strstr);
+		readPipe(strstr, print);
 		stdOutput=strstr.str();
 		if (handle)
 			WaitForSingleObject(handle, INFINITE);

@@ -1,5 +1,5 @@
 #include <GetSet/GetSet.hxx>
-#include <GetSet/GetSetFile.h>
+#include <GetSet/GetSetIO.h>
 
 #include <iostream>
 
@@ -16,7 +16,7 @@ int main(int argc, char** argv)
 	GetSet<std::string>("Input","Mask Image")="./mask.png";
 
 	// (try to) read configuration file
-	GetSetIO::load(GetSetIO::IniFile("config.ini"));
+	GetSetIO::load<GetSetIO::IniFile>("config.ini");
 
 	// Access values though implicit casts:
 	int n=GetSet<int>("Algorithm","Number of Iterations");

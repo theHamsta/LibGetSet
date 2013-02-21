@@ -125,10 +125,11 @@ void GetSetWidget::setValue(const QString& value)
 void GetSetWidget::init()
 {
 	setWindowTitle(m_section.c_str());
+	setFrameShape(QFrame::NoFrame);
 
+	m_content=new QWidget(this);
 	m_layout = new QFormLayout();
-
-	setLayout(m_layout);
+	m_content->setLayout(m_layout);
 
 	GetSetInternal::GetSetSection * section=(GetSetInternal::GetSetSection *)Access::getProperty(m_section);
 
@@ -138,6 +139,8 @@ void GetSetWidget::init()
 		this->notifyChange(m_section, it->first);
 	}
 
+	setWidget(m_content);
+	setWidgetResizable(true);
 }
 
 void GetSetWidget::destroy()
@@ -148,7 +151,7 @@ void GetSetWidget::destroy()
 }
 
 GetSetWidget::GetSetWidget(GetSetDictionary& dict, const std::string& section, QWidget *parent)
-	: QWidget(parent)
+	: QScrollArea(parent)
 	, GetSetDictionary::Observer(dict)
 	, m_section(section)
 {
@@ -178,14 +181,13 @@ void GetSetWidget::notifyCreate(const std::string& section, const std::string& k
 	QObject* anything = m_layout->findChild<QObject*>(key.c_str());
 	if (anything) return;
 
-
 	using namespace GetSetGui;
 	using namespace GetSetInternal;
 	GetSetNode*	p=getProperty(section.empty() ? key : section+"/"+key);
 
 	if (dynamic_cast<GetSetSection*>(p)!=0x0)
 	{
-		QWidget *item = new QWidget();
+		QWidget *item = new QWidget(this);
 		QLineEdit	*editfield=new QLineEdit(p->getString().c_str(),item);
 		editfield->setEnabled(false);
 		QPushButton *button=new QPushButton("...",item);
@@ -203,26 +205,32 @@ void GetSetWidget::notifyCreate(const std::string& section, const std::string& k
 		connect(editfield, SIGNAL(editingFinished()), this, SLOT(editingFinished()));
 		connect(button, SIGNAL(clicked()), this, SLOT(openSubSection()));
 		m_layout->addRow(key.c_str(),item);
+		if (p->attributes.end()!=p->attributes.find("Description"))
+			item->setToolTip(p->attributes["Description"].c_str());
 	}
 	else if (dynamic_cast<GetSetKeyButton*>(p)!=0x0)
 	{
-		QPushButton* item=new QPushButton(p->getString().c_str());
+		QPushButton* item=new QPushButton(p->getString().c_str(),this);
 		m_owned[key]=item;
 		item->setObjectName(key.c_str());
 		connect(item, SIGNAL(clicked()), this, SLOT(trigger()) );
 		m_layout->addRow(key.c_str(),item);
+		if (p->attributes.end()!=p->attributes.find("Description"))
+			item->setToolTip(p->attributes["Description"].c_str());
 	}
 	else if (dynamic_cast<GetSetKey<bool>*>(p)!=0x0)
 	{
-		QCheckBox* item = new QCheckBox();
+		QCheckBox* item = new QCheckBox(this);
 		m_owned[key]=item;
 		item->setObjectName(key.c_str());
 		connect(item, SIGNAL(stateChanged(int)), this, SLOT(setValue(int)));
 		m_layout->addRow(key.c_str(),item);
+		if (p->attributes.end()!=p->attributes.find("Description"))
+			item->setToolTip(p->attributes["Description"].c_str());
 	}
 	else if (dynamic_cast<GetSetKeyEnum*>(p)!=0x0)
 	{
-		QComboBox* item = new QComboBox();
+		QComboBox* item = new QComboBox(this);
 		std::vector<std::string> enumerator=Enum(section,key,dictionary).getChoices();
 		for (std::vector<std::string>::iterator it=enumerator.begin(); it!=enumerator.end(); ++it)
 			item->addItem(it->c_str());
@@ -230,27 +238,33 @@ void GetSetWidget::notifyCreate(const std::string& section, const std::string& k
 		item->setObjectName(key.c_str());
 		connect(item, SIGNAL(currentIndexChanged(int)), this, SLOT(setValue(int)));		
 		m_layout->addRow(key.c_str(),item);
+		if (p->attributes.end()!=p->attributes.find("Description"))
+			item->setToolTip(p->attributes["Description"].c_str());
 	}
 	else if (dynamic_cast<GetSetKeyStaticText*>(p)!=0x0) // 2do implement differently
 	{
-		QLabel* item = new QLabel();
+		QLabel* item = new QLabel(this);
 		m_owned[key]=item;
 		item->setObjectName(key.c_str());
 		m_layout->addRow(item);
+		if (p->attributes.end()!=p->attributes.find("Description"))
+			item->setToolTip(p->attributes["Description"].c_str());
 	}
 	else if (dynamic_cast<GetSetKey<int>*>(p)!=0x0)
 	{
-		QSpinBox* item = new QSpinBox();
+		QSpinBox* item = new QSpinBox(this);
 		item->setMinimum(-32768);
 		item->setMaximum(32767);
 		m_owned[key]=item;
 		item->setObjectName(key.c_str());
 		connect(item, SIGNAL(valueChanged(int)), this, SLOT(setValue(int)));
 		m_layout->addRow(key.c_str(),item);
+		if (p->attributes.end()!=p->attributes.find("Description"))
+			item->setToolTip(p->attributes["Description"].c_str());
 	}
 	else if (dynamic_cast<GetSetKeySlider*>(p)!=0x0)
 	{
-		QSlider* item = new QSlider(Qt::Horizontal);
+		QSlider* item = new QSlider(Qt::Horizontal,this);
 		if (p->attributes["Min"]=="") p->attributes["Min"]="0";
 		if (p->attributes["Max"]=="") p->attributes["Max"]="1";
 		item->setMaximum(Slider(section,key,dictionary).getMax()*1000);
@@ -259,10 +273,12 @@ void GetSetWidget::notifyCreate(const std::string& section, const std::string& k
 		item->setObjectName(key.c_str());
 		connect(item, SIGNAL(valueChanged(int)), this, SLOT(sliderMoved(int)));
 		m_layout->addRow(key.c_str(),item);
+		if (p->attributes.end()!=p->attributes.find("Description"))
+			item->setToolTip(p->attributes["Description"].c_str());
 	}
 	else if (dynamic_cast<GetSetKeyDirectory*>(p)!=0x0 || dynamic_cast<GetSetKeyFile*>(p)!=0x0)
 	{
-		QWidget *item = new QWidget();
+		QWidget *item = new QWidget(this);
 		QLineEdit	*editfield=new QLineEdit(p->getString().c_str(),item);
 		QPushButton *button=new QPushButton("...",item);
 		button->setFixedWidth(50);
@@ -282,25 +298,36 @@ void GetSetWidget::notifyCreate(const std::string& section, const std::string& k
 		else
 			connect(button, SIGNAL(clicked()), this, SLOT(selectFolder()));
 		m_layout->addRow(key.c_str(),item);
+		if (p->attributes.end()!=p->attributes.find("Description"))
+			item->setToolTip(p->attributes["Description"].c_str());
 	}
 	else if (dynamic_cast<GetSetKeyReadOnlyText*>(p)!=0x0)
 	{
-		QLineEdit* item=new QLineEdit(p->getString().c_str());
+		QLineEdit* item=new QLineEdit(p->getString().c_str(),this);
 		m_owned[key]=item;
 		item->setObjectName(key.c_str());
 		item->setEnabled(false);
 		m_layout->addRow(key.c_str(),item);
+		if (p->attributes.end()!=p->attributes.find("Description"))
+			item->setToolTip(p->attributes["Description"].c_str());
 	}
 	else if (p)
 	{
-		QLineEdit* item=new QLineEdit(p->getString().c_str());
+		QLineEdit* item=new QLineEdit(p->getString().c_str(),this);
 		m_owned[key]=item;
 		item->setObjectName(key.c_str());
 		connect(item, SIGNAL(editingFinished()), this, SLOT(editingFinished()));
 		m_layout->addRow(key.c_str(),item);
+		if (p->attributes.end()!=p->attributes.find("Description"))
+			item->setToolTip(p->attributes["Description"].c_str());
 	}
 	else
-		m_layout->addWidget(new QLabel(key.c_str()));
+	{
+		QLabel* item=new QLabel(key.c_str(),this);
+		m_layout->addWidget(item);
+		if (p->attributes.end()!=p->attributes.find("Description"))
+			item->setToolTip(p->attributes["Description"].c_str());
+	}
 		
 }
 

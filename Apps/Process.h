@@ -27,8 +27,8 @@ public:
 	bool isRunning() const;								//< Returns true if the process is still running.
 	bool kill();										//< Kills teh process if it is still running.
 
-	int waitForExit() const;							//< Block until process dies. Returns error code of process.
-	void readPipe(std::ostream& out) const;				//< Blocking read on pipe until EOF and stream to out
+	int waitForExit(bool print=false) const;			//< Block until process dies. Returns error code of process.
+	void readPipe(std::ostream& out, bool print) const;	//< Blocking read on pipe until EOF and stream to out
 	const std::string&  getConsoleOutput() const;		//< Contents of stdout after waitForExit()
 	
 	const std::string&  getBinaryFilePath() const;		//< Path to executable

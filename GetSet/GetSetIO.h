@@ -28,9 +28,9 @@ namespace GetSetIO {
 	template <typename GetSetIO_Object>
 	bool save(const std::string& path, GetSetDictionary& dict=GetSetDictionary::global())
 	{
-		std::fstream file(path, std::ios::in | std::ios::out);
+		std::ofstream file(path);
 		if (!file.good()) return false;
-		GetSetIO_Object io(file, file);
+		GetSetIO_Object io(std::cin, file);
 		dict.save(io);
 		return true;
 	}
