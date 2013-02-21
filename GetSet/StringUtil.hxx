@@ -222,13 +222,13 @@ inline void normalize(std::string& name)
 /// Parse XML-Style attributes into an std::map of strings
 inline void parseAttribs(const std::string& in, std::map<std::string,std::string>& out)
 {
-	int pos=0;
+	size_t pos=0;
 	std::string key,value;
 	for (;;)
 	{
-		int next=in.find("=",pos);
-		int v1=in.find("\"",next);
-		int v2=in.find("\"",v1+1);
+		size_t next=in.find("=",pos);
+		size_t v1=in.find("\"",next);
+		size_t v2=in.find("\"",v1+1);
 		if (next<0||v1<0||v2<0)
 			return;
 		if (v2>0)

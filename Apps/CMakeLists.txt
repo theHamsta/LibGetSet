@@ -13,9 +13,3 @@ add_executable(AutoGUI
 )
 add_dependencies(AutoGUI GetSet GetSetGui)
 target_link_libraries(AutoGUI GetSet GetSetGui ${QT_LIBRARIES})
-
-add_executable(xmlconfig
-	testXML.cpp
-)
-add_dependencies(xmlconfig GetSet)
-target_link_libraries(xmlconfig GetSet)

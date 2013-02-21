@@ -22,55 +22,28 @@
 
 #include "GetSetDictionary.h"
 
+// Basic GetSet usage:
+//   GetSet<bool>("Options/Checkbox")=true;
+//   GetSetIO::load<GetSetIO::IniFile>("config.ini");
+//   bool myBool=GetSet<bool>("Options/Checkbox");
+// See also: Special GetSet types defined in namespace GetSetGui (below)
+
 /// Syntactic sugar to access and change GetSet properties
 template <typename BasicType=std::string>
 class GetSet : public GetSetInternal::Access
 {
-protected:
-	/// The path to the section where this property resides
-	std::string section;
-	/// The name to the associated property in section
-	std::string key;
-
-	/// Keep track of the associated property (not actually owned by this class)
-	GetSetInternal::GetSetNode* property;
-	/// Same as property, if the type is an exact match. Else it is null.
-	GetSetInternal::GetSetKey<BasicType>* typedProperty;
-
-	/// c-tor for subclasses: initialize property from there.
-	GetSet(GetSetDictionary& dict) : GetSetInternal::Access(dict) {}
-
 public:
 	/// Access a GetSet property by section and key (and optionally explicitly a dictionary)
-	GetSet(const std::string& pathToSection, const std::string& k, GetSetDictionary& dict=GetSetDictionary::global())
-		: GetSetInternal::Access(dict)
-		, section(pathToSection)
-		, key(k)
-		, property(&declare<GetSetInternal::GetSetKey<BasicType>>(pathToSection.empty()?key:pathToSection+"/"+key,false))
-	{typedProperty=dynamic_cast<GetSetInternal::GetSetKey<BasicType>*>(property);}
+	GetSet(const std::string& pathToSection, const std::string& k, GetSetDictionary& dict=GetSetDictionary::global());
 
 	/// Access a GetSet property by the absolute path to its key (and optionally explicitly a dictionary)
-	GetSet(const std::string& pathToKey, GetSetDictionary& dict=GetSetDictionary::global())
-		: GetSetInternal::Access(dict)
-		, section(pathToKey)
-		, key(splitRight(section,"/\\"))
-		, property(&declare<GetSetInternal::GetSetKey<BasicType>>(pathToKey,false))
-	{typedProperty=dynamic_cast<GetSetInternal::GetSetKey<BasicType>*>(property);}
+	GetSet(const std::string& pathToKey, GetSetDictionary& dict=GetSetDictionary::global());
 
 	/// Set the value of a GetSet property (same as: assigment operator)
-	void setValue(const BasicType& v)
-	{
-		if (typedProperty) typedProperty->value=v;
-		else property->setString(toString(v));
-		signalChange(section,key);
-	}
+	GetSet<BasicType>& setValue(const BasicType& v);
 
 	/// Get the value of a GetSet property (same as: cast operator)
-	const BasicType getValue() const
-	{
-		if (typedProperty) return typedProperty->value;
-		else return stringTo<BasicType>(property->getString());
-	}
+	const BasicType getValue() const;
 
 	/// Set the value of a GetSet property directly via assignment operator
 	inline void operator=(const BasicType& v) { setValue(v); }
@@ -79,75 +52,73 @@ public:
 	inline operator BasicType() const { return getValue(); }
 
 	/// Get the value of the property as string
-	virtual std::string getString() const
-	{
-		return property->getString();
-	}
+	virtual std::string getString() const;
 
 	/// Set the value of this property from a string
-	virtual void setString(const std::string& value)
-	{
-		property->setString(value);
-		signalChange(section,key);
-	}
+	virtual void setString(const std::string& value);
 
 	/// Set a brief description for this property
-	void setDescription(const std::string& desc)
-	{
-		property->attributes["Description"]=desc;
-	}
+	GetSet<BasicType>& setDescription(const std::string& desc);
 
 	/// Get a brief descriptino for this property 
-	const std::string& setDescription()
-	{
-		return property->attributes["Description"];
-	}
+	const std::string& getDescription();
+
+protected:
+	/// The path to the section where this property resides
+	std::string section;
+	/// The name to the associated property in section
+	std::string key;
+
+	/// Keep track of the associated property (not actually owned by this class)
+	GetSetInternal::GetSetNode* property;
+
+	/// Same as property, if the type is an exact match. Else it is null.
+	GetSetInternal::GetSetKey<BasicType>* typedProperty;
+
+	/// c-tor for subclasses: initialize property from there.
+	GetSet(GetSetDictionary& dict) : GetSetInternal::Access(dict) {}
 
 };
 
-/// A very simple helper class to navigate
-//class GetSetPath : public GetSetInternal::Access
-//{
-//protected:
-//	//// The path to a GetSetSection
-//	std::string absolutePath;
-//public:
-//	GetSetPath(const std::string& path="", GetSetDictionary& dict=GetSetDictionary::global())
-//		: Access(dict)
-//		, absolutePath(path)
-//	{}
+// Special GetSet types:
+//    Slider Enum Button StaticText ReadOnlyText Directory File
+// All of these types specialize a basic GetSet<> class.
+// For example GetSetGui::Slider is a GetSet<double> and can be used as such.
 //
-//	/// Use parenthesis operator to navigate
-//	GetSetPath operator()(const std::string& key)
-//	{
-//		return GetSetPath(getPath(key),dictionary);
-//	}
+// Examples:
 //
-//	/// Access to absolute path (optionally: of a key)
-//	std::string getPath(const std::string& key="")
-//	{
-//		if (key.empty()) return absolutePath;
-//		else return absolutePath.empty()?key:absolutePath+"/"+key;
-//	}
+// File: (Open multiple files)
+//    GetSetGui::File("Input/Image Files").setExtensions("Image Files (*.png *.jpg);;All Files (*)").setMultiple(true)="in0.jpg;in1.jpg";
+//    std::vector<std::string> files=GetSet<std::vector<std::string> >("Input/Image Files"); // vector contains "in0.jpg" and "in1.jpg"
+// File: (Single Output File)
+//    GetSetGui::File("Output/Table File").setExtensions("Comma Seperated Values (*.csv)").setCreateNew(true)="out.csv";
+//    std::string file=GetSet<>("Output/Table File");
+// Button:
+//    GetSetGui::Button("Process/Start")="Text On Button";
+// Slider:
+//    GetSetGui::Slider("Mask/Threshold").setMin(0.0).setMax(1.0)=0.5;
+//    double t=GetSet<double>("Mask/Threshold");
+// Enum: (Simple Example)
+//    GetSetGui::Enum("Alphabet/Letter").setChoices("A;B;C;D")="B";
+//    int indexOfB=GetSet<int>("Alphabet/Letter");
+// Enum: (Define by std::vector<std::string> and use both features of GetSet<std::string> and GetSet<int>)
+//    std::vector<std::string> codecs;
+//    codecs.push_back("Advanced...");
+//    codecs.push_back("H.264 (MPEG-4 Part 10)");
+//    codecs.push_back("DivX Media Format (DMF)");
+//    GetSetGui::Enum("Video Output/Codec").setChoices(codecs)=0; // Defaults to "Advanced..."
+//    GetSet<>("Video Output/Codec")="H.264 (MPEG-4 Part 10)";
+//    int index=GetSet<int>("Video Output/Codec"); // return 1 (index of H.264)
+//    std::cout << "Codec used = " << GetSet<>("Video Output/Codec").getString() << std::endl; // prints "Codec used = H.264 ...
 //
-//	/// Access to dictionary.
-//	GetSetDictionary& getDictionary() {return dictionary;}
-//
-//	bool hasKey(const std::string& k)
-//	{
-//		return getProperty(getPath(k))!=0x0;
-//	}
-//
-//	/// Use key&lt;BasicType&gt;("MyKey") to get/set a property value
-//	template <typename BasicType>
-//	inline GetSet<BasicType> key(const std::string& k)
-//	{
-//		return GetSet<BasicType>(getPath(k),dictionary);
-//	}
-//
-//};
+// Hint: to reduce the amount of code, you can use GetSetIO to load a full description of your parameters.
+// Example: (GetSetIO::TxtFileDescription)
+//    Key="Alphabet/Letter" Choices="A;B;C;D" Type="Enum" Value="B"
+// Example: (GetSetIO::XMLDescription)
+//    <Section Name="Alphabet">
+//      <Key Name="Letter" Choices="A;B;C;D" Type="Enum">B</Key>
+//    </Section>
 
-// Lots of preprocessor magic to generate sub-classes from GetSet<T> with different GUI behaviour
-#include "GetSetSpecial.hxx"
+#include "GetSet_impl.hxx"
 
 #endif // __GetSet_hxx

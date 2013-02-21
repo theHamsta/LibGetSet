@@ -1,4 +1,4 @@
-#include "GetSet/GetSetSpecial.hxx"
+#include "GetSet/GetSet.hxx"
 #include "GetSet/GetSetXML.h"
 
 #include "GetSetGui/GetSetSettingsWindow.h"
@@ -23,19 +23,6 @@ int main(int argc, char **argv)
 {
 	QApplication app(argc,argv);
 
-	//QScrollArea *frame_scroll=new QScrollArea();
-	//QFrame *container=new QFrame();
-	//QVBoxLayout *layout=new QVBoxLayout(container);
- // 
-	//for(int i=0;i<20;i++)
-	//{  
-	//	QLabel* w=new QLabel("Whatever.");
-	//	layout->addWidget(w);
-	//}
- // 
-	//frame_scroll->setWidget(container);
-
-	//frame_scroll->show();
 
 	GetSetGui::File("Run/Binary File").setExtensions("Executable File (*.exe)").setDescription("This is a tooltip");
 

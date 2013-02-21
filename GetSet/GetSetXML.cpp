@@ -7,8 +7,8 @@ namespace GetSetInternal
 	public:
 
 		struct Tag {
-			int from;
-			int to;
+			size_t from;
+			size_t to;
 			std::string tag;
 			std::map<std::string,std::string> attrib;
 			std::string text;
@@ -142,7 +142,7 @@ namespace GetSetInternal
 	bool UglyXML::parse(const std::string& value)
 	{
 		std::vector<Tag> openTags;
-		int start,end=0;
+		size_t start,end=0;
 		for (;;)
 		{
 			// Find next xml tag:
@@ -202,7 +202,7 @@ namespace GetSetInternal
 			else
 			{
 				// Open tag: find end of tag text
-				int endOfText=value.find_first_of(" \t>",start);
+				size_t endOfText=value.find_first_of(" \t>",start);
 				openTags.push_back(Tag());
 				openTags.back().tag=value.substr(start+1,endOfText-start-1);
 				openTags.back().from=end+1;

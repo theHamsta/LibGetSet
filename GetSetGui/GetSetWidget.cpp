@@ -32,7 +32,7 @@
 #include <QtGui/QHBoxLayout>
 #include <QtGui/QKeyEvent>
 
-#include "../GetSet/GetSetSpecial.hxx"
+#include "../GetSet/GetSet.hxx"
 
 #include <iostream>
 

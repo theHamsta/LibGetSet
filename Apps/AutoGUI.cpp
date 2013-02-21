@@ -1,4 +1,4 @@
-#include "GetSet/GetSetSpecial.hxx"
+#include "GetSet/GetSet.hxx"
 #include "GetSet/GetSetXML.h"
 
 #include "GetSetGui/GetSetSettingsWindow.h"

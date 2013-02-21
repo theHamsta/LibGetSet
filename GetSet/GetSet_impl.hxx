@@ -22,45 +22,62 @@
 
 #include "GetSet.hxx"
 
-// Special GetSet types:
-//    Slider Enum Button StaticText ReadOnlyText Directory File
-// All of these types specialize a basic GetSet<> class.
-// For example GetSetGui::Slider is a GetSet<double> and can be used as such.
-//
-// Examples:
-//
-// File: (Open multiple files)
-//    GetSetGui::File("Input/Image Files").setExtensions("Image Files (*.png *.jpg);;All Files (*)").setMultiple(true)="in0.jpg;in1.jpg";
-//    std::vector<std::string> files=GetSet<std::vector<std::string> >("Input/Image Files"); // vector contains "in0.jpg" and "in1.jpg"
-// File: (Single Output File)
-//    GetSetGui::File("Output/Table File").setExtensions("Comma Seperated Values (*.csv)").setCreateNew(true)="out.csv";
-//    std::string file=GetSet<>("Output/Table File");
-// Button:
-//    GetSetGui::Button("Process/Start")="Text On Button";
-// Slider:
-//    GetSetGui::Slider("Mask/Threshold").setMin(0.0).setMax(1.0)=0.5;
-//    double t=GetSet<double>("Mask/Threshold");
-// Enum: (Simple Example)
-//    GetSetGui::Enum("Alphabet/Letter").setChoices("A;B;C;D")="B";
-//    int indexOfB=GetSet<int>("Alphabet/Letter");
-// Enum: (Define by std::vector<std::string> and use both features of GetSet<std::string> and GetSet<int>)
-//    std::vector<std::string> codecs;
-//    codecs.push_back("Advanced...");
-//    codecs.push_back("H.264 (MPEG-4 Part 10)");
-//    codecs.push_back("DivX Media Format (DMF)");
-//    GetSetGui::Enum("Video Output/Codec").setChoices(codecs)=0; // Defaults to "Advanced..."
-//    GetSet<>("Video Output/Codec")="H.264 (MPEG-4 Part 10)";
-//    int index=GetSet<int>("Video Output/Codec"); // return 1 (index of H.264)
-//    std::cout << "Codec used = " << GetSet<>("Video Output/Codec").getString() << std::endl; // prints "Codec used = H.264 ...
-//
-// Hint: to reduce the amount of code, you can use GetSetIO to load a full description of your parameters.
-// Example: (GetSetIO::TxtFileDescription)
-//    Key="Alphabet/Letter" Choices="A;B;C;D" Type="Enum" Value="B"
-// Example: (GetSetIO::XMLDescription)
-//    <Section Name="Alphabet">
-//      <Key Name="Letter" Choices="A;B;C;D" Type="Enum">B</Key>
-//    </Section>
+// --- Implementation ---
 
+template <typename BasicType>
+GetSet<BasicType>::GetSet(const std::string& pathToSection, const std::string& k, GetSetDictionary& dict)
+	: GetSetInternal::Access(dict)
+	, section(pathToSection)
+	, key(k)
+	, property(&declare<GetSetInternal::GetSetKey<BasicType>>(pathToSection.empty()?key:pathToSection+"/"+key,false))
+{typedProperty=dynamic_cast<GetSetInternal::GetSetKey<BasicType>*>(property);}
+
+template <typename BasicType>
+GetSet<BasicType>::GetSet(const std::string& pathToKey, GetSetDictionary& dict)
+	: GetSetInternal::Access(dict)
+	, section(pathToKey)
+	, key(splitRight(section,"/\\"))
+	, property(&declare<GetSetInternal::GetSetKey<BasicType>>(pathToKey,false))
+{typedProperty=dynamic_cast<GetSetInternal::GetSetKey<BasicType>*>(property);}
+
+template <typename BasicType>
+GetSet<BasicType>& GetSet<BasicType>::setValue(const BasicType& v)
+{
+	if (typedProperty) typedProperty->value=v;
+	else property->setString(toString(v));
+	signalChange(section,key);
+	return *this;
+}
+
+template <typename BasicType>
+const BasicType GetSet<BasicType>::getValue() const
+{
+	if (typedProperty) return typedProperty->value;
+	else return stringTo<BasicType>(property->getString());
+}
+
+template <typename BasicType>
+std::string GetSet<BasicType>::getString() const { return property->getString(); }
+
+template <typename BasicType>
+void GetSet<BasicType>::setString(const std::string& value)
+{
+	property->setString(value);
+	signalChange(section,key);
+}
+
+template <typename BasicType>
+GetSet<BasicType>& GetSet<BasicType>::setDescription(const std::string& desc)
+{
+	property->attributes["Description"]=desc;
+	return *this;
+}
+
+template <typename BasicType>
+const std::string& GetSet<BasicType>::getDescription()
+{
+	return property->attributes["Description"];
+}
 
 /// Specializations for GUI representations
 #define GETSET_SPECIALIZATION(SPECIAL_TYPE,BASE_TYPE,CLASS_BODY,KEY_BODY)									\
