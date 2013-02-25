@@ -229,9 +229,9 @@ inline void parseAttribs(const std::string& in, std::map<std::string,std::string
 		size_t next=in.find("=",pos);
 		size_t v1=in.find("\"",next);
 		size_t v2=in.find("\"",v1+1);
-		if (next<0||v1<0||v2<0)
+		if (next==std::string::npos||v1==std::string::npos||v2==std::string::npos)
 			return;
-		if (v2>0)
+		if (v2!=std::string::npos)
 		{
 			key=in.substr(pos,next-pos);
 			value=in.substr(v1+1,v2-v1-1);

@@ -95,7 +95,7 @@ void GetSetWidget::editingFinished()
 	std::string key=sender()->objectName().toAscii().data();
 	QLineEdit* l=dynamic_cast<QLineEdit*>(sender());
 	if (!l) return;
-	std::string value=l->text().toStdString();
+	std::string value=l->text().toAscii();
 	GetSet<std::string> property(m_section,key,dictionary);
 	if (property.getString()!=value)
 		property=value;

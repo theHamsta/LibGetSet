@@ -37,7 +37,6 @@ void GetSetSettingsWindow::create(GetSetDictionary& dict, const std::vector<std:
 	m_tabWidget->setContextMenuPolicy(Qt::CustomContextMenu);
 	connect(m_tabWidget, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(ctxMenu(const QPoint &)));
 
-	m_ok=0x0;
 	m_mainLayout = new QVBoxLayout;
 	m_mainLayout->addWidget(m_tabWidget);
 
@@ -46,10 +45,11 @@ void GetSetSettingsWindow::create(GetSetDictionary& dict, const std::vector<std:
 }
 
 GetSetSettingsWindow::GetSetSettingsWindow(const std::string& path, GetSetDictionary& dict ,const std::string& title, const std::string& listOfTabs, QWidget *parent)
-	: QWidget(parent)
+	: QDialog(parent)
 	, Access(dict)
 {
 	setWindowTitle(title.c_str());
+	setMinimumWidth(300);
 
 	std::vector<std::string> tabs=stringToVector<std::string>(listOfTabs,';');
 
@@ -69,6 +69,34 @@ GetSetSettingsWindow::GetSetSettingsWindow(const std::string& path, GetSetDictio
 		create(dict,tabs);
 }
 
+QPushButton* GetSetSettingsWindow::setButton(const std::string& name, void (*clicked)(const std::string& windowTitle,const std::string& buttonName))
+{
+	// Find a button that matches name
+	for (std::map<QPushButton*, void (*)(const std::string&,const std::string&)>::iterator it=m_buttons.begin(); it!=m_buttons.end();++it)
+	{
+		std::string n=it->first->objectName().toAscii();
+		if (n==name)
+		{
+			if (!clicked)
+			{
+				delete it->first;
+				m_buttons.erase(it);
+				return 0x0;
+			}
+			else
+				it->second=clicked;
+			return it->first;
+		}
+	}
+	// Button does not yet exist
+	QPushButton *pb=new QPushButton(name.c_str(),this);
+	pb->setObjectName(name.c_str());
+	connect(pb, SIGNAL(clicked()), this, SLOT(buttonClicked()) );
+	m_mainLayout->addWidget(pb);
+	m_buttons[pb]=clicked;
+	return pb;
+}
+
 GetSetSettingsWindow::~GetSetSettingsWindow()
 {
 	delete m_mainLayout;
@@ -85,10 +113,22 @@ void GetSetSettingsWindow::ctxMenu(const QPoint &pos)
 		if (out)
 		{
 			std::string section=out->objectName().toAscii().data();
-			GetSetWidget* w=new GetSetWidget(out->getDictionary(), section);
+			GetSetWidget* w=new GetSetWidget(out->getDictionary(), section, this);
 			w->setAttribute(Qt::WA_DeleteOnClose, true);
 			w->setWindowFlags(Qt::Tool | Qt::WindowStaysOnTopHint);
 			w->show();
 		}
+	}
+}
+
+void GetSetSettingsWindow::buttonClicked()
+{
+	std::string button=sender()->objectName().toAscii();
+	std::string window=windowTitle().toAscii();
+	for (std::map<QPushButton*, void (*)(const std::string&,const std::string&)>::iterator it=m_buttons.begin(); it!=m_buttons.end();++it)
+	{
+		std::string name=it->first->objectName().toAscii();
+		if (button==name)
+			it->second(window,name);
 	}
 }

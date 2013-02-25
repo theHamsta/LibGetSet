@@ -73,6 +73,8 @@ namespace GetSetInternal {
 	/// This function is defined in GetSet.hxx, because there are local types defined that have to be available internally.
 	GetSetNode* createSpecial(const std::string& type);
 
+
+
 	/// Way to expose select privates in GetSetDictionary. Definitions can only occur in GetSetDictionary.hxx!
 	/// The idea is, that instead of having a member of GetSetDictionary, a class derives from GetSetInternal::Access.
 	class Access
@@ -88,12 +90,12 @@ namespace GetSetInternal {
 				// This (ugly) code craetes a GetSetKey from a string for c-types, std::string and std::vectors of these
 				if (type=="string") node=new GetSetKey<std::string>();
 				else if (type=="vector<string>") node=new GetSetKey<std::vector<std::string> >();
-				#define GETSET_TYPE_STR(X) else if (type==#X) node=new GetSetKey<X>();
+				#define _DEFINE_TYPE(X) else if (type==#X) node=new GetSetKey<X>();
 				#include "BaseTypes.hxx"
-				#undef GETSET_TYPE_STR
-				#define GETSET_TYPE_STR(X) else if (type=="vector<"#X">") node=new GetSetKey<std::vector<X> >();
+				#undef _DEFINE_TYPE
+				#define _DEFINE_TYPE(X) else if (type=="vector<"#X">") node=new GetSetKey<std::vector<X> >();
 				#include "BaseTypes.hxx"
-				#undef GETSET_TYPE_STR
+				#undef _DEFINE_TYPE
 			}
 			// For unkown types we just use std::string because it can hold /any/ value
 			if (!node) node=new GetSetKey<std::string>();

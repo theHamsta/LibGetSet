@@ -149,7 +149,7 @@ namespace GetSetInternal
 			start=value.find("<",end);
 			end=value.find(">",end+1);
 			// If no new tag could be found
-			if (start<0||end<0)
+			if (start==std::string::npos||end==std::string::npos)
 			{
 				// eof was reached, so we better not expect any more close tags
 				if (openTags.empty() && start==end) return true;
@@ -162,7 +162,7 @@ namespace GetSetInternal
 			{
 				/// Skip comments
 				end = value.find("-->",start+4);
-				if (end>0) end+=3;
+				if (end!=std::string::npos) end+=3;
 				continue;
 			}
 			if (value[start+1]=='/')

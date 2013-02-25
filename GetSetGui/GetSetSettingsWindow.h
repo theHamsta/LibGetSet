@@ -26,31 +26,34 @@
 
 #include <string>
 
-#include <QtGui/QWidget>
+#include <QtGui/QDialog>
 
 class QTabWidget;
 class QPushButton;
 class QVBoxLayout;
 
-class GetSetSettingsWindow : public QWidget, public GetSetInternal::Access
+class GetSetSettingsWindow : public QDialog, public GetSetInternal::Access
 {
 	Q_OBJECT
 
 protected slots:
 	void ctxMenu(const QPoint &pos);
+	void buttonClicked();
 
 protected:
 	QTabWidget	*m_tabWidget;
-	QPushButton	*m_ok;
 	QVBoxLayout *m_mainLayout;
+
+	std::map<QPushButton*, void (*)(const std::string&,const std::string&)> m_buttons;
 
 	/// (Re-)Create the tabs and GetSetWidgets
 	void create(GetSetDictionary& dict, const std::vector<std::string>& tabs);
 
 public:
-
 	/// Settings dialog with a selection of sections from a dictionary
 	GetSetSettingsWindow(const std::string& path="", GetSetDictionary& dict=GetSetDictionary::global() ,const std::string& title="Settings", const std::string& listOfTabs="", QWidget *parent=0x0);
+
+	QPushButton* setButton(const std::string& name, void (*clicked)(const std::string& windowTitle,const std::string& buttonName)=0x0);
 
 	virtual ~GetSetSettingsWindow();
 };
