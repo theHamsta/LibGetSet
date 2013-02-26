@@ -9,6 +9,7 @@ set(GETSET_VERSION ${GETSET_VERSION_MAJOR}.${GETSET_VERSION_MINOR}.${GETSET_VERS
 
 # what is my include directory
 set(GETSET_INCLUDE_DIRS "${rootDir}/@INCLUDE_INSTALL_DIR@")
+set(GETSET_DIR "${rootDir}")
 
 # import the exported targets
 include(${myDir}/GetSetTargets.cmake)

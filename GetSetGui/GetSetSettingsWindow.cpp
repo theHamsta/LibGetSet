@@ -49,8 +49,6 @@ GetSetSettingsWindow::GetSetSettingsWindow(const std::string& path, GetSetDictio
 	, Access(dict)
 {
 	setWindowTitle(title.c_str());
-	setMinimumWidth(300);
-
 	std::vector<std::string> tabs=stringToVector<std::string>(listOfTabs,';');
 
 	if (tabs.empty())
@@ -67,6 +65,9 @@ GetSetSettingsWindow::GetSetSettingsWindow(const std::string& path, GetSetDictio
 	}
 	else
 		create(dict,tabs);
+
+	setMinimumWidth(300);
+	// fixme... correct size?
 }
 
 QPushButton* GetSetSettingsWindow::setButton(const std::string& name, void (*clicked)(const std::string& windowTitle,const std::string& buttonName))

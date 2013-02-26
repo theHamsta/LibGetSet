@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 2.6.4)
 
 ### PROJECT AND VERSION
 project(GetSet)
-set(GETSET_VERSION_MAJOR 0)
-set(GETSET_VERSION_MINOR 9)
+set(GETSET_VERSION_MAJOR 1)
+set(GETSET_VERSION_MINOR 0)
 set(GETSET_VERSION_PATCH 1)
 set(GETSET_VERSION ${GETSET_VERSION_MAJOR}.${GETSET_VERSION_MINOR}.${GETSET_VERSION_PATCH} )
 
@@ -16,10 +16,10 @@ add_definitions(${QT_DEFINITIONS})
 set(CMAKE_DEBUG_POSTFIX "d")
 
 ### DIRECTORIES
-set(LIB_INSTALL_DIR "lib")
-set(CMAKECONFIG_INSTALL_DIR ".")
-set(INCLUDE_INSTALL_DIR "include")
-set(BIN_INSTALL_DIR "bin")
+set(LIB_INSTALL_DIR "lib/")
+set(CMAKECONFIG_INSTALL_DIR "./")
+set(INCLUDE_INSTALL_DIR "include/")
+set(BIN_INSTALL_DIR "bin/")
 # All binaries go into the top level, not their respective subfolders
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE})
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE})
@@ -41,7 +41,12 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/GetSetConfig.cmake ${CMAKE_CURRENT_BIN
 # Add license
 install(FILES License.txt DESTINATION ${CMAKECONFIG_INSTALL_DIR})
 
-# Windows only : copy .dlls to bin folder. FIXME
-#if (WIN32)
-#    install(FILES ${QT_BINARY_DIR}/QtCore4.dll ${QT_BINARY_DIR}/QtGui4.dll DESTINATION ${BIN_INSTALL_DIR})
-#endif (WIN32)
+# Windows only : copy .dlls to bin folder.
+if (WIN32)
+    install(FILES ${QT_BINARY_DIR}/QtCore4.dll ${QT_BINARY_DIR}/QtGui4.dll DESTINATION ${BIN_INSTALL_DIR})
+endif (WIN32)
+
+# Copy example source code (Part of libreries, and therefore copied here)
+install(FILES ./examples/README.txt DESTINATION ${CMAKECONFIG_INSTALL_DIR}/examples/)
+install(FILES ./examples/console/CMakeLists.txt ./examples/console/simple.cpp DESTINATION ${CMAKECONFIG_INSTALL_DIR}/examples/console)
+install(FILES ./examples/gui/README.txt ./examples/gui/CMakeLists.txt ./examples/gui/advanced.cpp DESTINATION ${CMAKECONFIG_INSTALL_DIR}/examples/gui)

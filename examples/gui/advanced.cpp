@@ -29,7 +29,7 @@ int main(int argc, char** argv)
 	GetSetGui::Slider("More","Another Value between 0 and 1").setMin(0).setMax(1);
 
 	// A button with the caption "Print Some Text"
-	GetSetGui::Button("More","Do Something")="Print Some Text";
+	GetSetGui::Button("More","Do Something")="Start";
 
 	// A selector with three options: "Choice 1", "Choice 2" and "And so on", whith current value choice 2
 	GetSetGui::Enum("More/Choose!").setChoices("Choice 1;Choice 2;And so on").setValue(1);
@@ -62,6 +62,10 @@ void gui(const std::string& section, const std::string& key)
 
 	// This is how to handle a button. Note you can change it's caption (eg. "Start" to "Stop" and such)
 	if (key=="Do Something")
-		std::cout << GetSet<>("Setup","Some Text").getString() << std::endl;
-
+	{
+		if (GetSet<>("Setup","Some Text").getString()=="Bla")
+			GetSet<>("Setup","Some Text")="Blubb";
+		else
+			GetSet<>("Setup","Some Text")="Bla";
+	}
 }

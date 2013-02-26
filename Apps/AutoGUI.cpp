@@ -20,6 +20,8 @@
 #include <iostream>
 #include <sstream>
 
+#include <cstdlib>
+
 #include <QtGui/QApplication>
 #include <QtGui/QPushButton>
 #include <QtGui/QProgressBar>
@@ -29,177 +31,17 @@
 #include "GetSetGui/GetSetSettingsWindow.h"
 
 #include "Process.h"
-
-#include <windows.h>
-
-/// Class representing a command line tool that understands the "--xml" argument (FIXME clean up)
-class ConfigureProcess : public Process {
-public:
-	ConfigureProcess(const std::string& executable_path="", const std::string& config_file_path="client.ini", const std::string& cmdlinearg="")
-		: Process(executable_path)
-		, config_file(config_file_path)
-		, config_cmdline(cmdlinearg)
-		, window(0x0)
-	{}
-
-	~ConfigureProcess() {
-		closeWindow();
-	}
-	
-	void closeWindow()
-	{
-		if (window)
-		{
-			window->close();
-			delete window;
-		}	
-	}
-
-	/// Open Configuration Window
-	GetSetSettingsWindow* configure()
-	{
-		closeWindow();
-		if (!setCommanLineArgs("--xml").run())
-			return 0x0;
-		waitForExit();
-		std::istringstream xml(getConsoleOutput());
-		GetSetIO::XmlFile xmlConfig(xml,std::cout);
-		configuration.load(xmlConfig);
-		if (configuration.empty())
-			return 0x0;
-		window=new GetSetSettingsWindow("",configuration, binaryFile);
-		window->show();
-		return window;
-	}
-
-	bool handleControlCommand(const std::string& command)
-	{
-		std::istringstream str(command);
-		std::string type, action;
-		getline(str,type,'-');
-		getline(str,action,':');
-		trim(type);
-		trim(action);
-		if (type=="Progress")
-		{
-			std::string name;
-			if (action=="start")
-			{
-				std::string title;
-				getline(str,title,'-');
-				getline(str,name,'\0');
-				trim(title);
-				trim(name);
-				if (progress_bars.find(name)!=progress_bars.end() && progress_bars[name]!=0x0)
-					delete progress_bars[name];
-				progress_bars[name]=new QProgressBar();
-				progress_bars[name]->setWindowTitle(title.c_str());
-				progress_bars[name]->setMinimum(0);
-				progress_bars[name]->show();
-			}
-			if (action=="status")
-			{
-				int now,total;
-				str >> now;
-				str.ignore(100,'/');
-				str >> total;
-				getline(str,name,'\0');
-				trim(name);
-				if (progress_bars.find(name)!=progress_bars.end())
-				{
-					progress_bars[name]->setMaximum(total);
-					progress_bars[name]->setValue(now);
-				}
-			}
-			if (action=="done")
-			{
-				getline(str,name,'\0');
-				trim(name);
-				if (progress_bars.find(name)!=progress_bars.end())
-				{
-					if (progress_bars[name]!=0x0)
-						delete progress_bars[name];
-					progress_bars.erase(progress_bars.find(name));
-				}
-			}
-			QApplication::processEvents(); // 2do extra thread
-			return true;
-		}
-		return false;
-	}
-
-	/// This overload always blocks until termination of child. requires windows.h... FIXME not a very smart implementation either
-	int run()
-	{
-		window->hide();
-		GetSetIO::save<GetSetIO::IniFile>(config_file,configuration);
-		if (!setCommanLineArgs(std::string("\"")+config_file+"\" "+config_cmdline).run())
-			std::cout << "Failed to run process!\n";
-		else if (stdoutReadHandle)
-		{
-			stdOutput.clear();
-			DWORD bytes_read;
-			char tBuf[257];
-			std::string line;
-			int nfound=0;
-			while (ReadFile(stdoutReadHandle, tBuf, 256, &bytes_read, NULL) && bytes_read > 0)
-			{
-				tBuf[bytes_read]=0;
-				for (int i=0;i<(int)bytes_read;i++)
-				{
-					line.push_back(tBuf[i]);
-					if (nfound==-1)
-					{
-						if (tBuf[i]=='\n')
-						{
-							handleControlCommand(line);
-							line.clear();
-							nfound=0;
-						}
-					}
-					else
-					{
-						if (tBuf[i]=='#') nfound++;
-						if (nfound==3)
-						{
-							// "###" indicates a control command
-							line.clear();
-							nfound=-1;
-						}
-						if (tBuf[i]=='\n')
-						{
-							std::cout << line;
-							line.clear();
-						}
-					}
-				}
-
-			}
-			stdoutReadHandle=0x0;
-		}
-		int ret=waitForExit();
-		progress_bars.clear();
-		window->show();
-		return ret;
-	}
-
-protected:
-	bool good;
-	std::string				config_file;
-	std::string				config_cmdline;
-	GetSetDictionary		configuration;
-	GetSetSettingsWindow*	window;
-	std::map<std::string,QProgressBar*> progress_bars;
-};
-
+#include "ConfigureProcess.h"
 
 GetSetSettingsWindow *autogui_window;
 ConfigureProcess *childProcess=0x0;
-std::string config_file="config.ini";
+std::string config_file="AutoGUI.ini";
 
 // Handle GUI-events
 void gui(const std::string& section, const std::string& key)
 {
+	GetSetIO::save<GetSetIO::IniFile>(config_file);
+
 	if (section=="AutoGUI" && key=="Ok")
 	{
 		if (childProcess)
@@ -207,7 +49,9 @@ void gui(const std::string& section, const std::string& key)
 		childProcess=new ConfigureProcess(
 			GetSet<>("Basic/Binary File"),
 			GetSet<>("Basic/Config File"),
-			GetSet<>("Advanced/Command Line Arguments")
+			GetSet<>("Basic/Log File"),
+			GetSet<>("Advanced/Command Line Args"),
+			GetSet<>("Advanced/Command Line Args (config)")
 			);
 		childProcess->setWorkingDirectory(GetSet<>("Advanced/Working Directory"));
 		GetSetSettingsWindow *w=childProcess->configure();
@@ -222,60 +66,146 @@ void gui(const std::string& section, const std::string& key)
 	}
 
 	if (section=="Client Program" && key=="Run...")
-		std::cout << "Exit code: " << childProcess->run() << std::endl;
+	{
+		int exit_code=childProcess->run();
+		std::cout << "Exit code: " << exit_code << std::endl;
+		// If client successfully executes, we quit.
+		if (exit_code==0) exit(0);
+	}
+}
 
-	GetSetIO::save<GetSetIO::IniFile>(config_file);
+void killChild()
+{
+	if (childProcess)
+		childProcess->kill();
 }
 
 int main(int argc, char **argv)
 {
-	// print help string
-	if (argc==2 && (argv[1]=="--help" || argv[1]=="-h"))
+	atexit(killChild);
+	bool showAutoGuiConfig=true;
+	bool help=(argc==2 && (std::string(argv[1])=="--help" || std::string(argv[1])=="-h"));
+	// Print help string
+	if (argc==1 || help)
 	{
-		std::cout << "Usage:\n    AutoGUI [config.ini]\n    AutoGUI client.exe\n    AutoGUI client.exe \"command line args\"\n";
+		std::cout << "Usage:\n    AutoGUI [AutoGUI.ini]\n    AutoGUI --help\n    AutoGUI c.exe [-r] [-c c.ini] [-a/A cmdl_args] [-w work_dir] [-l c.log]\n";
+		if (help)
+		{
+			std::cout	<< "\n\n"
+						<< "Run a client executable (\"c.exe\") with the \"--xml\" command line flag and generate a GUI from its output. "
+						<< "The client is expected to print a GetSet parameter description in XML format to stdout. "
+						<< "This allows the user to change parameters via auto-generated GUI and finally to launch the client executable with an ini-File containing these settings.\n\n"
+						<< "Client developers see also: https://sourceforge.net/projects/getset/ \n"
+						<< "\n\n"
+						<< " -r     Configure and run client program right away.\n"
+						<< "        This will hide AutoGUI's own configuration window.\n"
+						<< "\n"
+						<< " -c     Specify an ini-file with client Configuration.\n"
+						<< "        This will be the first command line argument supplied to client.\n"
+						<< "\n"
+						<< " -a     Specify additional command line arguments for running client.\n"
+						<< "\n"
+						<< " -A     Specify command line args for configuring client via \"--xml\"\n"
+						<< "\n"
+						<< " -w     Specify working directory for client.\n"
+						<< "\n"
+						<< " -l     Specify a log file. Client output will be piped to stdout and log file.\n"
+						<< "\n"
+						<< " -help  Print this text.\n"
+						<< "\n"
+						<< "Author: Andre Aichert - andre.aichert@cs.fau.de\n"
+						<< "\n";
+		}
+
 		return 1;
 	}
 
 	// AutoGUI host parameters
 	GetSetGui::File("Basic/Binary File").setExtensions("Executable File (*.exe)")="./bin/client.exe";
 	GetSetGui::File("Basic/Config File").setExtensions("Ini-File (*.ini);;All Files (*)").setCreateNew(true)="./bin/client.ini";
+	GetSetGui::File("Basic/Log File").setExtensions("Log-File (*.log);;All Files (*)").setCreateNew(true)="./bin/client.ini";
 	GetSetGui::Directory("Advanced/Working Directory");
-	GetSet<>("Advanced/Command Line Arguments");
-	// Handle command line arguments
-	if (argc==2 || argc==3)
-	{
-		// Find out if the argument is an ini-File or an executable
-		std::string extension,path=argv[1];
-		extension=splitRight(path,".");
-		if (extension==".ini")
-		{
-			config_file=argv[1];
-			GetSetIO::load<GetSetIO::IniFile>(config_file);
-		}
-		else
-		{
-			GetSet<>("Basic/Binary File")=argv[1];			// eg. ./bin/bla.exe (or just ./bin/bla for linux)
-			if (argc>2)
-				GetSet<>("Basic/Config File")=argv[2];		// Config file was specified via command line
-			if (argc>3) GetSet<>("Advanced/Command Line Arguments")=argv[2];
+	GetSet<>("Advanced/Command Line Args");
+	GetSet<>("Advanced/Command Line Args (config)");
 
-			else
-				GetSet<>("Basic/Config File")=path+".ini";	// eg. ./bin/bla.ini
-			splitRight(path,"/\\");
-			GetSet<>("Advanced/Working Directory")=path;	// eg. ./bin
+	// Find out if the first argument is an ini-File or an executable
+	std::string extension,path=argv[1];
+	extension=splitRight(path,".");
+
+	// Handle command line arguments
+	if (argc==1 || (argc==2 && extension==".ini"))
+	{
+		if (argc==2)
+			config_file=argv[1];
+		GetSetIO::load<GetSetIO::IniFile>(config_file);
+	}
+	else
+	{
+		GetSet<>("Basic/Binary File")=argv[1];		// eg. ./bin/bla.exe (or just ./bin/bla for linux)
+		GetSet<>("Basic/Config File")=path+".ini";	// eg. ./bin/bla.ini
+		GetSet<>("Basic/Log File")=path+".log"; 	// eg. ./bin/bla.log
+		splitRight(path,"/\\");
+		GetSet<>("Advanced/Working Directory")=path;// eg. ./bin
+		// Parse additional command line arguments.
+		int i=2;
+		for (;i<argc;i++)
+		{
+			std::string flag=argv[i];
+			if (flag=="-r")
+			{
+				showAutoGuiConfig=false;
+				continue;
+			}
+			if (i==argc-1)
+			{
+				std::cerr << "Missing value for command line flag. Try:\n   AutoGUI --help\n";
+				return 1;
+			}
+			if (flag=="-c")
+			{
+				GetSet<>("Basic/Config File")=argv[++i];
+				continue;
+			}
+			if (flag=="-a")
+			{
+				GetSet<>("Advanced/Command Line Args")=argv[++i];
+				continue;
+			}
+			if (flag=="-A")
+			{
+				GetSet<>("Advanced/Command Line Args (config)")=argv[++i];
+				continue;
+			}
+			if (flag=="-w")
+			{
+				GetSet<>("Advanced/Working Directory")=argv[++i];
+				continue;
+			}
+			if (flag=="-l")
+			{
+				GetSet<>("Basic/Log File")=argv[++i];
+				continue;
+			}
+			std::cerr << "Unrecognized command line arguments. Try:\n   AutoGUI --help\n";
+			return 1;
 		}
 	}
-	else GetSetIO::load<GetSetIO::IniFile>(config_file); // no cmd line args -> use default config_file
 
 	// Tell GetSet to callback gui(...) for any GUI-input
 	GetSetHandler callback(gui);
 
 	// Run Qt GUI
 	QApplication app(argc,argv);
-	autogui_window=new GetSetSettingsWindow();
-	autogui_window->setWindowTitle("AutoGUI");
-	autogui_window->setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::CustomizeWindowHint | Qt::WindowSystemMenuHint);
-	autogui_window->setButton("Ok",gui)->setDefault(true);
-	autogui_window->show();	
+
+	if (showAutoGuiConfig)
+	{
+		autogui_window=new GetSetSettingsWindow();
+		autogui_window->setWindowTitle("AutoGUI");
+	//	autogui_window->setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::CustomizeWindowHint | Qt::WindowSystemMenuHint);
+		autogui_window->setButton("Ok",gui)->setDefault(true);
+		autogui_window->show();
+	}
+	else gui("AutoGUI", "Ok"); // Pretend user already clicked the "Ok" button ("-r"-flag)
+
 	return app.exec();
 }
