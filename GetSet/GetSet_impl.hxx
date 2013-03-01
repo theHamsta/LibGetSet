@@ -57,9 +57,6 @@ const BasicType GetSet<BasicType>::getValue() const
 }
 
 template <typename BasicType>
-std::string GetSet<BasicType>::getString() const { return property->getString(); }
-
-template <typename BasicType>
 void GetSet<BasicType>::setString(const std::string& value)
 {
 	property->setString(value);
@@ -67,17 +64,38 @@ void GetSet<BasicType>::setString(const std::string& value)
 }
 
 template <typename BasicType>
+std::string GetSet<BasicType>::getString() const { return property->getString(); }
+
+template <typename BasicType>
 GetSet<BasicType>& GetSet<BasicType>::setDescription(const std::string& desc)
 {
-	property->attributes["Description"]=desc;
+	return setAttribute("Description",desc);
+}
+
+template <typename BasicType>
+std::string GetSet<BasicType>::getDescription() const
+{
+	return getAttribute("Description");
+}
+
+template <typename BasicType>
+GetSet<BasicType>& GetSet<BasicType>::setAttribute(const std::string& attrib, const std::string& value)
+{
+	property->attributes[attrib]=value;
 	return *this;
 }
 
 template <typename BasicType>
-const std::string& GetSet<BasicType>::getDescription()
+std::string GetSet<BasicType>::getAttribute(const std::string& attrib) const
 {
-	return property->attributes["Description"];
+	std::map<std::string,std::string>::const_iterator it=property->attributes.find(attrib);
+	if (it!=property->attributes.end()) return it->second;
+	else return "";
 }
+
+//
+// DEFNIITION OF SPECIAL TYPES Enum, Button, File, ect.
+//
 
 /// Specializations for GUI representations
 #define GETSET_SPECIALIZATION(SPECIAL_TYPE,BASE_TYPE,CLASS_BODY,KEY_BODY)									\

@@ -46,7 +46,7 @@ if (WIN32)
     install(FILES ${QT_BINARY_DIR}/QtCore4.dll ${QT_BINARY_DIR}/QtGui4.dll DESTINATION ${BIN_INSTALL_DIR})
 endif (WIN32)
 
-# Copy example source code (Part of libreries, and therefore copied here)
+# Copy example source code (Ships as a part of the libraries, and therefore belongs here)
 install(FILES ./examples/README.txt DESTINATION ${CMAKECONFIG_INSTALL_DIR}/examples/)
 install(FILES ./examples/console/CMakeLists.txt ./examples/console/simple.cpp DESTINATION ${CMAKECONFIG_INSTALL_DIR}/examples/console)
 install(FILES ./examples/gui/README.txt ./examples/gui/CMakeLists.txt ./examples/gui/advanced.cpp DESTINATION ${CMAKECONFIG_INSTALL_DIR}/examples/gui)
