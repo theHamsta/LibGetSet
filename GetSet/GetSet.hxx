@@ -35,33 +35,34 @@ class GetSet : public GetSetInternal::Access
 public:
 	/// Access a GetSet property by section and key (and optionally explicitly a dictionary)
 	GetSet(const std::string& pathToSection, const std::string& k, GetSetDictionary& dict=GetSetDictionary::global());
-
 	/// Access a GetSet property by the absolute path to its key (and optionally explicitly a dictionary)
 	GetSet(const std::string& pathToKey, GetSetDictionary& dict=GetSetDictionary::global());
 
+
 	/// Set the value of a GetSet property (same as: assigment operator)
 	GetSet<BasicType>& setValue(const BasicType& v);
-
 	/// Get the value of a GetSet property (same as: cast operator)
 	const BasicType getValue() const;
 
-	/// Set the value of a GetSet property directly via assignment operator
-	inline void operator=(const BasicType& v) { setValue(v); }
-
-	/// Cast operator directly to BasicType (behaves almost like a c++ variable of BasicType)
-	inline operator BasicType() const { return getValue(); }
-
+	/// Set the value of this property from a string
+	virtual void setString(const std::string& value);
 	/// Get the value of the property as string
 	virtual std::string getString() const;
 
-	/// Set the value of this property from a string
-	virtual void setString(const std::string& value);
+	/// Set the value of a GetSet property directly via assignment operator
+	inline void operator=(const BasicType& v) { setValue(v); }
+	/// Cast operator directly to BasicType (behaves almost like a c++ variable of BasicType)
+	inline operator BasicType() const { return getValue(); }
 
-	/// Set a brief description for this property
+	/// Set a brief description for this property. Same as setAttribute("Description",...).
 	GetSet<BasicType>& setDescription(const std::string& desc);
+	/// Get a brief description for this property. Same as getAttribute("Description",...).
+	std::string getDescription() const;
 
-	/// Get a brief descriptino for this property 
-	const std::string& getDescription();
+	/// Access attributes directly (eg. "Description", "CommandLineArg" etc.)
+	GetSet<BasicType>& setAttribute(const std::string& attrib, const std::string& value);
+	/// Access attributes directly
+	std::string getAttribute(const std::string& attrib) const;
 
 protected:
 	/// The path to the section where this property resides

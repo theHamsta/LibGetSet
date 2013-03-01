@@ -57,7 +57,8 @@ void gui(const std::string& section, const std::string& key)
 		GetSetSettingsWindow *w=childProcess->configure();
 		if (w)
 		{
-			autogui_window->close();
+			if (autogui_window)
+				autogui_window->close();
 			w->setWindowTitle("Client Program");
 			w->setButton("Run...",gui)->setDefault(true);
 		}

@@ -1,47 +1,50 @@
+#include <iostream>
+
 #include "GetSet/GetSet.hxx"
-#include "GetSet/GetSetXML.h"
+#include "GetSet/GetSetIO.h"
+#include "GetSet/GetSetCmdLine.hxx"
 
 #include "GetSetGui/GetSetSettingsWindow.h"
 
-#include <iostream>
-
 #include <QtGui/QApplication>
-
-#include "Process.h"
-
-#include <QtGui/QScrollArea>
-#include <QtGui/QLabel>
-#include <QtGui/QVBoxLayout>
-
 
 void gui(const std::string& section, const std::string& key)
 {
 	GetSetIO::save<GetSetIO::IniFile>("config.ini");
-	if (section=="RCL launcher" && key=="Ok") // Ok button of window has been pressed
-	{
-	
-	}
 }
 
 int main(int argc, char **argv)
 {
 	QApplication app(argc,argv);
 
+	std::cout << "Command Line Args:\n";
+	for (int i=0;i<argc;i++)
+		std::cout << i << ":\t" << argv[i] << std::endl;
+	std::cout << std::endl;
+	//GetSetGui::File("Run/Binary File").setExtensions("Executable File (*.exe)").setDescription("This is a tooltip");
 
-	GetSetGui::File("Run/Binary File").setExtensions("Executable File (*.exe)").setDescription("This is a tooltip");
+	GetSet<>("Algorithm/Number of Iterations");
+	GetSet<>("Algorithm/Epsilon");
+	GetSet<>("File/Output");
+	GetSet<>("File/Input");
 
-	GetSet<>("Run/abca");
-	GetSet<>("Run/abcd");
 //	GetSetIO::load<GetSetIO::IniFile>("config.ini");
 	
+	GetSetIO::CmdLineParser cmdl;
+	cmdl.index("File/Input",1);
+	cmdl.index("File/Output",2);
+	cmdl.declare("Algorithm/Number of Iterations");
+	std::cout << cmdl.getSynopsis() << std::endl;
+
+	if (!cmdl.parse(argc,argv))
+		std::cout << "Unrecocgnizd Commad Line Args!\n";
+
+	GetSetIO::TxtFileKeyValue out(std::cin,std::cout);
+	GetSetDictionary::global().save(out);
+
 	GetSetHandler callback(gui);
 
-	GetSetSettingsWindow window;
-	window.setWindowTitle("RCL launcher");
-	window.setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::CustomizeWindowHint | Qt::WindowSystemMenuHint);
-	window.setButton("Ok",gui);
-	window.show();
-	
-	return app.exec();
+	return 0;
+//	return app.exec();
 
 }
