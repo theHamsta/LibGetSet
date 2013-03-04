@@ -14,15 +14,22 @@ target_link_libraries(GetSetTest GetSet GetSetGui ${QT_LIBRARIES})
 # AutoGUI
 ###
 
+
+# AutoGUI host
+QT4_WRAP_CPP(AutoGUI_MOC AutoGUI/QClientWindow.h)
 add_executable(AutoGUI
-	AutoGUI.cpp
-	Process.h
-	Process.cpp
-	ConfigureProcess.h
+	AutoGUI/AutoGUI.cpp
+	AutoGUI/Process.h
+	AutoGUI/Process.cpp
+	AutoGUI/ConfigureProcess.h
+	AutoGUI/QClientWindow.h
+	AutoGUI/QClientWindow.cpp
+	${AutoGUI_MOC}
 )
 target_link_libraries(AutoGUI GetSet GetSetGui ${QT_LIBRARIES})
 add_dependencies(AutoGUI GetSet GetSetGui)
 
+# Example client
 add_executable(ExampleAutoGUI
 	../examples/autogui/main.cpp
 )

@@ -151,14 +151,6 @@ inline std::string splitLeft(std::string& str, const std::string& delim)
 	return left;
 }
 
-/// Remove filename from an absolute path and return it
-inline std::string splitNameFromPath(std::string& path)
-{
-	std::string name=splitRight(path,"/\\");
-	if (path.empty()) path="/";
-	return name;
-}
-
 /// Overload of string conversion for specific lengths
 template <typename T> inline std::string toString(T in, int width, char fill='0')
 {

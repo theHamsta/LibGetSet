@@ -100,9 +100,9 @@ namespace GetSetIO {
 				{
 					str << "Parameter " << it->first << "\n";
 					std::set<std::string>::iterator f=it->second.begin();
-					str << *f;
+					str << ((*f)[0]=='-' ? *f : std::string("argument #")+*f);
 					for (++f;f!=it->second.end();++f)
-						str << " or " << *f;
+						str << " or " << ((*f)[0]=='-' ? *f : std::string("argument #")+*f);
 					str << std::endl;
 					std::string d=GetSet<>(it->first).getDescription();
 					if (!d.empty())
@@ -117,9 +117,9 @@ namespace GetSetIO {
 			{
 				str << "Parameter " << it->first << "\n";
 				std::set<std::string>::iterator f=it->second.begin();
-				str << *f;
+				str << ((*f)[0]=='-' ? *f : std::string("argument #")+*f);
 				for (++f;f!=it->second.end();++f)
-					str << " or " << *f;
+					str << " or " << ((*f)[0]=='-' ? *f : std::string("argument #")+*f);
 				str << std::endl;
 				std::string d=GetSet<>(it->first).getDescription();
 				if (!d.empty())
@@ -139,7 +139,7 @@ namespace GetSetIO {
 			// Special command line flags may already be specified.
 			if (flag.empty())
 			{
-				std::vector<std::string> f=stringToVector<std::string>(p->attributes["CommandLineFlag"]);
+				std::vector<std::string> f=stringToVector<std::string>(p->attributes["CommandLineFlag"],';');
 				for (std::vector<std::string>::iterator it=f.begin();it!=f.end();++it)
 					flags[*it]=path;
 				if (flag.empty() && !f.empty() )
@@ -164,7 +164,6 @@ namespace GetSetIO {
 		{
 			using namespace GetSetInternal;
 			GetSetSection* s=dynamic_cast<GetSetSection*>(p);
-			if (!s) return; // never happens
 			typedef  std::map<std::string,GetSetNode*> MapStrParam;
 			const MapStrParam& m=s->getSection();
 			// Recursively declare all keys in a section
@@ -180,7 +179,7 @@ namespace GetSetIO {
 		for (int i=0;i<argc;i++)
 		{
 			std::string arg=argv[i];
-			if (arg[0]=='-' && i<argc-2)
+			if (arg[0]=='-' && i<=argc-2)
 			{
 				MapStrStr::iterator it=flags.find(arg);
 				if (it!=flags.end())
@@ -194,7 +193,7 @@ namespace GetSetIO {
 					continue;
 				}
 			}
-			MapStrStr::iterator it=flags.find(toString(++unnamed));
+			MapStrStr::iterator it=flags.find(toString(unnamed++));
 			if (it!=flags.end() && i<argc-1)
 			{
 				getProperty(it->second)->setString(argv[i]);

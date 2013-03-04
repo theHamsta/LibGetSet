@@ -28,6 +28,7 @@
 
 #include "GetSet/GetSet.hxx"
 #include "GetSet/GetSetXML.h"
+#include "GetSet/GetSetCmdLine.hxx"
 #include "GetSetGui/GetSetSettingsWindow.h"
 
 #include "Process.h"
@@ -112,7 +113,7 @@ int main(int argc, char **argv)
 						<< "\n"
 						<< " -l     Specify a log file. Client output will be piped to stdout and log file.\n"
 						<< "\n"
-						<< " -help  Print this text.\n"
+						<< " --help Print this text.\n"
 						<< "\n"
 						<< "Author: Andre Aichert - andre.aichert@cs.fau.de\n"
 						<< "\n";
@@ -122,12 +123,23 @@ int main(int argc, char **argv)
 	}
 
 	// AutoGUI host parameters
-	GetSetGui::File("Basic/Binary File").setExtensions("Executable File (*.exe)")="./bin/client.exe";
-	GetSetGui::File("Basic/Config File").setExtensions("Ini-File (*.ini);;All Files (*)").setCreateNew(true)="./bin/client.ini";
-	GetSetGui::File("Basic/Log File").setExtensions("Log-File (*.log);;All Files (*)").setCreateNew(true)="./bin/client.ini";
-	GetSetGui::Directory("Advanced/Working Directory");
-	GetSet<>("Advanced/Command Line Args");
-	GetSet<>("Advanced/Command Line Args (config)");
+	GetSetGui::File("Basic/Binary File")
+		.setExtensions("Executable File (*.exe)")
+		.setAttribute("CommandLineFlag","1")
+		="./bin/client.exe";
+	GetSetGui::File("Basic/Config File")
+		.setExtensions("Ini-File (*.ini);;All Files (*)")
+		.setCreateNew(true)
+		.setAttribute("CommandLineFlag","-c")
+		="./bin/client.ini";
+	GetSetGui::File("Basic/Log File")
+		.setExtensions("Log-File (*.log);;All Files (*)")
+		.setCreateNew(true)
+		.setAttribute("CommandLineFlag","-l")
+		="./bin/client.ini";
+	GetSetGui::Directory("Advanced/Working Directory").setAttribute("CommandLineFlag","-w");
+	GetSet<>("Advanced/Command Line Args").setAttribute("CommandLineFlag","-a");
+	GetSet<>("Advanced/Command Line Args (config)").setAttribute("CommandLineFlag","-A");
 
 	// Find out if the first argument is an ini-File or an executable
 	std::string extension,path=argv[1];
@@ -147,48 +159,26 @@ int main(int argc, char **argv)
 		GetSet<>("Basic/Log File")=path+".log"; 	// eg. ./bin/bla.log
 		splitRight(path,"/\\");
 		GetSet<>("Advanced/Working Directory")=path;// eg. ./bin
-		// Parse additional command line arguments.
-		int i=2;
-		for (;i<argc;i++)
+
+		GetSetIO::CmdLineParser cmd;
+		cmd.require("Basic/Binary File");
+		cmd.declare(); // add all GetSet parameters and resp. flags
+		std::string test=cmd.getSynopsis();
+		if (!cmd.parse(argc,argv))
 		{
-			std::string flag=argv[i];
-			if (flag=="-r")
-			{
+			std::cerr << "Failed to parse command line arguments. Try:\n   AutoGUI --help\n";
+			return 1;		
+		}
+		if (cmd.getUnhandledArgs().size()>1)
+		{
+			// Handle -r flag
+			if (cmd.getUnhandledArgs().size()==2 && (++(cmd.getUnhandledArgs().begin()))->second=="-r")
 				showAutoGuiConfig=false;
-				continue;
-			}
-			if (i==argc-1)
+			else
 			{
-				std::cerr << "Missing value for command line flag. Try:\n   AutoGUI --help\n";
+				std::cerr << "Unrecognized command line arguments. Try:\n   AutoGUI --help\n";
 				return 1;
 			}
-			if (flag=="-c")
-			{
-				GetSet<>("Basic/Config File")=argv[++i];
-				continue;
-			}
-			if (flag=="-a")
-			{
-				GetSet<>("Advanced/Command Line Args")=argv[++i];
-				continue;
-			}
-			if (flag=="-A")
-			{
-				GetSet<>("Advanced/Command Line Args (config)")=argv[++i];
-				continue;
-			}
-			if (flag=="-w")
-			{
-				GetSet<>("Advanced/Working Directory")=argv[++i];
-				continue;
-			}
-			if (flag=="-l")
-			{
-				GetSet<>("Basic/Log File")=argv[++i];
-				continue;
-			}
-			std::cerr << "Unrecognized command line arguments. Try:\n   AutoGUI --help\n";
-			return 1;
 		}
 	}
 
@@ -202,7 +192,6 @@ int main(int argc, char **argv)
 	{
 		autogui_window=new GetSetSettingsWindow();
 		autogui_window->setWindowTitle("AutoGUI");
-	//	autogui_window->setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::CustomizeWindowHint | Qt::WindowSystemMenuHint);
 		autogui_window->setButton("Ok",gui)->setDefault(true);
 		autogui_window->show();
 	}

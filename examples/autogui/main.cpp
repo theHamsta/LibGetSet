@@ -80,20 +80,16 @@ int main(int argc, char **argv)
 	{
 		// You can use "### <command> - <action>: <parameters> - <key>" syntax for some extra magic.
 		// This example displays a progress bar
-		//    ### Progress - start: <window_name> - <key>
-		//    ### Progress - status: <i> / <n> - <key> 
-		//    ### Progress - done: <ignored> - <key>
-		std::cout << "### Progress - start: Busy Counting to a few billion... - counting\n";
-		std::cout << "Spend some time counting up to a few billion...\n";
+		std::cout << "### Info - Counting... : - Spend some time counting up to a few billion...\n";
 		int n=1000;
 		double c=-2;
 		for (int a=0;a<n;a++)
 		{
 			for (int b=0;b<10000000;b++) c=-c-c*c;
-			std::cout << "### Progress - status: " << a << " / " << n << " - counting\n";
+			std::cout << "### Progress - Counting... : status - " << a << " / " << n << std::endl;
 			std::cout << "c = " << c << std::endl;
 		}
-		std::cout << "### Progress - done: - counting\n";
+		std::cout << "### Progress - Counting... : hide -\n";
 	}
 
 	std::string filename=GetSet<>("Algorithm/Output File");
