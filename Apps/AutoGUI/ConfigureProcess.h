@@ -79,8 +79,9 @@ public:
 		//  Display progress bar
 		//    ### Progress - My Window : status - 5/10
 		//    ### Progress - My Window : hide -
-		//  Displaying error messages (please use only when program is about to exit abnormally)
-		//    ### Message - Error Loading Image : - Failed to open input file
+		//  Displaying error messages (please use sparingly when program is about to exit)
+		//    ### Message - Error Loading Image : error - Failed to open input file
+		//    ### Message - Solved : info - Results have been saved!
 		//  Closing a window (hides anything that was shown using identifier "My Window")
 		//    ### Window - My Window : hide -
 
@@ -110,14 +111,10 @@ public:
 		}
 
 		if (type=="Message")
-		{
-			QMessageBox msg;
-			msg.setText(identifier.c_str());
-			msg.setInformativeText(data.c_str());
-			msg.setStandardButtons(QMessageBox::Cancel);
-			msg.setDefaultButton(QMessageBox::Cancel);
-			return true;
-		}
+			if (action=="info")
+				return -1!=QMessageBox::information(0x0,identifier.c_str(),data.c_str(),QMessageBox::Ok);
+			else
+				return -1!=QMessageBox::warning(0x0,identifier.c_str(),data.c_str(),QMessageBox::Ok);
 
 		QClientWindow *w=0x0;
 		if (client_gui.find(identifier)!=client_gui.end() && client_gui[identifier]!=0x0)
@@ -152,11 +149,6 @@ public:
 		{
 			if (action=="set" || action.empty())
 				w->info->setText(data.c_str());
-			if (action=="append")
-			{
-				std::string t=w->info->text().toAscii();
-				w->info->setText((t+data).c_str());
-			}
 			if (action=="hide")
 				w->info->setText("");
 		}

@@ -194,7 +194,7 @@ namespace GetSetIO {
 				}
 			}
 			MapStrStr::iterator it=flags.find(toString(unnamed++));
-			if (it!=flags.end() && i<argc-1)
+			if (it!=flags.end() && i<argc)
 			{
 				getProperty(it->second)->setString(argv[i]);
 				required.erase(it->second);

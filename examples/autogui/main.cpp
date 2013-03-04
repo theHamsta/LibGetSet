@@ -99,6 +99,14 @@ int main(int argc, char **argv)
 		std::cout << "Failed.\n";
 	else
 		file << "Just a test.\n";
-	return GetSet<int>("Executable/Exit Code");
+
+	int error=GetSet<int>("Executable/Exit Code");
+	if (error!=0)
+	{
+		std::cout << "### Message - Simulated Error : - Nothing is wrong, but we pretend the following error has occured: Error " << error << std::endl;
+		exit(error);
+	}
+
+	return 0;
 }
 	
