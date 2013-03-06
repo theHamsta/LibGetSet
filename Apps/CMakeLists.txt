@@ -14,7 +14,6 @@ target_link_libraries(GetSetTest GetSet GetSetGui ${QT_LIBRARIES})
 # AutoGUI
 ###
 
-
 # AutoGUI host
 QT4_WRAP_CPP(AutoGUI_MOC AutoGUI/QClientWindow.h)
 add_executable(AutoGUI
@@ -36,8 +35,16 @@ add_executable(ExampleAutoGUI
 target_link_libraries(ExampleAutoGUI GetSet)
 add_dependencies(ExampleAutoGUI GetSet)
 
-install(TARGETS AutoGUI ExampleAutoGUI RUNTIME DESTINATION ${BIN_INSTALL_DIR})
+# Example Client using header-only version of GetSet
+add_executable(ExampleAutoGUI_header_only
+	../examples/autogui_header_only/GetSetAutoGui.hxx
+	../examples/autogui_header_only/main.cpp
+)
+
+# Install AutoGUI binaries and copy source code of examples, especially header-only version of GetSet
+install(TARGETS AutoGUI ExampleAutoGUI ExampleAutoGUI_header_only RUNTIME DESTINATION ${BIN_INSTALL_DIR})
 install(FILES ../examples/autogui/CMakeLists.txt ../examples/autogui/main.cpp  DESTINATION ${CMAKECONFIG_INSTALL_DIR}examples/autogui)
+install(FILES ../examples/autogui_header_only/GetSetAutoGui.hxx ../examples/autogui_header_only/main.cpp ../examples/autogui_header_only/CMakeLists.txt DESTINATION ${CMAKECONFIG_INSTALL_DIR}examples/autogui_header_only)
 
 ###
 # Examples (2do move)
@@ -55,4 +62,4 @@ add_executable(ExampleAdvanced
 target_link_libraries(ExampleAdvanced GetSet GetSetGui ${QT_LIBRARIES})
 add_dependencies(ExampleAdvanced GetSet GetSetGui)
 
-install(TARGETS ExampleSimple ExampleAdvanced RUNTIME DESTINATION ${BIN_INSTALL_DIR})
+install(TARGETS ExampleAdvanced RUNTIME DESTINATION ${BIN_INSTALL_DIR})

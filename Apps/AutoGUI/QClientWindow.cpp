@@ -27,4 +27,5 @@ QClientWindow::QClientWindow(void (*handler)(const std::string&, const std::stri
 	layout->addWidget(progress_bar);
 	layout->addWidget(button);
 	progress_bar->hide();
+	info->hide();
 }

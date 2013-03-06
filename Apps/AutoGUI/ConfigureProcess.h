@@ -74,7 +74,6 @@ public:
 		// Examples:
 		//  Display text
 		//    ### Info - My Window : - Text here
-		//    ### Info - My Window : append - Text here
 		//    ### Info - My Window : hide -
 		//  Display progress bar
 		//    ### Progress - My Window : status - 5/10
@@ -111,10 +110,10 @@ public:
 		}
 
 		if (type=="Message")
-			if (action=="info")
-				return -1!=QMessageBox::information(0x0,identifier.c_str(),data.c_str(),QMessageBox::Ok);
-			else
+			if (action=="error")
 				return -1!=QMessageBox::warning(0x0,identifier.c_str(),data.c_str(),QMessageBox::Ok);
+			else
+				return -1!=QMessageBox::information(0x0,identifier.c_str(),data.c_str(),QMessageBox::Ok);
 
 		QClientWindow *w=0x0;
 		if (client_gui.find(identifier)!=client_gui.end() && client_gui[identifier]!=0x0)
@@ -141,7 +140,6 @@ public:
 			}
 			if (action=="hide")
 				w->progress_bar->hide();
-			QApplication::processEvents(); // FIXME extra thread
 			return true;
 		}
 
@@ -150,7 +148,10 @@ public:
 			if (action=="set" || action.empty())
 				w->info->setText(data.c_str());
 			if (action=="hide")
-				w->info->setText("");
+				w->info->hide();
+			else
+				w->info->show();
+			return true;
 		}
 
 		return false;
@@ -171,8 +172,18 @@ public:
 			char tBuf[256];
 			std::string line;
 			int nfound=0;
-			while (ReadFile(stdoutReadHandle, tBuf, 255, &bytes_read, NULL) && bytes_read > 0)
+			while (1)
 			{
+				DWORD available=0;
+				if (0==PeekNamedPipe(stdoutReadHandle,0x0,0x0,0x0,&available,0x0) && available==0)
+					break; // eof
+				if (!available)
+				{
+					QApplication::processEvents();
+					Sleep(30);
+					continue;
+				}
+				ReadFile(stdoutReadHandle, tBuf, 255, &bytes_read, NULL);
 				tBuf[bytes_read]=0;
 				if (log.good()) log << tBuf;
 				for (int i=0;i<(int)bytes_read;i++)

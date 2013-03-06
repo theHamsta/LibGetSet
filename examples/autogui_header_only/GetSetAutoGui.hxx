@@ -105,7 +105,7 @@ inline void trim(std::string& str, const std::string& t = " \t")
 inline std::string enumNth(int n, const std::string& choices)
 {
 	std::vector<std::string> c=stringToVector<std::string>(choices,';');
-	if (n>=0 && n<c.size())
+	if (n>=0 && n<(int)c.size())
 		return c[n];
 	else
 		return "";
