@@ -142,19 +142,21 @@ int main(int argc, char **argv)
 	// Find out if the first argument is an ini-File or an executable
 	std::string extension,path=argv[1];
 	extension=splitRight(path,".");
-	if (extension.length()>5) // for example /bin/linux_noextension
+	if (extension.length()>4 && extension != "agui") // for example /bin/linux_noextension
 		std::swap(path,extension);
 
 	// Handle command line arguments
-	if (argc==1 || (argc==2 && extension==".ini"))
+	if (argc==1 || (argc==2 && (extension=="ini" || extension=="agui")))
 	{
 		if (argc==2)
+		{
+			showAutoGuiConfig=false;
 			config_file=argv[1];
+		}
 		GetSetIO::load<GetSetIO::IniFile>(config_file);
 	}
 	else
 	{
-		
 		GetSetIO::CmdLineParser cmd;
 		cmd.index("Basic/Binary File",1);
 		cmd.declare(); // add all GetSet parameters and resp. flags
