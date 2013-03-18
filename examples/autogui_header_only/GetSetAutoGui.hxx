@@ -15,6 +15,7 @@
 // String Utility
 #ifndef __StringUtil_hxx
 #define __StringUtil_hxx
+#define __TypeString_hxx
 
 #include <algorithm>
 #include <iostream>
@@ -99,7 +100,34 @@ inline void trim(std::string& str, const std::string& t = " \t")
 {
 	str.erase(str.find_last_not_of(t)+1);
 	str.erase(0,str.find_first_not_of(t));
-} 
+}
+
+/// Remove the part right of last occurence of delim and return it
+inline std::string splitRight(std::string& str, const std::string& delim)
+{
+	std::string::size_type loc=str.find_last_of(delim);
+	std::string right;
+	if (loc!=std::string::npos)
+	{
+		right=str.substr(loc+1,std::string::npos);
+		str=str.substr(0,loc); // left
+	}
+	else
+	{
+		right=str;
+		str.clear();
+	}
+	return right;
+}
+
+#endif // __StringUtil_hxx
+
+#ifndef __TypeString_hxx
+#include "TypeString.hxx"
+#endif // __TypeString_hxx
+
+#ifndef __getset_auto_gui_h
+#define __getset_auto_gui_h
 
 // Return n-th element in an semicolon seperated list
 inline std::string enumNth(int n, const std::string& choices)
@@ -119,12 +147,6 @@ inline int enumIdx(const std::string& item, const std::string& choices)
 		if (c[i]==item) return i;
 	return -1;
 }
-
-#endif // __StringUtil_hxx
-
-#ifndef __getset_auto_gui_h
-#define __getset_auto_gui_h
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // GetSet class
 
@@ -381,10 +403,10 @@ namespace GetSetAutoGUI
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// Define Function to abort abnormally with an error message (message box)
-	inline void error(const std::string& identifier, const std::string& text)
+	inline void error(const std::string& identifier, const std::string& text, int err=1)
 	{
 		std::cout << "### Message - " << identifier << " : error - " << text << std::endl;
-		abort();
+		exit(err);
 	}
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

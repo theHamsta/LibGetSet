@@ -147,9 +147,16 @@ namespace GetSetInternal
 		{
 			// Find next xml tag:
 			start=value.find("<",end);
-			end=value.find(">",end+1);
+			// end=value.find(">",end+1); // fails for Type="vector<int>", hence the foor loop below.
+			bool escaped=0;
+			for (end=start;end<value.size();end++)
+			{
+				if (value[end]=='"') escaped=!escaped;
+				if (!escaped&&value[end]=='>')
+					break;
+			}
 			// If no new tag could be found
-			if (start==std::string::npos||end==std::string::npos)
+			if (start==std::string::npos||end==std::string::npos||value[end]!='>')
 			{
 				// eof was reached, so we better not expect any more close tags
 				if (openTags.empty() && start==end) return true;

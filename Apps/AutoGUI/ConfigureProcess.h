@@ -23,8 +23,9 @@ public:
 		, config_cmdline_run(cmdlinearg_run)
 		, config_cmdline_cfg(cmdlinearg_cfg)
 		, window(0x0)
+		, handler(configuration,ConfigureProcess::gui)
 	{
-		_instance=this; // FIXME hack for callback
+		_instance=this; // FIXME hack for callbacks
 	}
 
 	~ConfigureProcess() {
@@ -64,6 +65,16 @@ public:
 	{
 		if (_instance)
 			_instance->kill();
+	}
+
+	static void gui(const std::string& section, const std::string& key)
+	{
+		std::string command=GetSet<>(section,key,_instance->configuration).getAttribute("ShellExecute");
+		if (!command.empty())
+		{
+			std::cout << "> " << command << std::endl;
+			ShellExecute(0x0,command.c_str(),0x0,0x0,_instance->working_dir.empty()?0x0:_instance->working_dir.c_str(),SW_SHOW);
+		}
 	}
 
 	bool handleControlCommand(const std::string& command)
@@ -148,8 +159,7 @@ public:
 			if (action=="set" || action.empty())
 				w->info->setText(data.c_str());
 			if (action=="hide")
-				w->info->hide();
-			else
+				w->info->hide();			else
 				w->info->show();
 			return true;
 		}
@@ -160,7 +170,8 @@ public:
 	/// This overload always blocks until termination of child. requires windows.h... FIXME not a very smart implementation either
 	int run()
 	{
-		window->hide();
+		if (window)
+			window->hide();
 		GetSetIO::save<GetSetIO::IniFile>(config_file,configuration);
 		if (!setCommanLineArgs(std::string("\"")+config_file+"\" "+config_cmdline_run).run())
 			std::cout << "Failed to run process!\n";
@@ -222,12 +233,13 @@ public:
 		for (std::map<std::string,QWidget*>::iterator it=client_gui.begin();it!=client_gui.end();++it)
 			if (it->second) delete it->second;
 		client_gui.clear();
-		window->show();
+		if (window)	window->show();
 		return ret;
 	}
 
 protected:
 	bool good;									//< True if the XML description was retreived successfully
+	std::string				working_dir;		//< Path to working directory
 	std::string				config_file;		//< Path to an ini-file to be written and passed to client
 	std::string				log_file;			//< Path to a file to which stdout of client will be piped
 	std::string				config_cmdline_cfg;	//< Arguments passed to client along with the --xml flag
@@ -235,6 +247,7 @@ protected:
 	GetSetDictionary		configuration;		//< Dictionary created from the XML description and GUI
 	GetSetSettingsWindow*	window;				//< The GUI to configure the client process.
 	std::map<std::string,QWidget*> client_gui;	//< Runtime client GUI (progess bars, dialogs etc.)
+	GetSetHandler			handler;			//< call the gui(...) callback when configuration changes
 };
 
 

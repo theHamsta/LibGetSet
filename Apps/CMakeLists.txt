@@ -11,6 +11,16 @@ add_dependencies(GetSetTest GetSet GetSetGui)
 target_link_libraries(GetSetTest GetSet GetSetGui ${QT_LIBRARIES})
 
 ###
+# getset Tool 
+###
+
+add_executable(getsetconfig
+	getsetconfig.cpp
+)
+add_dependencies(GetSetTest GetSet)
+target_link_libraries(GetSetTest GetSet)
+
+###
 # AutoGUI
 ###
 
@@ -47,7 +57,7 @@ install(FILES ../examples/autogui/CMakeLists.txt ../examples/autogui/main.cpp  D
 install(FILES ../examples/autogui_header_only/GetSetAutoGui.hxx ../examples/autogui_header_only/main.cpp ../examples/autogui_header_only/CMakeLists.txt DESTINATION ${CMAKECONFIG_INSTALL_DIR}examples/autogui_header_only)
 
 ###
-# Examples (2do move)
+# Examples (2do move; included in solution to make sure they really compile with the current version)
 ###
 
 add_executable(ExampleSimple

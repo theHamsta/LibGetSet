@@ -86,11 +86,12 @@ int main(int argc, char **argv)
 {
 	atexit(killChild);
 	bool showAutoGuiConfig=true;
+	bool directRun=false;
 	bool help=(argc==2 && (std::string(argv[1])=="--help" || std::string(argv[1])=="-h"));
 	// Print help string
 	if (argc==1 || help)
 	{
-		std::cout << "Usage:\n    AutoGUI [AutoGUI.ini]\n    AutoGUI --help\n    AutoGUI c.exe [-r] [-c c.ini] [-a/A cmdl_args] [-w work_dir] [-l c.log]\n";
+		std::cout << "Usage:\n    AutoGUI [AutoGUI.ini]\n    AutoGUI --help\n    AutoGUI c.exe [-R] [-r] [-c c.ini] [-a/A cmdl_args] [-w work_dir] [-l c.log]\n";
 		if (help)
 		{
 			std::cout	<< "\n\n"
@@ -98,8 +99,11 @@ int main(int argc, char **argv)
 						<< "The client is expected to print a GetSet parameter description in XML format to stdout. "
 						<< "This allows the user to change parameters via auto-generated GUI and finally to launch the client executable with an ini-File containing these settings.\n\n"
 						<< "Client developers see also: https://sourceforge.net/projects/getset/ \n"
-						<< "\n\n"
-						<< " -r     Configure and run client program right away.\n"
+						<< "\n"
+						<< " -r     Run client program right away. No configuration-GUI.\n"
+						<< "        Status window and progress bar are shown on client's request.\n"
+						<< "\n"
+						<< " -R     Configure and run client program right away.\n"
 						<< "        This will hide AutoGUI's own configuration window.\n"
 						<< "\n"
 						<< " -c     Specify an ini-file with client Configuration.\n"
@@ -113,37 +117,33 @@ int main(int argc, char **argv)
 						<< "\n"
 						<< " -l     Specify a log file. Client output will be piped to stdout and log file.\n"
 						<< "\n"
-						<< " --help Print this text.\n"
-						<< "\n"
 						<< "Author: Andre Aichert - andre.aichert@cs.fau.de\n"
 						<< "\n";
 		}
-
 		return 1;
 	}
 
 	// AutoGUI host parameters
 	GetSetGui::File("Basic/Binary File")
 		.setExtensions("Executable File (*.exe)")
-		.setAttribute("CommandLineFlag","1")
-		="./bin/client.exe";
+		.setAttribute("CommandLineFlag","1;--executable-file");
 	GetSetGui::File("Basic/Config File")
 		.setExtensions("Ini-File (*.ini);;All Files (*)")
 		.setCreateNew(true)
-		.setAttribute("CommandLineFlag","-c")
-		="./bin/client.ini";
+		.setAttribute("CommandLineFlag","-c;--config-file");
 	GetSetGui::File("Basic/Log File")
 		.setExtensions("Log-File (*.log);;All Files (*)")
 		.setCreateNew(true)
-		.setAttribute("CommandLineFlag","-l")
-		="./bin/client.ini";
+		.setAttribute("CommandLineFlag","-l;--log-file");
 	GetSetGui::Directory("Advanced/Working Directory").setAttribute("CommandLineFlag","-w");
-	GetSet<>("Advanced/Command Line Args").setAttribute("CommandLineFlag","-a");
-	GetSet<>("Advanced/Command Line Args (config)").setAttribute("CommandLineFlag","-A");
+	GetSet<>("Advanced/Command Line Args").setAttribute("CommandLineFlag","-a;--args");
+	GetSet<>("Advanced/Command Line Args (config)").setAttribute("CommandLineFlag","-A;--config-args");
 
 	// Find out if the first argument is an ini-File or an executable
 	std::string extension,path=argv[1];
 	extension=splitRight(path,".");
+	if (extension.length()>5) // for example /bin/linux_noextension
+		std::swap(path,extension);
 
 	// Handle command line arguments
 	if (argc==1 || (argc==2 && extension==".ini"))
@@ -154,32 +154,35 @@ int main(int argc, char **argv)
 	}
 	else
 	{
-		GetSet<>("Basic/Binary File")=argv[1];		// eg. ./bin/bla.exe (or just ./bin/bla for linux)
-		GetSet<>("Basic/Config File")=path+".ini";	// eg. ./bin/bla.ini
-		GetSet<>("Basic/Log File")=path+".log"; 	// eg. ./bin/bla.log
-		splitRight(path,"/\\");
-		GetSet<>("Advanced/Working Directory")=path;// eg. ./bin
-
+		
 		GetSetIO::CmdLineParser cmd;
-		cmd.require("Basic/Binary File");
+		cmd.index("Basic/Binary File",1);
 		cmd.declare(); // add all GetSet parameters and resp. flags
-		std::string test=cmd.getSynopsis();
 		if (!cmd.parse(argc,argv))
 		{
 			std::cerr << "Failed to parse command line arguments. Try:\n   AutoGUI --help\n";
-			return 1;		
+			return 1;
 		}
 		if (cmd.getUnhandledArgs().size()>1)
 		{
 			// Handle -r flag
-			if (cmd.getUnhandledArgs().size()==2 && (++(cmd.getUnhandledArgs().begin()))->second=="-r")
+			if (cmd.getUnhandledArgs().size()==2 && (++(cmd.getUnhandledArgs().begin()))->second=="-R")
 				showAutoGuiConfig=false;
+			else if (cmd.getUnhandledArgs().size()==2 && (++(cmd.getUnhandledArgs().begin()))->second=="-r")
+				directRun=true;
 			else
 			{
 				std::cerr << "Unrecognized command line arguments. Try:\n   AutoGUI --help\n";
 				return 1;
 			}
 		}
+		if (GetSet<>("Basic/Config File").getString().empty())
+		GetSet<>("Basic/Config File")=path+".ini";	// eg. ./bin/bla.ini
+		if (GetSet<>("Basic/Log File").getString().empty())
+			GetSet<>("Basic/Log File")=path+".log"; 	// eg. ./bin/bla.log
+		splitRight(path,"/\\");
+		if (GetSet<>("Advanced/Working Directory").getString().empty())
+		GetSet<>("Advanced/Working Directory")=path;// eg. ./bin
 	}
 
 	// Tell GetSet to callback gui(...) for any GUI-input
@@ -187,6 +190,22 @@ int main(int argc, char **argv)
 
 	// Run Qt GUI
 	QApplication app(argc,argv);
+
+	if (directRun)
+	{
+		// execute child process right away
+		childProcess=new ConfigureProcess(
+			GetSet<>("Basic/Binary File"),
+			GetSet<>("Basic/Config File"),
+			GetSet<>("Basic/Log File"),
+			GetSet<>("Advanced/Command Line Args"),
+			GetSet<>("Advanced/Command Line Args (config)")
+			);
+		childProcess->setWorkingDirectory(GetSet<>("Advanced/Working Directory"));
+		int exit_code=childProcess->run();
+		std::cout << "Exit code: " << exit_code << std::endl;
+		exit(exit_code);
+	}
 
 	if (showAutoGuiConfig)
 	{

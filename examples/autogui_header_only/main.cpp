@@ -18,7 +18,6 @@
 //
 
 #include "GetSetAutoGUI.hxx"
-
 GETSET_GLOBAL_DICTIONARY
 
 #include <iostream>

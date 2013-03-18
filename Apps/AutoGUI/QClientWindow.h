@@ -1,5 +1,4 @@
 // Created by A. Aichert on Sun Mar 3rd 2013
-// 2do clean up.
 
 #ifndef __q_client_window_
 #define __q_client_window_
