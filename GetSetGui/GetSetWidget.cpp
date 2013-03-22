@@ -47,7 +47,16 @@ void GetSetWidget::selectFile()
 	std::string key=sender()->objectName().toAscii().data();
 	GetSetGui::File file(m_section,key,dictionary);
 	std::string path;
-	QString currentDir=QFileInfo(QFile(file.getString().c_str())).absoluteDir().absolutePath();
+	if (file.getMultiple())
+	{
+		std::vector<std::string> files=stringToVector<std::string>(file,';');
+		path=files[0];
+	}
+	else
+		path=file;
+	QString currentDir=path.c_str();
+	if (!path.empty())
+		currentDir=QFileInfo(QFile(currentDir)).absoluteDir().absolutePath().toAscii();
 //	QString extensions=vectorToString(file.getExtensions(),";;").c_str();
 	QString extensions=file.getExtensions().c_str();
 	if (file.getMultiple())
@@ -61,9 +70,9 @@ void GetSetWidget::selectFile()
 	else
 	{
 		if (file.getCreateNew())
-			path=QFileDialog::getSaveFileName(this, "Select A File", currentDir, extensions).toAscii().data();
+			path=QFileDialog::getSaveFileName(this, "Select A File", currentDir , extensions).toAscii();
 		else
-			path=QFileDialog::getOpenFileName(this, "Select A File", currentDir, extensions).toAscii().data();
+			path=QFileDialog::getOpenFileName(this, "Select A File", currentDir, extensions).toAscii();
 	}
 
 	if (!path.empty())

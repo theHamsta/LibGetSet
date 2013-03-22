@@ -284,8 +284,74 @@ namespace GetSetGui {
 namespace GetSetAutoGUI
 {
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// Parsing the contents of an ini-File
+	inline void parseIni(const std::string& ini, MapStrMapStrStr& contents=GetSetDictionary::global())
+	{
+		std::istringstream istr(ini);
+		std::string section,key,value;
+		for (int lineNumber=0; !istr.eof() && istr.good(); lineNumber++)
+		{
+			std::string line;
+			getline(istr,line,'\n');
+			if (line.length()<2||line[0]=='#') continue;
+			if (line[0]=='[') {
+				section=line.substr(1,line.length()-2);
+				continue;
+			}
+			std::istringstream linestr(line);
+			getline(linestr,key,'=');
+			getline(linestr,value,'\0');
+			trim(key);
+			trim(value);
+			std::string path=section+(section.empty()?"":"/")+key;
+			contents[path]["Value"]=value;
+		}
+	}
+
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// Define ini reading capability
+	inline bool loadIni(const std::string& path, MapStrMapStrStr& contents=GetSetDictionary::global())
+	{
+		std::ifstream istr(path);
+		if (!istr.good()) return false;
+		std::string all;
+		std::getline(istr,all,'\0');
+		parseIni(all,contents);		
+		return true;
+	}
+
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// Compose "[section] key=value"-style contents of an ini-File
+	inline std::string getIni(MapStrMapStrStr& contents=GetSetDictionary::global())
+	{
+		std::ostringstream ostr;
+		MapStrStr helper;
+		for (MapStrMapStrStr::const_iterator sectit=contents.begin();sectit!=contents.end();++sectit)
+		{
+			std::string section=sectit->first;
+			std::string key=splitRight(section,"/\\");
+			MapStrStr::const_iterator value=sectit->second.find("Value");
+			if (value!=sectit->second.end())
+				helper[std::string("[")+section+"]\n"] += key + " = " + value->second + "\n";
+		}
+		for (MapStrStr::iterator it=helper.begin();it!=helper.end();++it)
+			ostr << std::endl << it ->first << it->second << std::endl;
+		return ostr.str();
+	}
+
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// Define ini writing capability
+	inline bool saveIni(const std::string& path, MapStrMapStrStr& contents=GetSetDictionary::global())
+	{
+		std::ofstream ostr(path);
+		if (!ostr.good()) return false;
+		ostr << getIni(contents);
+		return true;
+	}
+
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// Define XML writing capability
-	inline void printXML(MapStrMapStrStr& contents=GetSetDictionary::global())
+	inline std::string getXML(MapStrMapStrStr& contents=GetSetDictionary::global())
 	{
 		std::string xml="<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n<!--GetSet Description of AutoGUI Properties-->\n";
 		std::vector<std::string> openTags;
@@ -330,34 +396,7 @@ namespace GetSetAutoGUI
 			xml+=indent+"</Section>\n";
 			openTags.pop_back();
 		}
-		std::cout << xml << std::endl;
-	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	// Define ini reading capability
-	inline bool loadIni(const std::string& path, MapStrMapStrStr& contents=GetSetDictionary::global())
-	{
-		std::ifstream istr(path);
-		if (!istr.good()) return false;
-		std::string section,key,value;
-		for (int lineNumber=0; !istr.eof() && istr.good(); lineNumber++)
-		{
-			std::string line;
-			getline(istr,line,'\n');
-			if (line.length()<2||line[0]=='#') continue;
-			if (line[0]=='[') {
-				section=line.substr(1,line.length()-2);
-				continue;
-			}
-			std::istringstream linestr(line);
-			getline(linestr,key,'=');
-			getline(linestr,value,'\0');
-			trim(key);
-			trim(value);
-			std::string path=section+(section.empty()?"":"/")+key;
-			contents[path]["Value"]=value;
-		}
-		return true;
+		return xml;
 	}
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -365,7 +404,7 @@ namespace GetSetAutoGUI
 	inline bool handleCommandLine(int argc, char ** argv)
 	{
 		if (argc==2 && argv[1]==std::string("--xml")) {
-			printXML();
+			std::cout << getXML();
 			exit(0);
 		}
 		else if (argc==2)
@@ -389,7 +428,7 @@ namespace GetSetAutoGUI
 	{
 		std::cout << "### Info - " << identifier << " : - " << text << std::endl;
 	}
-	inline void info_hide(const std::string& identifier, const std::string text)
+	inline void info_hide(const std::string& identifier)
 	{
 		std::cout << "### Info - " << identifier << " : hide - " << std::endl;
 	}
