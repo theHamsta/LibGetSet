@@ -50,7 +50,8 @@ void GetSetWidget::selectFile()
 	if (file.getMultiple())
 	{
 		std::vector<std::string> files=stringToVector<std::string>(file,';');
-		path=files[0];
+		if (!files.empty())
+			path=files[0];
 	}
 	else
 		path=file;

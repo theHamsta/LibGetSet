@@ -8,7 +8,7 @@
 // Rights to modify and/or re-distribute this file are explicitly granted.
 // I, the creator of this file, do not claim any rights.
 //
-// Copy this file and to your project to use.
+// Copy this file to your project to use.
 //
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -142,6 +142,12 @@ void GetSetSection::setProperty(const std::vector<std::string>& path, GetSetNode
 		}
 		if (!s)
 		{
+			// If we just wanted to delete the property we are done.
+			if (!prop && it!= properties.end())
+			{
+				properties.erase(it);
+				return;
+			}
 			// The property does not exist (anymore)
 			if (absolutePath.empty())
 				s=new GetSetSection(key,dictionary);
