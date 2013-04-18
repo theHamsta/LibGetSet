@@ -11,14 +11,16 @@ add_dependencies(GetSetTest GetSet GetSetGui)
 target_link_libraries(GetSetTest GetSet GetSetGui ${QT_LIBRARIES})
 
 ###
-# getset Tool 
+# getset config Tool 
 ###
 
-add_executable(getsetconfig
+add_executable(config
+	AutoGUI/Process.h
+	AutoGUI/Process.cpp
 	getsetconfig.cpp
 )
-add_dependencies(GetSetTest GetSet)
-target_link_libraries(GetSetTest GetSet)
+add_dependencies(config GetSet)
+target_link_libraries(config GetSet)
 
 ###
 # AutoGUI
@@ -52,7 +54,7 @@ add_executable(ExampleAutoGUI_header_only
 )
 
 # Install AutoGUI binaries and copy source code of examples, especially header-only version of GetSet
-install(TARGETS AutoGUI ExampleAutoGUI ExampleAutoGUI_header_only RUNTIME DESTINATION ${BIN_INSTALL_DIR})
+install(TARGETS AutoGUI config ExampleAutoGUI ExampleAutoGUI_header_only RUNTIME DESTINATION ${BIN_INSTALL_DIR})
 install(FILES ../examples/autogui/CMakeLists.txt ../examples/autogui/main.cpp  DESTINATION ${CMAKECONFIG_INSTALL_DIR}examples/autogui)
 install(FILES ../examples/autogui_header_only/GetSetAutoGui.hxx ../examples/autogui_header_only/main.cpp ../examples/autogui_header_only/CMakeLists.txt DESTINATION ${CMAKECONFIG_INSTALL_DIR}examples/autogui_header_only)
 

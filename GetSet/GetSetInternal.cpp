@@ -143,9 +143,10 @@ void GetSetSection::setProperty(const std::vector<std::string>& path, GetSetNode
 		if (!s)
 		{
 			// If we just wanted to delete the property we are done.
-			if (!prop && it!= properties.end())
+			if (!prop)
 			{
-				properties.erase(it);
+				if (it!= properties.end())
+					properties.erase(it);
 				return;
 			}
 			// The property does not exist (anymore)
@@ -158,6 +159,17 @@ void GetSetSection::setProperty(const std::vector<std::string>& path, GetSetNode
 		}
 		// We follow down the rest of the path in Section s
 		return s->setProperty(path,prop,i);
+	}
+	// In case we would like to delete
+	if (!prop)
+	{
+		if (properties.find(key)!=properties.end())
+		{
+			delete properties[key];
+			properties.erase(properties.find(key));
+			signalDestroy(absolutePath,key);
+		}
+		return;
 	}
 	// We have reached the end of the path, so we set the property and are done
 	properties[key]=prop;

@@ -184,11 +184,13 @@ std::vector<std::pair<int,std::string> > inline
 }
 
 /// write text to file
-inline void fileWriteString(const std::string& filename, const std::string& contents)
+inline bool fileWriteString(const std::string& filename, const std::string& contents)
 {
 	std::ofstream file(filename.c_str());
+	if (!file) return false;
 	file << contents;
 	file.close();
+	return true;
 }
 
 /// Read a complete text file

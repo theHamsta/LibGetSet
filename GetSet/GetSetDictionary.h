@@ -42,6 +42,12 @@ public:
 		return properties.empty();
 	}
 
+	/// Remove a property from the tree
+	void remove(const std::string& path)
+	{
+		dictionary.setProperty(stringToVector<std::string>(path,'/'),0x0,0);
+	}
+
 	/// Access to the global GetSetDictionary, which is used whenever no Dictionary is explicitly specified.
 	static GetSetDictionary& global();
 
