@@ -40,7 +40,7 @@ namespace GetSetIO {
 	bool load(const std::string& path, GetSetDictionary& dict=GetSetDictionary::global())
 	{
 		std::ifstream file(path);
-		if (!file.good()) return false;
+		if (!file || !file.good()) return false;
 		GetSetIO_Object io(file, std::cout);
 		dict.load(io);	
 		return true;

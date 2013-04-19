@@ -51,7 +51,7 @@ int main(int argc, char ** argv)
 			"Types can be provided by an xml-file or special txt-file with the same name.\n"
 			"\n"
 			<< cmd.getSynopsis();
-		return 0;
+		return 1;
 	}
 
 	std::vector<std::string> tabs;
@@ -65,20 +65,20 @@ int main(int argc, char ** argv)
 	extension=splitRight(path,".");
 	g_file_xml=path+GetSet<>("File/Type").getString();
 	std::string basename=splitRight(path,"/\\");
-	bool metaInfoFound=1;
+	bool metaInfoFound=0;
 	if (GetSet<int>("File/Type")==0)
-		metaInfoFound&=GetSetIO::load<GetSetIO::XmlFile>(g_file_xml,g_config);
+		metaInfoFound=GetSetIO::load<GetSetIO::XmlFile>(g_file_xml,g_config);
 	else
-		metaInfoFound&=GetSetIO::load<GetSetIO::TxtFileDescription>(g_file_xml,g_config);
+		metaInfoFound=GetSetIO::load<GetSetIO::TxtFileDescription>(g_file_xml,g_config);
 	GetSetIO::load<GetSetIO::IniFile>(g_file_ini,g_config);
 
 	// If no XML file was found, create one
 	if (!metaInfoFound)
 	{
 		if (GetSet<int>("File/Type")==0)
-			GetSetIO::load<GetSetIO::XmlFile>(g_file_xml,g_config);
+			GetSetIO::save<GetSetIO::XmlFile>(g_file_xml,g_config);
 		else
-			GetSetIO::load<GetSetIO::TxtFileDescription>(g_file_xml,g_config);
+			GetSetIO::save<GetSetIO::TxtFileDescription>(g_file_xml,g_config);
 	}
 
 	GetSetHandler on_value_change(g_config,save);
@@ -88,5 +88,7 @@ int main(int argc, char ** argv)
 		w.setButton(GetSet<>("Window/Button"),die);
 	w.show();
 
-	return app.exec();
+	app.exec();
+	// This application returns 1 by default, unless user clicks the "Ok" button.
+	return 1;
 }

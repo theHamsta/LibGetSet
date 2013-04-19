@@ -171,6 +171,10 @@ int main(int argc, char ** argv)
 			std::cerr << "Failed to process command!\n";
 			return 2;
 		}
+		
+#ifdef _DEBUG
+		std::cout << command << std::endl;
+#endif
 		atexit(kill_child);
 		child=Process(command);
 		child.run();

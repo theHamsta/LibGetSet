@@ -61,7 +61,7 @@ add_executable(ExampleAutoGUI_header_only
 )
 
 # Install AutoGUI binaries and copy source code of examples, especially header-only version of GetSet
-install(TARGETS AutoGUI config ExampleAutoGUI ExampleAutoGUI_header_only RUNTIME DESTINATION ${BIN_INSTALL_DIR})
+install(TARGETS AutoGUI AutoConf config ExampleAutoGUI ExampleAutoGUI_header_only RUNTIME DESTINATION ${BIN_INSTALL_DIR})
 install(FILES ../examples/autogui/CMakeLists.txt ../examples/autogui/main.cpp  DESTINATION ${CMAKECONFIG_INSTALL_DIR}examples/autogui)
 install(FILES ../examples/autogui_header_only/GetSetAutoGui.hxx ../examples/autogui_header_only/main.cpp ../examples/autogui_header_only/CMakeLists.txt DESTINATION ${CMAKECONFIG_INSTALL_DIR}examples/autogui_header_only)
 
