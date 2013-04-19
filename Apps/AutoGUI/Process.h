@@ -1,4 +1,5 @@
 #ifndef __Process_h
+#define __Process_h
 
 #include <string>
 

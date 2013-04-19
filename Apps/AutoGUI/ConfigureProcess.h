@@ -2,6 +2,7 @@
 
 #include <windows.h>
 
+#include "Process.h"
 #include "QClientWindow.h"
 
 #include <QtGui/QMessageBox>
