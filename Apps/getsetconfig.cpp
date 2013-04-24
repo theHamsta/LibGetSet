@@ -4,18 +4,41 @@
 #include <GetSet/GetSetIO.h>
 #include <GetSet/GetSetDictionary.h>
 
-#define HAS_RUN_COMMAND
+#define HAS_RUN_VERB
 
-#ifdef HAS_RUN_COMMAND
+#ifdef HAS_RUN_VERB
 // Only needed for "run" verb
 #include "AutoGUI/Process.h"
 Process child;
-// atexit hack to prevent child from living onger than parent
+// atexit hack to prevent child from living longer than parent
 void kill_child()
 {
 	child.kill();
 }
 #endif
+
+// Helper function for the "copy" verb
+void copy(const std::string& prefix, const GetSetInternal::GetSetSection::PropertyByName& sin, GetSetDictionary& dout)
+{
+	for (auto it=sin.begin();it!=sin.end();++it)
+	{
+		using GetSetInternal::GetSetSection;
+		GetSetSection *s=dynamic_cast<GetSetSection*>(it->second);
+		std::string p=prefix.empty()?it->first:prefix+"/"+it->first;
+		if (s)
+		{
+			// recursively copy subsections	
+			auto sin2=s->getSection();
+			copy(p,sin2,dout);
+		}
+		else
+		{
+			// copy a single node
+			GetSet<>(p,dout)=it->second->getString();
+		}
+	}
+}
+
 
 std::string replace(const std::string& in, GetSetDictionary& config=GetSetDictionary::global())
 {
@@ -47,7 +70,11 @@ int main(int argc, char ** argv)
 		std::cout <<
 			"Usage:\n"
 			"   config <verb> <arguments>\n"
-			"where <verb> is one of \"get\", \"set\", \"del\", \"copy\", \"run\" and \"prep\"\n"
+			"where <verb> is one of \"get\", \"set\", \"del\", \"copy\", \"echo\""
+#ifdef HAS_RUN_VERB
+			", \"run\""
+#endif
+			" and \"prep\"\n"
 			"and <arguments> depends on choice of verb try:\n"
 			"to get additional information for a specific verb.\n"
 			"   config <verb>\n"
@@ -110,6 +137,69 @@ int main(int argc, char ** argv)
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////
+	if (verb=="copy")
+	{
+		if (argc!=5 && argc!=6)
+		{
+			std::cout <<
+				"Usage:\n"
+				"   config copy <file> <path> <file> [destination]\n"
+				"Copies a key or a section from one file to another\n"
+				;
+			return 1;
+		}
+		std::string file_in=argv[2];
+		std::string path=argv[3];
+		std::string file_out=argv[4];
+		GetSetDictionary din,dout;
+		if (!GetSetIO::load<GetSetIO::IniFile>(file_in,din))
+		{
+			std::cerr << "Failed to load " << file_in << "!\n";
+			return 2;
+		}
+		if (!GetSetIO::load<GetSetIO::IniFile>(file_out,dout))
+		{
+			std::cerr << "Failed to load " << file_out << "!\n";
+			return 2;
+		}
+
+		std::string prefix=path;
+		if (argc==6)
+			prefix=argv[5];
+
+		auto *sin=&(din.getSection());
+		auto *sout=&(dout.getSection());
+		
+		std::vector<std::string> p=stringToVector<std::string>(path,'/');
+		for (int i=0;i<(int)p.size()&&sin;i++)
+		{
+			auto it=sin->find(p[i]);
+			if (it!=sin->end())
+			{
+				using GetSetInternal::GetSetSection;
+				GetSetSection *s=dynamic_cast<GetSetSection*>(it->second);
+				if (!s) sin=0x0;
+				else sin=&(s->getSection());
+			}
+			else sin=0x0;
+		}
+
+		if (!sin)
+			// If the path was invalid or points to a leaf, try to set a single property directly
+			GetSet<>(prefix)=GetSet<>(path);
+		else
+			// Copy the entire subsection
+			copy(prefix,*sin,dout);
+
+		if (!GetSetIO::save<GetSetIO::IniFile>(file_out,dout))
+		{
+			std::cerr << "Failed to save the file! (read-only?)\n";
+			return 2;
+		}
+		return 0;
+	}
+
+	////////////////////////////////////////////////////////////////////////////////////////////////////
 	if (verb=="prep")
 	{
 		if (argc!=5)
@@ -118,13 +208,10 @@ int main(int argc, char ** argv)
 				"Usage:\n"
 				"   config prep <config.ini> <file.in> <file.out>\n"
 				"Load all key/value pairs from config.ini and replace every occurence of\n"
-				"GetSet[key] with the corresponding value. Example:\n"
-				"   config set config.ini Network/IP 192.168.12.34\n"
-				"   config set config.ini \"Network/Number of Pings\" 3\n"
-				"   config prep ping_me.getset ping_me.bat\n"
-				"Where the contents of ping_me.getset would be replaced from\n"
+				"GetSet[key] with the corresponding value.\n"
+				"Example:\n"
 				"   ping GetSet[Network/IP] -n GetSet[Network/Number of Pings]\n"
-				"    - to -\n"
+				"    - becomes -\n"
 				"   ping 192.168.12.34 -n 3\n"
 				;
 			return 1;
@@ -147,14 +234,38 @@ int main(int argc, char ** argv)
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////
+	if (verb=="echo")
+	{
+		if (argc!=4)
+		{
+			std::cout <<
+				"Usage:\n"
+				"   config echo <config.ini> \"string containing GetSet[key]-style properties\"\n"
+				"See also: config prep\n"
+				;
+			return 1;
+		}
+		std::string ini_file=argv[2];
+		if (!GetSetIO::load<GetSetIO::IniFile>(ini_file))
+		{
+			std::cerr << "Failed to load " << ini_file << "!\n";
+			return 2;
+		}
+		std::string str=argv[3];
+		std::cout << replace(str) << std::endl;
+		return 0;
+	}
+
+	////////////////////////////////////////////////////////////////////////////////////////////////////
 	if (verb=="run")
 	{
-#ifdef HAS_RUN_COMMAND
+#ifdef HAS_RUN_VERB
 		if (argc!=4)
 		{
 			std::cout <<
 				"Usage:\n"
 				"   config run <config.ini> \"commands containing GetSet[key]-style properties\"\n"
+				"See also: config prep\n"
 				;
 			return 1;
 		}

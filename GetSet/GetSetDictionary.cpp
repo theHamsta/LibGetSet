@@ -16,7 +16,7 @@ GetSetDictionary::~GetSetDictionary() {}
 	
 void GetSetDictionary::save(GetSetInternal::GetSetInOut& file) const
 {
-	GetSetSection::save(file);
+	GetSetSection::store(file);
 	file.write();
 }
 

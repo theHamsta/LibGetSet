@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include <QtGui/QApplication>
+#include <QtGui/QPushButton>
 
 #include <GetSet/GetSet.hxx>
 #include <GetSet/GetSetCmdLine.hxx>
@@ -28,13 +29,13 @@ int main(int argc, char ** argv)
 {
 	QApplication app(argc,argv);
 
-	GetSet<>("Window/Titel")
-		.setDescription("Define a window titel other than the ini-File name.")
+	GetSet<>("Window/Title")
+		.setDescription("Define a window title other than the ini-File name.")
 		="";
 	GetSet<>("Window/Button")
 		.setDescription("Define a caption for an Ok-button.");
 	GetSetGui::Enum("File/Type").setChoices(".xml;.txt")
-		.setDescription("Either xml or txt, depening on format of file containing type info.")
+		.setDescription("Either .xml or .txt, depening on format of file containing type info.")
 		.setValue(0);
 
 	GetSetIO::CmdLineParser cmd;
@@ -45,10 +46,12 @@ int main(int argc, char ** argv)
 	{
 		std::cout <<
 			"Usage:\n"
-			"   AutoConf file.ini [--titel window_titel] [--button caption] [--type txt]\n"
+			"   AutoConf file.ini [--title window_title] [--button caption] [--type txt]\n"
 			"   AutoConf file.ini [...] tab1 tab2 ...\n"
+//			"   AutoConf file.ini [...] --hide tab1 tab2 ...\n"
 			"Show a GUI to edit contents of an ini-File\n"
 			"Types can be provided by an xml-file or special txt-file with the same name.\n"
+//			"The latter two mode allows for an explicit list of tabs to be displayed or hidden.\n"
 			"\n"
 			<< cmd.getSynopsis();
 		return 1;
@@ -71,6 +74,7 @@ int main(int argc, char ** argv)
 	else
 		metaInfoFound=GetSetIO::load<GetSetIO::TxtFileDescription>(g_file_xml,g_config);
 	GetSetIO::load<GetSetIO::IniFile>(g_file_ini,g_config);
+	GetSetIO::save<GetSetIO::IniFile>(g_file_ini,g_config);
 
 	// If no XML file was found, create one
 	if (!metaInfoFound)
@@ -83,12 +87,14 @@ int main(int argc, char ** argv)
 
 	GetSetHandler on_value_change(g_config,save);
 
-	GetSetSettingsWindow w("",g_config,GetSet<>("Window/Titel"),vectorToString(tabs));
+	GetSetSettingsWindow w("",g_config,GetSet<>("Window/Title"),vectorToString(tabs));
 	if (!GetSet<>("Window/Button").getValue().empty())
-		w.setButton(GetSet<>("Window/Button"),die);
+		w.setButton(GetSet<>("Window/Button"),die)->setDefault(true);
 	w.show();
 
 	app.exec();
 	// This application returns 1 by default, unless user clicks the "Ok" button.
+	// This allows the caller to check the return code to tell if the widow has been closed (=cancel)
+	// or the used clicked the button (=Ok)
 	return 1;
 }

@@ -74,7 +74,6 @@ namespace GetSetInternal {
 	GetSetNode* createSpecial(const std::string& type);
 
 
-
 	/// Way to expose select privates in GetSetDictionary. Definitions can only occur in GetSetDictionary.hxx!
 	/// The idea is, that instead of having a member of GetSetDictionary, a class derives from GetSetInternal::Access.
 	class Access
@@ -154,7 +153,7 @@ namespace GetSetInternal {
 	protected:
 		// In a way, this class extends the functionality of GetSetDictionary.
 		// Currently I use friendship to express this. But this is not a good design.
-		// However, nothing insider this class should be accessible to the user.
+		// Still, nothing inside this class should be accessible to the user.
 		friend class GetSetSection;
 		friend class GetSetDictionary;
 		
@@ -189,8 +188,6 @@ namespace GetSetInternal {
 		typedef std::map<std::string,GetSetNode*> PropertyByName;
 		/// Direct READ-ONLY access. Only needed to walk the tree (which is rarely neccessary).
 		const PropertyByName& getSection() const;
-		/// Store values in a GetSetInOut object
-		void save(GetSetInOut& file) const;
 
 	protected:
 		/// This is where the properties reside
@@ -203,7 +200,10 @@ namespace GetSetInternal {
 
 		/// Not publicly constructible
 		GetSetSection(const std::string& path, GetSetDictionary& dict);
-		
+
+		/// Store values in a GetSetInOut object
+		void store(GetSetInOut& file) const;		
+
 		/// Destroy all properties held by this object
 		virtual ~GetSetSection();
 
@@ -215,7 +215,6 @@ namespace GetSetInternal {
 		virtual void setString(const std::string& new_value) {}
 		// Obtain a short string with the types of our children (not really our value...)
 		virtual std::string getString() const;
-
 
 		/// Replace or create a property at path in the tree
 		void setProperty(const std::vector<std::string>& path, GetSetNode* prop, int i);

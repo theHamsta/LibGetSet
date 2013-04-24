@@ -23,7 +23,7 @@
 #include "GetSetInternal.h"
 
 /// The root of a propetry tree. This class privately holds all properties. Access only via GetSet&lt;BasicType&gt;.
-class GetSetDictionary : protected GetSetInternal::GetSetSection
+class GetSetDictionary : public GetSetInternal::GetSetSection
 {
 public:
 	/// Allow instantiation of GetSetDictionaries (not copyable)

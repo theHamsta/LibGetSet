@@ -93,12 +93,12 @@ GetSetSection::GetSetSection(const std::string& path, GetSetDictionary& dict)
 	, absolutePath(path)
 {}
 
-void GetSetSection::save(GetSetInOut& file) const
+void GetSetSection::store(GetSetInOut& file) const
 {
 	for (PropertyByName::const_iterator it=properties.begin();it!=properties.end();++it)
 	{
 		GetSetSection* subsection=dynamic_cast<GetSetSection*>(it->second);
-		if (subsection) subsection->save(file);
+		if (subsection) subsection->store(file);
 		else file.store(absolutePath,it->first,it->second);
 	}
 }
