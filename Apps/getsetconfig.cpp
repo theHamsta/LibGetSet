@@ -75,8 +75,8 @@ int main(int argc, char ** argv)
 			", \"run\""
 #endif
 			" and \"prep\"\n"
-			"and <arguments> depends on choice of verb try:\n"
-			"to get additional information for a specific verb.\n"
+			"and <arguments> depends on choice of verb.\n"
+			"to get additional information for a specific verb try:\n"
 			"   config <verb>\n"
 			;
 		return 1;
@@ -124,8 +124,9 @@ int main(int argc, char ** argv)
 		std::string value=argv[4];
 		if (!GetSetIO::load<GetSetIO::IniFile>(file))
 		{
-			std::cerr << "Failed to load " << file << "!\n";
-			return 2;
+			// Fix 2013-07-09: It's okay it the file does not exist yet.
+			//std::cerr << "Failed to load " << file << "!\n";
+			//return 2;
 		}
 		GetSet<>(key.c_str())=value;
 		if (!GetSetIO::save<GetSetIO::IniFile>(file))
@@ -186,7 +187,7 @@ int main(int argc, char ** argv)
 
 		if (!sin)
 			// If the path was invalid or points to a leaf, try to set a single property directly
-			GetSet<>(prefix)=GetSet<>(path);
+			GetSet<>(prefix,dout)=GetSet<>(path,din);
 		else
 			// Copy the entire subsection
 			copy(prefix,*sin,dout);

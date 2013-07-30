@@ -129,6 +129,8 @@ inline std::string splitRight(std::string& str, const std::string& delim)
 #ifndef __getset_auto_gui_h
 #define __getset_auto_gui_h
 
+#include <set>
+
 // Return n-th element in an semicolon seperated list
 inline std::string enumNth(int n, const std::string& choices)
 {
@@ -326,8 +328,14 @@ namespace GetSetAutoGUI
 	{
 		std::ostringstream ostr;
 		MapStrStr helper;
+		std::set<std::string> ignore_types;
+		ignore_types.insert("Button");
+		ignore_types.insert("StaticText");
 		for (MapStrMapStrStr::const_iterator sectit=contents.begin();sectit!=contents.end();++sectit)
 		{
+			auto t=sectit->second.find("Type");
+			if (t!=sectit->second.end() && ignore_types.find(t->second)!=ignore_types.end())
+				continue;
 			std::string section=sectit->first;
 			std::string key=splitRight(section,"/\\");
 			MapStrStr::const_iterator value=sectit->second.find("Value");
