@@ -58,7 +58,7 @@ namespace GetSetInternal {
 		GetSetKey() {reset(value);}
 
 		virtual std::string getType() const {
-			return getTypeName<T>();
+			return typeName<T>();
 		}
 
 		virtual void setString(const std::string& new_value) {

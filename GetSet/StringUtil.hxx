@@ -159,30 +159,6 @@ template <typename T> inline std::string toString(T in, int width, char fill='0'
 	return strstr.str();
 }
 
-/// Scan for files matching path pattern prefix###postfix, where ### is a number between 0 and max
-std::vector<std::pair<int,std::string> > inline
-	listFileNames(std::string prefix, std::string postfix, int width, int minidx=0, int maxidx=0)
-{
-	if (maxidx==0)
-	{
-		maxidx=1;
-		for (int i=0;i<width;i++) maxidx*=10;
-		maxidx--;
-	}
-	std::vector<std::pair<int,std::string> > ret;
-	for (int i=minidx;i<=maxidx;i++)
-	{
-		std::string filename=prefix+toString(i,width)+postfix;
-		std::ifstream test(filename.c_str());
-		if (test.is_open())
-		{
-			test.close();
-			ret.push_back(std::pair<int,std::string>(i,filename));
-		}
-	}
-	return ret;
-}
-
 /// write text to file
 inline bool fileWriteString(const std::string& filename, const std::string& contents)
 {

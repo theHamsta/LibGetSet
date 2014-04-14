@@ -24,18 +24,18 @@
 #include <vector>
 
 /// Get a c++ type name as string
-template <typename T> inline std::string getTypeName()
+template <typename T> inline std::string typeName()
 {
 	return typeid(T).name();
 }
 
 // Specializations
-template<> inline std::string getTypeName<std::string>() {return "string";}
-template<> inline std::string getTypeName<std::vector<std::string> >() {return "vector<string>";}
+template<> inline std::string typeName<std::string>() {return "string";}
+template<> inline std::string typeName<std::vector<std::string> >() {return "vector<string>";}
 
-#define _DEFINE_TYPE(X) template<> inline std::string getTypeName<std::vector<X> >() {return "vector<"#X">";}
+#define _DEFINE_TYPE(X) template<> inline std::string typeName<std::vector<X> >() {return "vector<"#X">";}
 #include "BaseTypes.hxx"
-#define _DEFINE_TYPE(X) template<> inline std::string getTypeName<X>() {return #X;}
+#define _DEFINE_TYPE(X) template<> inline std::string typeName<X>() {return #X;}
 #include "BaseTypes.hxx"
 
 inline bool isTypeStr(const std::string& type)
