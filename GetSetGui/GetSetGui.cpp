@@ -2,7 +2,7 @@
 
 #include "GetSetSettingsWindow.h"
 
-#include <QtGui/QApplication>
+#include <QApplication>
 
 namespace GetSetGui
 {

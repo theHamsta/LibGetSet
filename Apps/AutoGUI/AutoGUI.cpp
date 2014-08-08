@@ -22,9 +22,9 @@
 
 #include <cstdlib>
 
-#include <QtGui/QApplication>
-#include <QtGui/QPushButton>
-#include <QtGui/QProgressBar>
+#include <QApplication>
+#include <QPushButton>
+#include <QProgressBar>
 
 #include "GetSet/GetSet.hxx"
 #include "GetSet/GetSetXML.h"

@@ -1,7 +1,7 @@
 #include <iostream>
 
-#include <QtGui/QApplication>
-#include <QtGui/QPushButton>
+#include <QApplication>
+#include <QPushButton>
 
 #include <GetSet/GetSet.hxx>
 #include <GetSet/GetSetCmdLine.hxx>

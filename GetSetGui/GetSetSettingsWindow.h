@@ -26,7 +26,7 @@
 
 #include <string>
 
-#include <QtGui/QDialog>
+#include <QDialog>
 
 class QTabWidget;
 class QPushButton;

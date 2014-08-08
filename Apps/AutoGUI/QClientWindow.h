@@ -3,13 +3,13 @@
 #ifndef __q_client_window_
 #define __q_client_window_
 
-#include <QtGui/QDialog>
+#include <QDialog>
 
-#include <QtGui/QLabel>
-#include <QtGui/QProgressBar>
-#include <QtGui/QPushButton>
+#include <QLabel>
+#include <QProgressBar>
+#include <QPushButton>
 
-#include <QtGui/QVBoxLayout>
+#include <QVBoxLayout>
 
 class QClientWindow : public QDialog
 {

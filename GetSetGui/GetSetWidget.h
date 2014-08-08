@@ -24,8 +24,8 @@
 
 #include <string>
 
-#include <QtGui/QWidget>
-#include <QtGui/QScrollArea>
+#include <QWidget>
+#include <QScrollArea>
 
 class QFormLayout;
 

@@ -6,7 +6,7 @@
 
 #include "GetSetGui/GetSetSettingsWindow.h"
 
-#include <QtGui/QApplication>
+#include <QApplication>
 
 void gui(const std::string& section, const std::string& key)
 {

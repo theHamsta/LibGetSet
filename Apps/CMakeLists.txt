@@ -8,8 +8,8 @@ add_executable(GetSetTest
 	test.cpp
 )
 add_dependencies(GetSetTest GetSet GetSetGui)
-target_link_libraries(GetSetTest GetSet GetSetGui ${QT_LIBRARIES})
-
+target_link_libraries(GetSetTest GetSet GetSetGui)
+qt5_use_modules(GetSetTest Widgets)
 ###
 # getset config Tool 
 ###
@@ -30,11 +30,12 @@ target_link_libraries(config GetSet)
 add_executable(AutoConf
 	AutoGUI/AutoConf.cpp
 )
-target_link_libraries(AutoConf GetSet GetSetGui ${QT_LIBRARIES})
+qt5_use_modules(AutoConf Widgets)
+target_link_libraries(AutoConf GetSet GetSetGui)
 add_dependencies(AutoConf GetSet GetSetGui)
 
 # AutoGUI host
-QT4_WRAP_CPP(LibAutoGUI_MOC AutoGUI/QClientWindow.h)
+#QT5_WRAP_CPP(LibAutoGUI_MOC AutoGUI/QClientWindow.h)
 add_executable(AutoGUI
 	AutoGUI/AutoGUI.cpp
 	AutoGUI/Process.h
@@ -42,9 +43,10 @@ add_executable(AutoGUI
 	AutoGUI/ConfigureProcess.h
 	AutoGUI/QClientWindow.h
 	AutoGUI/QClientWindow.cpp
-	${LibAutoGUI_MOC}
+#	${LibAutoGUI_MOC}
 )
-target_link_libraries(AutoGUI GetSet GetSetGui ${QT_LIBRARIES})
+qt5_use_modules(AutoGUI Core Gui Widgets)
+target_link_libraries(AutoGUI GetSet GetSetGui)
 add_dependencies(AutoGUI GetSet GetSetGui)
 
 # Example client

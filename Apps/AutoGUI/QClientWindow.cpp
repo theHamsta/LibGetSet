@@ -2,8 +2,8 @@
 
 void QClientWindow::trigger()
 {
-	std::string window=windowTitle().toAscii();
-	std::string button=sender()->objectName().toAscii();
+	std::string window=windowTitle().toLatin1();
+	std::string button=sender()->objectName().toLatin1();
 	callback(window,button);
 }
 

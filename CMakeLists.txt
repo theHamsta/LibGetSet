@@ -2,15 +2,20 @@ cmake_minimum_required(VERSION 2.6.4)
 
 ### PROJECT AND VERSION
 project(GetSet)
-set(GETSET_VERSION_MAJOR 1)
-set(GETSET_VERSION_MINOR 5)
+set(GETSET_VERSION_MAJOR 2)
+set(GETSET_VERSION_MINOR 0)
 set(GETSET_VERSION_PATCH 0)
 set(GETSET_VERSION ${GETSET_VERSION_MAJOR}.${GETSET_VERSION_MINOR}.${GETSET_VERSION_PATCH} )
 
 ### EXTERNAL DEPENDENCIES
-find_package(Qt4 REQUIRED)
-include(${QT_USE_FILE})
-add_definitions(${QT_DEFINITIONS})
+cmake_policy(SET CMP0020 NEW)
+find_package(Qt5Widgets)
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
+
+### Testing only.
+find_package(Qt5OpenGL)
 
 ### Distinguish debug/realse binaries
 set(CMAKE_DEBUG_POSTFIX "d")
@@ -44,7 +49,13 @@ install(FILES License.txt DESTINATION ${CMAKECONFIG_INSTALL_DIR})
 
 # Windows only : copy .dlls to bin folder.
 if (WIN32)
-    install(FILES ${QT_BINARY_DIR}/QtCore4.dll ${QT_BINARY_DIR}/QtGui4.dll DESTINATION ${BIN_INSTALL_DIR})
+#    install(FILES icudt52.dll icuin52.dll icuuc52.dll DESTINATION ${BIN_INSTALL_DIR} CONFIGURATIONS Release)
+	get_target_property(QtCore_DLL Qt5::Core LOCATION)
+	get_target_property(QtGui_DLL Qt5::Gui LOCATION)
+	get_target_property(QtWidgets_DLL Qt5::Widgets LOCATION)
+	get_target_property(QtOpenGL_DLL Qt5::OpenGL LOCATION)
+    install(FILES ${QtCore_DLL} ${QtGui_DLL} ${QtWidgets_DLL} ${QtOpenGL_DLL} DESTINATION ${BIN_INSTALL_DIR} CONFIGURATIONS Release)
+
 endif (WIN32)
 
 # Copy example source code (Ships as a part of the libraries, and therefore belongs here)

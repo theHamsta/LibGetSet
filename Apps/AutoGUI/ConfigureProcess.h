@@ -5,7 +5,7 @@
 #include "Process.h"
 #include "QClientWindow.h"
 
-#include <QtGui/QMessageBox>
+#include <QMessageBox>
 
 /// Class representing a command line tool that understands the "--xml" argument (FIXME clean up)
 class ConfigureProcess : public Process {

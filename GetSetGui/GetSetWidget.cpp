@@ -19,18 +19,18 @@
 
 #include "GetSetWidget.h"
 
-#include <QtGui/QApplication>
-#include <QtGui/QFormLayout>
-#include <QtGui/QPushButton>
-#include <QtGui/QLineEdit>
-#include <QtGui/QPushButton>
-#include <QtGui/QComboBox>
-#include <QtGui/QLabel>
-#include <QtGui/QCheckBox>
-#include <QtGui/QSpinBox>
-#include <QtGui/QFileDialog>
-#include <QtGui/QHBoxLayout>
-#include <QtGui/QKeyEvent>
+#include <QApplication>
+#include <QFormLayout>
+#include <QPushButton>
+#include <QLineEdit>
+#include <QPushButton>
+#include <QComboBox>
+#include <QLabel>
+#include <QCheckBox>
+#include <QSpinBox>
+#include <QFileDialog>
+#include <QHBoxLayout>
+#include <QKeyEvent>
 
 #include "../GetSet/GetSet.hxx"
 
@@ -38,13 +38,13 @@
 
 void GetSetWidget::trigger()
 {
-	std::string key=sender()->objectName().toAscii().data();
+	std::string key=sender()->objectName().toLatin1().data();
 	signalChange(m_section,key);
 }
 
 void GetSetWidget::selectFile()
 {
-	std::string key=sender()->objectName().toAscii().data();
+	std::string key=sender()->objectName().toLatin1().data();
 	GetSetGui::File file(m_section,key,dictionary);
 	std::string path;
 	if (file.getMultiple())
@@ -57,23 +57,23 @@ void GetSetWidget::selectFile()
 		path=file;
 	QString currentDir=path.c_str();
 	if (!path.empty())
-		currentDir=QFileInfo(QFile(currentDir)).absoluteDir().absolutePath().toAscii();
+		currentDir=QFileInfo(QFile(currentDir)).absoluteDir().absolutePath().toLatin1();
 //	QString extensions=vectorToString(file.getExtensions(),";;").c_str();
 	QString extensions=file.getExtensions().c_str();
 	if (file.getMultiple())
 	{
 		QStringList files = QFileDialog::getOpenFileNames(this, "Select Files", currentDir, extensions);
 		if (!files.empty())
-			path=files[0].toAscii().data();
+			path=files[0].toLatin1().data();
 		for (int i=1;i<(int)files.size();i++)
-			path+=std::string(";")+files[i].toAscii().data();
+			path+=std::string(";")+files[i].toLatin1().data();
 	}
 	else
 	{
 		if (file.getCreateNew())
-			path=QFileDialog::getSaveFileName(this, "Select A File", currentDir , extensions).toAscii();
+			path=QFileDialog::getSaveFileName(this, "Select A File", currentDir , extensions).toLatin1();
 		else
-			path=QFileDialog::getOpenFileName(this, "Select A File", currentDir, extensions).toAscii();
+			path=QFileDialog::getOpenFileName(this, "Select A File", currentDir, extensions).toLatin1();
 	}
 
 	if (!path.empty())
@@ -82,17 +82,17 @@ void GetSetWidget::selectFile()
 
 void GetSetWidget::selectFolder()
 {
-	std::string key=sender()->objectName().toAscii().data();
+	std::string key=sender()->objectName().toLatin1().data();
 	GetSetGui::Directory folder(m_section,key,dictionary);
 	QString path = QFileDialog::getExistingDirectory(this, "Select A Directory",folder.getString().c_str());
 	if ( path.isNull())
 		return;
-	folder=path.toAscii().data();
+	folder=path.toLatin1().data();
 }
 
 void GetSetWidget::openSubSection()
 {
-	std::string key=sender()->objectName().toAscii().data();
+	std::string key=sender()->objectName().toLatin1().data();
 	std::string section=m_section.empty()?key:m_section+"/"+key;
 	GetSetWidget* w=new GetSetWidget(dictionary, section);
 	w->setAttribute(Qt::WA_DeleteOnClose, true);
@@ -102,10 +102,10 @@ void GetSetWidget::openSubSection()
 
 void GetSetWidget::editingFinished()
 {
-	std::string key=sender()->objectName().toAscii().data();
+	std::string key=sender()->objectName().toLatin1().data();
 	QLineEdit* l=dynamic_cast<QLineEdit*>(sender());
 	if (!l) return;
-	std::string value=l->text().toAscii();
+	std::string value=l->text().toLatin1();
 	GetSet<std::string> property(m_section,key,dictionary);
 	if (property.getString()!=value)
 		property=value;
@@ -114,7 +114,7 @@ void GetSetWidget::editingFinished()
 void GetSetWidget::sliderMoved(int value)
 {
 	if (m_expectChange) { m_expectChange=0; return; }
-	std::string key=sender()->objectName().toAscii().data();
+	std::string key=sender()->objectName().toLatin1().data();
 	GetSetGui::Slider slider(m_section,key,dictionary);
 	double	d=(double)value/1000.;
 	slider=d;
@@ -122,14 +122,14 @@ void GetSetWidget::sliderMoved(int value)
 
 void GetSetWidget::setValue(int value)
 {
-	std::string key=sender()->objectName().toAscii().data();
+	std::string key=sender()->objectName().toLatin1().data();
 	GetSet<std::string>(m_section,key,dictionary)=toString(value);
 }
 
 void GetSetWidget::setValue(const QString& value)
 {
-	std::string key=sender()->objectName().toAscii().data();
-	GetSet<std::string>(m_section,key,dictionary)=value.toAscii().data();
+	std::string key=sender()->objectName().toLatin1().data();
+	GetSet<std::string>(m_section,key,dictionary)=value.toLatin1().data();
 }
 
 void GetSetWidget::init()

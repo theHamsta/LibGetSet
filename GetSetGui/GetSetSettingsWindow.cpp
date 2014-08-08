@@ -19,10 +19,10 @@
 
 #include "GetSetSettingsWindow.h"
 
-#include <QtGui/QTabWidget>
-#include <QtGui/QPushButton>
-#include <QtGui/QVBoxLayout>
-#include <QtGui/QMenu>
+#include <QTabWidget>
+#include <QPushButton>
+#include <QVBoxLayout>
+#include <QMenu>
 
 // Minor leaks. FIXME
 void GetSetSettingsWindow::create(GetSetDictionary& dict, const std::vector<std::string>& tabs)
@@ -75,7 +75,7 @@ QPushButton* GetSetSettingsWindow::setButton(const std::string& name, void (*cli
 	// Find a button that matches name
 	for (std::map<QPushButton*, void (*)(const std::string&,const std::string&)>::iterator it=m_buttons.begin(); it!=m_buttons.end();++it)
 	{
-		std::string n=it->first->objectName().toAscii();
+		std::string n=it->first->objectName().toLatin1();
 		if (n==name)
 		{
 			if (!clicked)
@@ -113,7 +113,7 @@ void GetSetSettingsWindow::ctxMenu(const QPoint &pos)
 		GetSetWidget* out=dynamic_cast<GetSetWidget*>(m_tabWidget->currentWidget());
 		if (out)
 		{
-			std::string section=out->objectName().toAscii().data();
+			std::string section=out->objectName().toLatin1().data();
 			GetSetWidget* w=new GetSetWidget(out->getDictionary(), section, this);
 			w->setAttribute(Qt::WA_DeleteOnClose, true);
 			w->setWindowFlags(Qt::Tool | Qt::WindowStaysOnTopHint);
@@ -124,11 +124,11 @@ void GetSetSettingsWindow::ctxMenu(const QPoint &pos)
 
 void GetSetSettingsWindow::buttonClicked()
 {
-	std::string button=sender()->objectName().toAscii();
-	std::string window=windowTitle().toAscii();
+	std::string button=sender()->objectName().toLatin1();
+	std::string window=windowTitle().toLatin1();
 	for (std::map<QPushButton*, void (*)(const std::string&,const std::string&)>::iterator it=m_buttons.begin(); it!=m_buttons.end();++it)
 	{
-		std::string name=it->first->objectName().toAscii();
+		std::string name=it->first->objectName().toLatin1();
 		if (button==name)
 			it->second(window,name);
 	}
