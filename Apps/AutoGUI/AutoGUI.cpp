@@ -62,6 +62,7 @@ void gui(const std::string& section, const std::string& key)
 				autogui_window->close();
 			w->setWindowTitle("Client Program");
 			w->setButton("Run...",gui)->setDefault(true);
+			w->show();
 		}
 		else
 			std::cerr << "Failed to launch process or process does not support the --xml flag.\n";
@@ -187,13 +188,11 @@ int main(int argc, char **argv)
 		GetSet<>("Advanced/Working Directory")=path;// eg. ./bin
 	}
 
-	// Tell GetSet to callback gui(...) for any GUI-input
-	GetSetHandler callback(gui);
 
 	// Run Qt GUI
 	QApplication app(argc,argv);
 
-	if (directRun)
+	if (directRun) // "-r" flag
 	{
 		// execute child process right away
 		childProcess=new ConfigureProcess(
@@ -204,19 +203,24 @@ int main(int argc, char **argv)
 			GetSet<>("Advanced/Command Line Args (config)")
 			);
 		childProcess->setWorkingDirectory(GetSet<>("Advanced/Working Directory"));
+		childProcess->configure();
 		int exit_code=childProcess->run();
 		std::cout << "Exit code: " << exit_code << std::endl;
 		exit(exit_code);
 	}
-
-	if (showAutoGuiConfig)
+	else
 	{
-		autogui_window=new GetSetSettingsWindow();
-		autogui_window->setWindowTitle("AutoGUI");
-		autogui_window->setButton("Ok",gui)->setDefault(true);
-		autogui_window->show();
-	}
-	else gui("AutoGUI", "Ok"); // Pretend user already clicked the "Ok" button ("-r"-flag)
+		// Tell GetSet to callback gui(...) for any GUI-input
+		GetSetHandler callback(gui);
 
+		if (showAutoGuiConfig)
+		{
+			autogui_window=new GetSetSettingsWindow();
+			autogui_window->setWindowTitle("AutoGUI");
+			autogui_window->setButton("Ok",gui)->setDefault(true);
+			autogui_window->show();
+		}
+		else gui("AutoGUI", "Ok"); // Pretend user already clicked the "Ok" button ("-R"-flag)
+	}
 	return app.exec();
 }

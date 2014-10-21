@@ -56,7 +56,6 @@ public:
 		if (configuration.empty())
 			return 0x0;
 		window=new GetSetSettingsWindow("",configuration, binaryFile);
-		window->show();
 		return window;
 	}
 
