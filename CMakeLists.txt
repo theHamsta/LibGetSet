@@ -13,10 +13,6 @@ find_package(Qt5Widgets)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-
-### Testing only.
-find_package(Qt5OpenGL)
-
 ### Distinguish debug/realse binaries
 set(CMAKE_DEBUG_POSTFIX "d")
 
@@ -53,8 +49,7 @@ if (WIN32)
 	get_target_property(QtCore_DLL Qt5::Core LOCATION)
 	get_target_property(QtGui_DLL Qt5::Gui LOCATION)
 	get_target_property(QtWidgets_DLL Qt5::Widgets LOCATION)
-	get_target_property(QtOpenGL_DLL Qt5::OpenGL LOCATION)
-    install(FILES ${QtCore_DLL} ${QtGui_DLL} ${QtWidgets_DLL} ${QtOpenGL_DLL} DESTINATION ${BIN_INSTALL_DIR} CONFIGURATIONS Release)
+    install(FILES ${QtCore_DLL} ${QtGui_DLL} ${QtWidgets_DLL} DESTINATION ${BIN_INSTALL_DIR} CONFIGURATIONS Release)
 
 endif (WIN32)
 

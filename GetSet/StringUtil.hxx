@@ -74,14 +74,14 @@ template <typename T> inline std::string vectorToString(const std::vector<T>& in
 }
 
 // Conversion of a string to a vector of any type
-template <typename T> inline std::vector<T> stringToVector(const std::string& in, const char delim=' ')
+template <typename T> inline std::vector<T> stringToVector(const std::string& in, const char delim=' ', bool multiple=false)
 {
 	std::string item;
 	std::vector<T> ret;
 	std::istringstream str(in);
 	for (;std::getline(str,item,delim);str&&!str.eof())
+		if (multiple||!item.empty())
 		ret.push_back(stringTo<T>(item));
-	if (item.empty()&&!ret.empty()) ret.pop_back();
 	return ret;
 }
 
