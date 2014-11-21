@@ -28,7 +28,7 @@ namespace GetSetIO {
 	template <typename GetSetIO_Object>
 	bool save(const std::string& path, GetSetDictionary& dict=GetSetDictionary::global())
 	{
-		std::ofstream file(path);
+		std::ofstream file(path.c_str());
 		if (!file.good()) return false;
 		GetSetIO_Object io(std::cin, file);
 		dict.save(io);
@@ -39,7 +39,7 @@ namespace GetSetIO {
 	template <typename GetSetIO_Object>
 	bool load(const std::string& path, GetSetDictionary& dict=GetSetDictionary::global())
 	{
-		std::ifstream file(path);
+		std::ifstream file(path.c_str());
 		if (!file || !file.good()) return false;
 		GetSetIO_Object io(file, std::cout);
 		dict.load(io);	

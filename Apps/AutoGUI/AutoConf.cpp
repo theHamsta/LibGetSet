@@ -58,7 +58,7 @@ int main(int argc, char ** argv)
 	}
 
 	std::vector<std::string> tabs;
-	auto arg=cmd.getUnhandledArgs();
+	std::map<int,std::string> arg=cmd.getUnhandledArgs();
 	for (int i=2;i<(int)arg.size();i++)
 		tabs.push_back(arg[i]);
 

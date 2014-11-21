@@ -71,9 +71,9 @@ void GetSetWidget::selectFile()
 	else
 	{
 		if (file.getCreateNew())
-			path=QFileDialog::getSaveFileName(this, "Select A File", currentDir , extensions).toLatin1();
+            path=QFileDialog::getSaveFileName(this, "Select A File", currentDir , extensions).toStdString();
 		else
-			path=QFileDialog::getOpenFileName(this, "Select A File", currentDir, extensions).toLatin1();
+            path=QFileDialog::getOpenFileName(this, "Select A File", currentDir, extensions).toStdString();
 	}
 
 	if (!path.empty())
@@ -105,7 +105,7 @@ void GetSetWidget::editingFinished()
 	std::string key=sender()->objectName().toLatin1().data();
 	QLineEdit* l=dynamic_cast<QLineEdit*>(sender());
 	if (!l) return;
-	std::string value=l->text().toLatin1();
+    std::string value=l->text().toStdString();
 	GetSet<std::string> property(m_section,key,dictionary);
 	if (property.getString()!=value)
 		property=value;

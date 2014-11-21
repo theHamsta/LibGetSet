@@ -75,7 +75,7 @@ QPushButton* GetSetSettingsWindow::setButton(const std::string& name, void (*cli
 	// Find a button that matches name
 	for (std::map<QPushButton*, void (*)(const std::string&,const std::string&)>::iterator it=m_buttons.begin(); it!=m_buttons.end();++it)
 	{
-		std::string n=it->first->objectName().toLatin1();
+        std::string n=it->first->objectName().toStdString();
 		if (n==name)
 		{
 			if (!clicked)
@@ -124,11 +124,11 @@ void GetSetSettingsWindow::ctxMenu(const QPoint &pos)
 
 void GetSetSettingsWindow::buttonClicked()
 {
-	std::string button=sender()->objectName().toLatin1();
-	std::string window=windowTitle().toLatin1();
+    std::string button=sender()->objectName().toStdString();
+    std::string window=windowTitle().toStdString();
 	for (std::map<QPushButton*, void (*)(const std::string&,const std::string&)>::iterator it=m_buttons.begin(); it!=m_buttons.end();++it)
 	{
-		std::string name=it->first->objectName().toLatin1();
+        std::string name=it->first->objectName().toStdString();
 		if (button==name)
 			it->second(window,name);
 	}

@@ -29,7 +29,7 @@ GetSet<BasicType>::GetSet(const std::string& pathToSection, const std::string& k
 	: GetSetInternal::Access(dict)
 	, section(pathToSection)
 	, key(k)
-	, property(&declare<GetSetInternal::GetSetKey<BasicType>>(pathToSection.empty()?key:pathToSection+"/"+key,false))
+    , property(&declare<GetSetInternal::GetSetKey<BasicType> >(pathToSection.empty()?key:pathToSection+"/"+key,false))
 {typedProperty=dynamic_cast<GetSetInternal::GetSetKey<BasicType>*>(property);}
 
 template <typename BasicType>
@@ -37,7 +37,7 @@ GetSet<BasicType>::GetSet(const std::string& pathToKey, GetSetDictionary& dict)
 	: GetSetInternal::Access(dict)
 	, section(pathToKey)
 	, key(splitRight(section,"/\\"))
-	, property(&declare<GetSetInternal::GetSetKey<BasicType>>(pathToKey,false))
+    , property(&declare<GetSetInternal::GetSetKey<BasicType> >(pathToKey,false))
 {typedProperty=dynamic_cast<GetSetInternal::GetSetKey<BasicType>*>(property);}
 
 template <typename BasicType>

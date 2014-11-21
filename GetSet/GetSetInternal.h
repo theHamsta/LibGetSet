@@ -80,27 +80,27 @@ namespace GetSetInternal {
 	{
 	public:
 		/// Create a new property in dictionary at path with specified type provided as string.
-		static GetSetNode& createProperty(GetSetDictionary& dictionary, const std::string& path, const std::string& type)
-		{
-			// Special GetSet types first
-			GetSetInternal::GetSetNode * node=createSpecial(type);
-			if (!node)
-			{
-				// This (ugly) code craetes a GetSetKey from a string for c-types, std::string and std::vectors of these
-				if (type=="string") node=new GetSetKey<std::string>();
-				else if (type=="vector<string>") node=new GetSetKey<std::vector<std::string> >();
-				#define _DEFINE_TYPE(X) else if (type==#X) node=new GetSetKey<X>();
-				#include "BaseTypes.hxx"
-				#undef _DEFINE_TYPE
-				#define _DEFINE_TYPE(X) else if (type=="vector<"#X">") node=new GetSetKey<std::vector<X> >();
-				#include "BaseTypes.hxx"
-				#undef _DEFINE_TYPE
-			}
-			// For unkown types we just use std::string because it can hold /any/ value
-			if (!node) node=new GetSetKey<std::string>();
-			Access(dictionary).setProperty(path,node);
-			return *node;
-		}
+        static GetSetNode& createProperty(GetSetDictionary& dictionary, const std::string& path, const std::string& type)
+        {
+            // Special GetSet types first
+            GetSetInternal::GetSetNode * node=createSpecial(type);
+            if (!node)
+            {
+                // This (ugly) code craetes a GetSetKey from a string for c-types, std::string and std::vectors of these
+                if (type=="string") node=new GetSetKey<std::string>();
+                else if (type=="vector<string>") node=new GetSetKey<std::vector<std::string> >();
+                #define _DEFINE_TYPE(X) else if (type==#X) node=new GetSetKey<X>();
+                #include "BaseTypes.hxx"
+                #undef _DEFINE_TYPE
+                #define _DEFINE_TYPE(X) else if (type=="vector<"#X">") node=new GetSetKey<std::vector<X> >();
+                #include "BaseTypes.hxx"
+                #undef _DEFINE_TYPE
+            }
+            // For unkown types we just use std::string because it can hold /any/ value
+            if (!node) node=new GetSetKey<std::string>();
+            Access(dictionary).setProperty(path,node);
+            return *node;
+        }
 
 	protected:
 		GetSetDictionary& dictionary;
@@ -117,22 +117,7 @@ namespace GetSetInternal {
 
 		/// GetSetKeyType must inherit from GetSetNode
 		template <typename GetSetKeyType>
-		GetSetNode& declare(const std::string& path, bool forceType) const
-		{
-			std::vector<std::string> pv=stringToVector<std::string>(path,'/');
-			GetSetNode* d=dictionary.getProperty(pv,0);
-			// Check if GetSetKeyType at path exists or if another GetSetNode exsist and we don't forceType
-			if (d && (!forceType || dynamic_cast<GetSetKeyType*>(d)))
-				return *d;
-			std::string value="";
-			// d exists but is of wrong type and we want to forceType
-			if (d) value=d->getString();
-			// Create a new GetSetKeyType at path
-			GetSetKeyType* p=new GetSetKeyType();
-			p->setString(value);
-			dictionary.setProperty(pv,p,0);
-			return *p;
-		}
+        GetSetNode& declare(const std::string& path, bool forceType) const;
 
 		/// Notify all observers of a change event
 		void signalChange(const std::string& section, const std::string& key);
@@ -140,7 +125,7 @@ namespace GetSetInternal {
 		void signalCreate(const std::string& section, const std::string& key);
 		/// Notify all observers of a destruction event
 		void signalDestroy(const std::string& section, const std::string& key);
-	};
+    };
 
 
 	/// An interface for file access. See Also: namespace GetSetIO
@@ -148,10 +133,11 @@ namespace GetSetInternal {
 	{
 	public:
 		/// Flexible c-tor for string streams, stdio, file streams etc.
-		GetSetInOut(std::istream&, std::ostream&);
+        GetSetInOut(std::istream&, std::ostream&);
 
-	protected:
-		// In a way, this class extends the functionality of GetSetDictionary.
+    // protected: // FIXME gcc does not like this gui despite old friendship
+
+        // In a way, this class extends the functionality of GetSetDictionary.
 		// Currently I use friendship to express this. But this is not a good design.
 		// Still, nothing inside this class should be accessible to the user.
 		friend class GetSetSection;
@@ -162,8 +148,8 @@ namespace GetSetInternal {
 		/// Retreive all values that are available and store them in dictionary
 		virtual void retreiveAll(GetSetDictionary& dictionary);
 
-		virtual void write() const = 0; 
-		virtual void read() = 0;
+        virtual void write() const = 0;
+        virtual void read() = 0;
 
 		/// reference to the stream used for input. Usually istr==*pFile or some std::istringstream
 		std::istream&	istr;
@@ -227,3 +213,33 @@ namespace GetSetInternal {
 
 
 #endif // __GetSetInternal_h
+
+// #include "GetSetDictionary.h"
+
+#ifdef __GetSetDictionary_h
+#ifndef __GetSet_Access_Declare
+#define __GetSet_Access_Declare
+
+namespace GetSetInternal
+{
+    template <typename GetSetKeyType>
+    GetSetNode& Access::declare(const std::string& path, bool forceType) const
+    {
+        std::vector<std::string> pv=stringToVector<std::string>(path,'/');
+        GetSetNode* d=dictionary.getProperty(pv,0);
+        // Check if GetSetKeyType at path exists or if another GetSetNode exsist and we don't forceType
+        if (d && (!forceType || dynamic_cast<GetSetKeyType*>(d)))
+            return *d;
+        std::string value="";
+        // d exists but is of wrong type and we want to forceType
+        if (d) value=d->getString();
+        // Create a new GetSetKeyType at path
+        GetSetKeyType* p=new GetSetKeyType();
+        p->setString(value);
+        dictionary.setProperty(pv,p,0);
+        return *p;
+    }
+}
+
+#endif // __GetSet_def_declare
+#endif // __GetSetDictionary_h

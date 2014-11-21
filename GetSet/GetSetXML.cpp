@@ -215,7 +215,7 @@ namespace GetSetInternal
 				openTags.back().from=end+1;
 				std::string attribstr=value.substr(endOfText,end-endOfText);
 				parseAttribs(attribstr,openTags.back().attrib);
-				if (!attribstr.empty() && attribstr.back()=='/')
+                if (!attribstr.empty() && attribstr[attribstr.length()-1]=='/')
 				{
 					// empty element tag <Tag arg="value"/> style
 					openTags.back().to=openTags.back().from;

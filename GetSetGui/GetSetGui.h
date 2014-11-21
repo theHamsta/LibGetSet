@@ -28,4 +28,4 @@ namespace GetSetGui
 	int runQtApp(const std::string& windowTitle, int argc, char **argv);
 } // namespace GetSetGui
 
-#endif __GetSetGui_h
+#endif // __GetSetGui_h

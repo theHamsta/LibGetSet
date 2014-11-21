@@ -22,6 +22,7 @@
 
 #include <string>
 #include <vector>
+#include <typeinfo>
 
 /// Get a c++ type name as string
 template <typename T> inline std::string typeName()

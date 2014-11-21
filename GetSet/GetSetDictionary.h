@@ -56,7 +56,7 @@ public:
 	public:
 		Observer(GetSetDictionary& d);
 		~Observer();
-		virtual void notifyChange(const std::string& section, const std::string& key)=0x0;
+        virtual void notifyChange(const std::string& section, const std::string& key)=0;
 		virtual void notifyCreate(const std::string& section, const std::string& key) {};
 		virtual void notifyDestroy(const std::string& section, const std::string& key) {};
 	};
