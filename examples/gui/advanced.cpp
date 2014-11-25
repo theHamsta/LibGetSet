@@ -22,7 +22,7 @@ int main(int argc, char** argv)
 	GetSet<std::string>("More","Input Files")="foo.bar;baz.qux";
 	GetSetGui::File("More/Input Files").setExtensions("Bar Files (*.bar);;All Files (*)").setMultiple(true);
 	// This is how you get access to files:
-	std::vector<std::string> files=GetSet<std::vector<std::string>>("More","Input Files");
+	std::vector<std::string> files=GetSet<std::vector<std::string> >("More","Input Files");
 
 	// A slider
 	GetSet<double>("More","Another Value between 0 and 1")=0.5;

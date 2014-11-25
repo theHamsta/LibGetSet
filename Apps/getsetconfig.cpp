@@ -187,7 +187,7 @@ int main(int argc, char ** argv)
 
 		if (!sin)
 			// If the path was invalid or points to a leaf, try to set a single property directly
-			GetSet<>(prefix,dout)=GetSet<>(path,din);
+			GetSet<>(prefix,dout)=GetSet<>(path,din).getString();
 		else
 			// Copy the entire subsection
 			copy(prefix,*sin,dout);
@@ -284,14 +284,12 @@ int main(int argc, char ** argv)
 			return 2;
 		}
 		
-#ifdef _DEBUG
-		std::cout << command << std::endl;
-#endif
 		atexit(kill_child);
 		child=Process(command);
 		child.run();
 		return child.waitForExit(true);
-#elif
+
+        
 		if (argc!=3)
 		{
 			std::cout << "The run verb has not been built into this binary. (are you on a POSIX system?)\n";

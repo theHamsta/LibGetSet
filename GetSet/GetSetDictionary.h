@@ -17,10 +17,11 @@
 //  limitations under the License.
 //
 
+#ifndef __GetSetInternal_h
+#include "GetSetInternal.h"
+#endif//__GetSetInternal_h
 #ifndef __GetSetDictionary_h
 #define __GetSetDictionary_h
-
-#include "GetSetInternal.h"
 
 /// The root of a propetry tree. This class privately holds all properties. Access only via GetSet&lt;BasicType&gt;.
 class GetSetDictionary : public GetSetInternal::GetSetSection

@@ -24,6 +24,7 @@
 #include <fstream>
 #include <vector>
 #include <map>
+#include <typeinfo>
 
 // Type general conversion to string
 template <typename T> inline std::string toString(const T& in)
@@ -56,7 +57,7 @@ template <> inline bool stringTo<>(const std::string& in)
 template <typename T> inline std::string vectorToString(const std::vector<T>& in, const std::string& delim=" ")
 {
 	if (in.empty()) return std::string();
-	std::vector<T>::const_iterator it=in.begin();
+	typename std::vector<T>::const_iterator it=in.begin();
 	std::string ret=toString(*it);
 	for (++it;it!=in.end();++it)
 		ret+=delim+toString(*it);
@@ -231,7 +232,8 @@ protected:
 	// Path to key
 	std::string key;
 	// The properties
-	mutable GetSetDictionary& dict;
+	// mutable
+    GetSetDictionary& dict;
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -315,7 +317,7 @@ namespace GetSetAutoGUI
 	// Define ini reading capability
 	inline bool loadIni(const std::string& path, MapStrMapStrStr& contents=GetSetDictionary::global())
 	{
-		std::ifstream istr(path);
+		std::ifstream istr(path.c_str());
 		if (!istr.good()) return false;
 		std::string all;
 		std::getline(istr,all,'\0');
@@ -334,7 +336,7 @@ namespace GetSetAutoGUI
 		ignore_types.insert("StaticText");
 		for (MapStrMapStrStr::const_iterator sectit=contents.begin();sectit!=contents.end();++sectit)
 		{
-			auto t=sectit->second.find("Type");
+			MapStrStr::const_iterator t=sectit->second.find("Type");
 			if (t!=sectit->second.end() && ignore_types.find(t->second)!=ignore_types.end())
 				continue;
 			std::string section=sectit->first;
@@ -352,7 +354,7 @@ namespace GetSetAutoGUI
 	// Define ini writing capability
 	inline bool saveIni(const std::string& path, MapStrMapStrStr& contents=GetSetDictionary::global())
 	{
-		std::ofstream ostr(path);
+		std::ofstream ostr(path.c_str());
 		if (!ostr.good()) return false;
 		ostr << getIni(contents);
 		return true;

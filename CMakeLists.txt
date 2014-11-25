@@ -7,6 +7,12 @@ set(GETSET_VERSION_MINOR 0)
 set(GETSET_VERSION_PATCH 0)
 set(GETSET_VERSION ${GETSET_VERSION_MAJOR}.${GETSET_VERSION_MINOR}.${GETSET_VERSION_PATCH} )
 
+### I'd rather use current standards
+if(CMAKE_COMPILER_IS_GNUCXX)
+    add_definitions(-std=c++11)
+    add_definitions(-mconsole)
+endif()
+
 ### EXTERNAL DEPENDENCIES
 cmake_policy(SET CMP0020 NEW)
 find_package(Qt5Widgets)
@@ -50,7 +56,6 @@ if (WIN32)
 	get_target_property(QtGui_DLL Qt5::Gui LOCATION)
 	get_target_property(QtWidgets_DLL Qt5::Widgets LOCATION)
     install(FILES ${QtCore_DLL} ${QtGui_DLL} ${QtWidgets_DLL} DESTINATION ${BIN_INSTALL_DIR} CONFIGURATIONS Release)
-
 endif (WIN32)
 
 # Copy example source code (Ships as a part of the libraries, and therefore belongs here)

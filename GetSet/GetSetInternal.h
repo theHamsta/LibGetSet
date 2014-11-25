@@ -214,7 +214,7 @@ namespace GetSetInternal {
 
 #endif // __GetSetInternal_h
 
-// #include "GetSetDictionary.h"
+#include "GetSetDictionary.h"
 
 #ifdef __GetSetDictionary_h
 #ifndef __GetSet_Access_Declare

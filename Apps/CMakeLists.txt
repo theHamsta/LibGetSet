@@ -7,10 +7,9 @@ include_directories("${PROJECT_SOURCE_DIR}")
 add_executable(GetSetTest
 	test.cpp
 )
-add_dependencies(GetSetTest GetSet GetSetGui)
-target_link_libraries(GetSetTest GetSet GetSetGui)
+target_link_libraries(GetSetTest GetSet GetSetGui Qt5::Widgets)
 qt5_use_modules(GetSetTest Widgets)
-###
+
 # getset config Tool 
 ###
 
@@ -19,7 +18,6 @@ add_executable(config
 	AutoGUI/Process.cpp
 	getsetconfig.cpp
 )
-add_dependencies(config GetSet)
 target_link_libraries(config GetSet)
 
 ###
@@ -31,8 +29,7 @@ add_executable(AutoConf
 	AutoGUI/AutoConf.cpp
 )
 qt5_use_modules(AutoConf Widgets)
-target_link_libraries(AutoConf GetSet GetSetGui)
-add_dependencies(AutoConf GetSet GetSetGui)
+target_link_libraries(AutoConf GetSet GetSetGui Qt5::Widgets)
 
 # AutoGUI host
 #QT5_WRAP_CPP(LibAutoGUI_MOC AutoGUI/QClientWindow.h)
@@ -46,15 +43,13 @@ add_executable(AutoGUI
 #	${LibAutoGUI_MOC}
 )
 qt5_use_modules(AutoGUI Core Gui Widgets)
-target_link_libraries(AutoGUI GetSet GetSetGui)
-add_dependencies(AutoGUI GetSet GetSetGui)
+target_link_libraries(AutoGUI GetSet GetSetGui Qt5::Widgets)
 
 # Example client
 add_executable(ExampleAutoGUI
 	../examples/autogui/main.cpp
 )
 target_link_libraries(ExampleAutoGUI GetSet)
-add_dependencies(ExampleAutoGUI GetSet)
 
 # Example Client using header-only version of GetSet
 add_executable(ExampleAutoGUI_header_only
@@ -75,12 +70,10 @@ add_executable(ExampleSimple
 	../examples/console/simple.cpp
 )
 target_link_libraries(ExampleSimple GetSet)
-add_dependencies(ExampleSimple GetSet)
 
 add_executable(ExampleAdvanced
 	../examples/gui/advanced.cpp
 )
-target_link_libraries(ExampleAdvanced GetSet GetSetGui ${QT_LIBRARIES})
-add_dependencies(ExampleAdvanced GetSet GetSetGui)
+target_link_libraries(ExampleAdvanced GetSet GetSetGui Qt5::Widgets)
 
 install(TARGETS ExampleAdvanced RUNTIME DESTINATION ${BIN_INSTALL_DIR})

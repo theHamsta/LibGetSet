@@ -94,7 +94,7 @@ int main(int argc, char **argv)
 
 	std::string filename=GetSet<>("Algorithm/Output File");
 	std::cout << "Trying to print to file " << filename << std::endl;
-	std::ofstream file(filename);
+	std::ofstream file(filename.c_str());
 	if (!file.good())
 		std::cout << "Failed.\n";
 	else

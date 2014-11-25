@@ -177,7 +177,7 @@ public:
 			std::cout << "Failed to run process!\n";
 		else if (stdoutReadHandle)
 		{
-			std::ofstream log(log_file);
+			std::ofstream log(log_file.c_str());
 			stdOutput.clear();
 			DWORD bytes_read;
 			char tBuf[256];
