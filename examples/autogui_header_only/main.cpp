@@ -20,7 +20,8 @@
 #include <iostream>
 #include <fstream>
 
-#include "GetSetAutoGUI.hxx"
+#include "GetSetAutoGui.hxx"
+
 GETSET_GLOBAL_DICTIONARY
 
 int main(int argc, char **argv)

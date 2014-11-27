@@ -3,6 +3,10 @@
 
 #include <string>
 
+#ifdef __linux__
+    #include "pstream.h"
+#endif
+
 /// An independent process running alongside the parent.
 /// 
 /// Example:
@@ -45,6 +49,10 @@ protected:
 	std::string cmdLineArg;
 	mutable std::string stdOutput;
 	mutable int	exit_code;
+
+#ifdef __linux__
+    redi::ipstream *child;
+#endif
 
 #ifdef _WIN32
 	mutable void* handle;

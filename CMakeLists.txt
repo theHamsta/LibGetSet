@@ -10,8 +10,14 @@ set(GETSET_VERSION ${GETSET_VERSION_MAJOR}.${GETSET_VERSION_MINOR}.${GETSET_VERS
 ### I'd rather use current standards
 if(CMAKE_COMPILER_IS_GNUCXX)
     add_definitions(-std=c++11)
-    add_definitions(-mconsole)
+    # and a console window under windows
+    if (WIN32)
+        add_definitions(-mconsole)
+    endif()
 endif()
+
+### Look for local include files
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 ### EXTERNAL DEPENDENCIES
 cmake_policy(SET CMP0020 NEW)

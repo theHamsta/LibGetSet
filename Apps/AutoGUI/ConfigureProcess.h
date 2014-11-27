@@ -1,6 +1,3 @@
-// FIXME really clean this up... if only I had time.
-
-#include <windows.h>
 
 #include "Process.h"
 #include "QClientWindow.h"
@@ -69,13 +66,17 @@ public:
 
 	static void gui(const std::string& section, const std::string& key)
 	{
-		std::string command=GetSet<>(section,key,_instance->configuration).getAttribute("ShellExecute");
-		if (!command.empty())
-		{
-			std::cout << "> " << command << std::endl;
-			ShellExecute(0x0,command.c_str(),0x0,0x0,_instance->working_dir.empty()?0x0:_instance->working_dir.c_str(),SW_SHOW);
-		}
+//		std::string command=GetSet<>(section,key,_instance->configuration).getAttribute("ShellExecute");
+//		if (!command.empty())
+//		{
+//			std::cout << "> " << command << std::endl;
+//			ShellExecute(0x0,command.c_str(),0x0,0x0,_instance->working_dir.empty()?0x0:_instance->working_dir.c_str(),SW_SHOW);
+//		}
 	}
+
+    /// This overload always blocks until termination of child. Implementation is platform specific
+    /// (see _WIN32 and __linux__ at bottom of file)
+    virtual int run();
 
 	bool handleControlCommand(const std::string& command)
 	{
@@ -167,75 +168,7 @@ public:
 		return false;
 	}
 
-	/// This overload always blocks until termination of child. requires windows.h... FIXME not a very smart implementation either
-	int run()
-	{
-		if (window)
-			window->hide();
-		GetSetIO::save<GetSetIO::IniFile>(config_file,configuration);
-		if (!setCommanLineArgs(std::string("\"")+config_file+"\" "+config_cmdline_run).run())
-			std::cout << "Failed to run process!\n";
-		else if (stdoutReadHandle)
-		{
-			std::ofstream log(log_file.c_str());
-			stdOutput.clear();
-			DWORD bytes_read;
-			char tBuf[256];
-			std::string line;
-			int nfound=0;
-			while (1)
-			{
-				DWORD available=0;
-				if (0==PeekNamedPipe(stdoutReadHandle,0x0,0x0,0x0,&available,0x0) && available==0)
-					break; // eof
-				if (!available)
-				{
-					QApplication::processEvents();
-					Sleep(30);
-					continue;
-				}
-				ReadFile(stdoutReadHandle, tBuf, 255, &bytes_read, NULL);
-				tBuf[bytes_read]=0;
-				if (log.good()) log << tBuf;
-				for (int i=0;i<(int)bytes_read;i++)
-				{
-					line.push_back(tBuf[i]);
-					if (nfound==-1)
-					{
-						if (tBuf[i]=='\n')
-						{
-							handleControlCommand(line);
-							line.clear();
-							nfound=0;
-						}
-					}
-					else
-					{
-						// "###" indicates a control command
-						if (tBuf[i]=='#') nfound++;
-						if (nfound==3)
-						{
-							line.clear();
-							nfound=-1;
-						}
-						if (tBuf[i]=='\n')
-						{
-							std::cout << line;
-							line.clear();
-						}
-					}
-				}
 
-			}
-			stdoutReadHandle=0x0;
-		}
-		int ret=waitForExit();
-		for (std::map<std::string,QWidget*>::iterator it=client_gui.begin();it!=client_gui.end();++it)
-			if (it->second) delete it->second;
-		client_gui.clear();
-		if (window)	window->show();
-		return ret;
-	}
 
 protected:
 	bool good;									//< True if the XML description was retreived successfully
@@ -252,4 +185,131 @@ protected:
 
 
 ConfigureProcess* ConfigureProcess::_instance=0x0;
+
+
+#ifdef __linux__
+#include <QThread>
+
+/// This overload always blocks until termination of child. requires windows.h... FIXME not a very smart implementation either
+int ConfigureProcess::run()
+{
+    if (window)
+        window->hide();
+    GetSetIO::save<GetSetIO::IniFile>(config_file,configuration);
+    if (!setCommanLineArgs(std::string("\"")+config_file+"\" "+config_cmdline_run).run())
+        std::cout << "Failed to run process!\n";
+    else
+    {
+        std::ofstream log(log_file.c_str());
+        stdOutput.clear();
+        std::string line;
+        int nfound=0;
+        while (child && *child)
+        {
+            int available=child->rdbuf()->in_avail();
+            if (!available)
+            {
+                QApplication::processEvents();
+                QThread::msleep(30);
+                continue;
+            }
+            std::string str;
+            *child >> str;
+            if (log.good()) log << str;
+
+            int i=0;
+            while (str[i]!=0 && (str[i]==' '||str[i]=='\t')) i++;
+            if (str[i]=='#'&&str[i+1]=='#'&&str[i+2]=='#')
+            {
+                handleControlCommand(line);
+                line.clear();
+            }
+            std::cout << line;
+            line.clear();
+        }
+    }
+    int ret=waitForExit();
+    for (std::map<std::string,QWidget*>::iterator it=client_gui.begin();it!=client_gui.end();++it)
+        if (it->second) delete it->second;
+    client_gui.clear();
+    if (window)	window->show();
+    return ret;
+}
+#endif
+
+
+#ifdef _WIN32
+#include <windows.h>
+
+/// This overload always blocks until termination of child. requires windows.h... FIXME not a very smart implementation either
+int ConfigureProcess::run()
+{
+    if (window)
+        window->hide();
+    GetSetIO::save<GetSetIO::IniFile>(config_file,configuration);
+    if (!setCommanLineArgs(std::string("\"")+config_file+"\" "+config_cmdline_run).run())
+        std::cout << "Failed to run process!\n";
+    else if (stdoutReadHandle)
+    {
+        std::ofstream log(log_file.c_str());
+        stdOutput.clear();
+        DWORD bytes_read;
+        char tBuf[256];
+        std::string line;
+        int nfound=0;
+        while (1)
+        {
+            DWORD available=0;
+            if (0==PeekNamedPipe(stdoutReadHandle,0x0,0x0,0x0,&available,0x0) && available==0)
+                break; // eof
+            if (!available)
+            {
+                QApplication::processEvents();
+                Sleep(30);
+                continue;
+            }
+            ReadFile(stdoutReadHandle, tBuf, 255, &bytes_read, NULL);
+            tBuf[bytes_read]=0;
+            if (log.good()) log << tBuf;
+            for (int i=0;i<(int)bytes_read;i++)
+            {
+                line.push_back(tBuf[i]);
+                if (nfound==-1)
+                {
+                    if (tBuf[i]=='\n')
+                    {
+                        handleControlCommand(line);
+                        line.clear();
+                        nfound=0;
+                    }
+                }
+                else
+                {
+                    // "###" indicates a control command
+                    if (tBuf[i]=='#') nfound++;
+                    if (nfound==3)
+                    {
+                        line.clear();
+                        nfound=-1;
+                    }
+                    if (tBuf[i]=='\n')
+                    {
+                        std::cout << line;
+                        line.clear();
+                    }
+                }
+            }
+
+        }
+        stdoutReadHandle=0x0;
+    }
+    int ret=waitForExit();
+    for (std::map<std::string,QWidget*>::iterator it=client_gui.begin();it!=client_gui.end();++it)
+        if (it->second) delete it->second;
+    client_gui.clear();
+    if (window)	window->show();
+    return ret;
+}
+#endif
+
 

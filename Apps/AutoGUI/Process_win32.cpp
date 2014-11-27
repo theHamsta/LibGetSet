@@ -1,5 +1,6 @@
 
 #include <windows.h>
+
 Process::Process(const std::string& binary_file)
 	: binaryFile(binary_file)
 	, exit_code(-1)
