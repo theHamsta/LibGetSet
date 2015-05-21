@@ -25,14 +25,14 @@
 ///
 class Process {
 public:
-	Process(const std::string& binary_file="");			//< Create a process from path to executable.
+	Process(const std::string& binary_file = "");			//< Create a process from path to executable.
 	~Process();											//< Process continues to live after d-tor.
 
 	bool run();											//< Run process. Use waitForExit() if you need output or return code.
 	bool isRunning() const;								//< Returns true if the process is still running.
 	bool kill();										//< Kills teh process if it is still running.
 
-	int waitForExit(bool print=false) const;			//< Block until process dies. Returns error code of process.
+	int waitForExit(bool print = false) const;			//< Block until process dies. Returns error code of process.
 	void readPipe(std::ostream& out, bool print) const;	//< Blocking read on pipe until EOF and stream to out
 	const std::string&  getConsoleOutput() const;		//< Contents of stdout after waitForExit()
 	

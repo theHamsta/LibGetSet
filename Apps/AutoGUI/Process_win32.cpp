@@ -111,8 +111,3 @@ int Process::waitForExit(bool print) const
 	GetExitCodeProcess(handle, &exitcode);		
 	return exit_code=exitcode;
 }
-
-const std::string&  Process::getConsoleOutput() const
-{
-	return stdOutput;
-}
