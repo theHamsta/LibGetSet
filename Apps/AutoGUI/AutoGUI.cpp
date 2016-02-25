@@ -60,7 +60,12 @@ void gui(const std::string& section, const std::string& key)
 		{
 			if (autogui_window)
 				autogui_window->close();
-			w->setWindowTitle("Client Program");
+			// w->setWindowTitle("Client Program");
+			std::string exe_path=GetSet<>("Basic/Binary File");
+			std::string exe_name=splitRight(exe_path,"/\\");
+			std::string exe=splitRight(exe_name,".");
+			if (exe_name.empty()) std::swap(exe,exe_name);
+			w->setWindowTitle(exe_name.c_str());
 			w->setButton("Run...",gui)->setDefault(true);
 			w->show();
 		}
@@ -68,7 +73,7 @@ void gui(const std::string& section, const std::string& key)
 			std::cerr << "Failed to launch process or process does not support the --xml flag.\n";
 	}
 
-	if (section=="Client Program" && key=="Run...")
+	if (key=="Run...")
 	{
 		int exit_code=childProcess->run();
 		std::cout << "Exit code: " << exit_code << std::endl;
