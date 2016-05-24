@@ -58,9 +58,9 @@ add_executable(ExampleAutoGUI_header_only
 )
 
 # Install AutoGUI binaries and copy source code of examples, especially header-only version of GetSet
-install(TARGETS AutoGUI AutoConf config ExampleAutoGUI ExampleAutoGUI_header_only RUNTIME DESTINATION ${BIN_INSTALL_DIR})
-install(FILES ../examples/autogui/CMakeLists.txt ../examples/autogui/main.cpp  DESTINATION ${CMAKECONFIG_INSTALL_DIR}examples/autogui)
-install(FILES ../examples/autogui_header_only/GetSetAutoGui.hxx ../examples/autogui_header_only/main.cpp ../examples/autogui_header_only/CMakeLists.txt DESTINATION ${CMAKECONFIG_INSTALL_DIR}examples/autogui_header_only)
+install(TARGETS AutoGUI AutoConf config ExampleAutoGUI ExampleAutoGUI_header_only DESTINATION bin)
+install(FILES ../examples/autogui/CMakeLists.txt ../examples/autogui/main.cpp  DESTINATION examples/autogui)
+install(FILES ../examples/autogui_header_only/GetSetAutoGui.hxx ../examples/autogui_header_only/main.cpp ../examples/autogui_header_only/CMakeLists.txt DESTINATION examples/autogui_header_only)
 
 ###
 # Examples (2do move; included in solution to make sure they really compile with the current version)
@@ -76,4 +76,4 @@ add_executable(ExampleAdvanced
 )
 target_link_libraries(ExampleAdvanced GetSet GetSetGui Qt5::Widgets)
 
-install(TARGETS ExampleAdvanced RUNTIME DESTINATION ${BIN_INSTALL_DIR})
+install(TARGETS ExampleAdvanced DESTINATION bin)

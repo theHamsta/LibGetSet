@@ -10,7 +10,5 @@ add_library(GetSet
 	GetSetXML.cpp
 )
 set_target_properties(GetSet PROPERTIES VERSION ${GETSET_VERSION})
-
-install(FILES ${GETSET_HEADERS} DESTINATION ${INCLUDE_INSTALL_DIR}/GetSet)
-
-install(TARGETS GetSet EXPORT GetSetExport ARCHIVE DESTINATION GetSet/${LIB_INSTALL_DIR})
+install(FILES ${GETSET_HEADERS} DESTINATION include/GetSet)
+install(TARGETS GetSet EXPORT GetSetExport DESTINATION lib)

@@ -1,13 +1,17 @@
-cmake_minimum_required(VERSION 3.2.2)
+cmake_minimum_required(VERSION 3.5.2)
 
 ### PROJECT AND VERSION
 project(GetSet)
 set(GETSET_VERSION_MAJOR 2)
-set(GETSET_VERSION_MINOR 0)
+set(GETSET_VERSION_MINOR 2)
 set(GETSET_VERSION_PATCH 0)
 set(GETSET_VERSION ${GETSET_VERSION_MAJOR}.${GETSET_VERSION_MINOR}.${GETSET_VERSION_PATCH} )
 
-### I'd rather use current standards
+# Distinguish debug/realse binaries. And nothing else.
+set(CMAKE_DEBUG_POSTFIX "d")
+set(CMAKE_CONFIGURATION_TYPES "Debug;Release" CACHE STRING "limited configs" FORCE)
+
+# I'd rather use current standards
 if(CMAKE_COMPILER_IS_GNUCXX)
     add_definitions(-std=c++11)
     # and a console window under windows
@@ -16,55 +20,45 @@ if(CMAKE_COMPILER_IS_GNUCXX)
     endif()
 endif()
 
-### Look for local include files
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
+# Shall dynamic or static linkage be the default?
+option(BUILD_SHARED_LIBS "Build Shared Libraries" ON)
 
-### EXTERNAL DEPENDENCIES
-cmake_policy(SET CMP0020 NEW)
+# Let MSVC export all symbols by default and create output in bin dir
+set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/bin)
+
+# Enable parallel compilation on MSVC
+if(MSVC)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
+    message(STATUS "Added parallel build arguments to CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")
+endif()
+
+### PACKAGES
+
+# Add Qt5
 find_package(Qt5Widgets)
+find_package(Qt5OpenGL)
 set(CMAKE_AUTOMOC ON)
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
-
-### Distinguish debug/realse binaries
-set(CMAKE_DEBUG_POSTFIX "d")
-
-### DIRECTORIES
-set(LIB_INSTALL_DIR "lib/")
-set(CMAKECONFIG_INSTALL_DIR "./")
-set(INCLUDE_INSTALL_DIR "include/")
-set(BIN_INSTALL_DIR "bin/")
-
-# All binaries go into the top level, not their respective subfolders
-set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE})
-set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE})
 
 ### SOURCE CODE
 add_subdirectory(GetSet)
 add_subdirectory(GetSetGui)
+
+# Utilities and tests
 add_subdirectory(Apps)
 
 # Export all targets into the export set "GetSetExport".
-install(EXPORT GetSetExport DESTINATION ${CMAKECONFIG_INSTALL_DIR} FILE GetSetTargets.cmake )
+install(EXPORT GetSetExport DESTINATION lib FILE GetSetTargets.cmake )
 
 # Create GetSetConfig.cmake and GetSetConfigVersion.cmake files for find_package()
-configure_file(GetSetConfig.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/GetSetConfig.cmake @ONLY )
-configure_file(GetSetConfigVersion.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/GetSetConfigVersion.cmake @ONLY )
+configure_file(GetSetConfig.cmake.in ${CMAKE_CURRENT_SOURCE_DIR}/GetSetConfig.cmake @ONLY )
+configure_file(GetSetConfigVersion.cmake.in ${CMAKE_CURRENT_SOURCE_DIR}/GetSetConfigVersion.cmake @ONLY )
+install(FILES GetSetConfig.cmake GetSetConfigVersion.cmake DESTINATION . )
 
-# Install these two files into the same directory as the generated exports-file.
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/GetSetConfig.cmake ${CMAKE_CURRENT_BINARY_DIR}/GetSetConfigVersion.cmake DESTINATION ${CMAKECONFIG_INSTALL_DIR})
 # Add license
-install(FILES License.txt DESTINATION ${CMAKECONFIG_INSTALL_DIR})
-
-# Windows only : copy .dlls to bin folder.
-if (WIN32)
-#    install(FILES icudt52.dll icuin52.dll icuuc52.dll DESTINATION ${BIN_INSTALL_DIR} CONFIGURATIONS Release)
-	get_target_property(QtCore_DLL Qt5::Core LOCATION)
-	get_target_property(QtGui_DLL Qt5::Gui LOCATION)
-	get_target_property(QtWidgets_DLL Qt5::Widgets LOCATION)
-    install(FILES ${QtCore_DLL} ${QtGui_DLL} ${QtWidgets_DLL} DESTINATION ${BIN_INSTALL_DIR} CONFIGURATIONS Release)
-endif (WIN32)
+install(FILES License.txt DESTINATION . )
 
 # Copy example source code (Ships as a part of the libraries, and therefore belongs here)
-install(FILES ./examples/README.txt DESTINATION ${CMAKECONFIG_INSTALL_DIR}/examples/)
-install(FILES ./examples/console/CMakeLists.txt ./examples/console/simple.cpp DESTINATION ${CMAKECONFIG_INSTALL_DIR}/examples/console)
-install(FILES ./examples/gui/README.txt ./examples/gui/CMakeLists.txt ./examples/gui/advanced.cpp DESTINATION ${CMAKECONFIG_INSTALL_DIR}/examples/gui)
+install(FILES ./examples/README.txt DESTINATION examples/)
+install(FILES ./examples/console/CMakeLists.txt ./examples/console/simple.cpp DESTINATION examples/console)
+install(FILES ./examples/gui/README.txt ./examples/gui/CMakeLists.txt ./examples/gui/advanced.cpp DESTINATION examples/gui)
