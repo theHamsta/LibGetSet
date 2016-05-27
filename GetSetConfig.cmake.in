@@ -12,7 +12,7 @@ set(GETSET_INCLUDE_DIRS "${rootDir}/include")
 set(GETSET_DIR "${rootDir}")
 
 # import the exported targets
-include(${myDir}/lib/GetSetTargets.cmake)
+include(${myDir}/cmake/GetSetTargets.cmake)
 
 # set the expected library variable
 set(GETSET_LIBRARIES GetSet GetSetGui )

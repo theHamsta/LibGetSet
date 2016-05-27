@@ -48,7 +48,7 @@ add_subdirectory(GetSetGui)
 add_subdirectory(Apps)
 
 # Export all targets into the export set "GetSetExport".
-install(EXPORT GetSetExport DESTINATION lib FILE GetSetTargets.cmake )
+install(EXPORT GetSetExport DESTINATION cmake FILE GetSetTargets.cmake )
 
 # Create GetSetConfig.cmake and GetSetConfigVersion.cmake files for find_package()
 configure_file(GetSetConfig.cmake.in ${CMAKE_CURRENT_SOURCE_DIR}/GetSetConfig.cmake @ONLY )
