@@ -16,3 +16,6 @@ include(${myDir}/cmake/GetSetTargets.cmake)
 
 # set the expected library variable
 set(GETSET_LIBRARIES GetSet GetSetGui )
+
+# Yay!
+set(GETSET_FOUND 1)
