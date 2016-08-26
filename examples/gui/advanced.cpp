@@ -1,9 +1,12 @@
 #include <GetSet/GetSet.hxx>
+#include <GetSet/GetSetIO.h>
 
 // only needed for Qt GUI:
 #include <GetSetGui/GetSetGui.h>
 
 #include <iostream>
+
+std::string g_ini_file="ExampleAdvanced.ini";
 
 /// Predeclaration of a callback function to handle events
 void gui(const std::string& section, const std::string& key);
@@ -40,6 +43,8 @@ int main(int argc, char** argv)
 	GetSetGui::StaticText("More/Advanced/Some Info")=	"I  have no idea what \"Some Result\" is.\n"
 														"But I'm sure it's there for your convenience.";
 
+	GetSetIO::load<GetSetIO::IniFile>(g_ini_file);
+
 	// Tell GetSet which function to call when something changes
 	GetSetHandler call_back(gui);
 
@@ -68,4 +73,6 @@ void gui(const std::string& section, const std::string& key)
 		else
 			GetSet<>("Setup","Some Text")="Bla";
 	}
+
+	GetSetIO::save<GetSetIO::IniFile>(g_ini_file);
 }
