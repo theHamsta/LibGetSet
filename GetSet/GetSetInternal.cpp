@@ -99,14 +99,7 @@ void GetSetSection::store(GetSetInOut& file) const
 	{
 		GetSetSection* subsection=dynamic_cast<GetSetSection*>(it->second);
 		if (subsection) subsection->store(file);
-		else
-		{
-			// Access key's type to exclude GUI elements that do not really carry a value
-			GetSetNode* key=dynamic_cast<GetSetNode*>(it->second);
-			std::string type=key?key->getType():"";
-			if (type!="Button" && type!="StaticText")
-				file.store(absolutePath,it->first,it->second);
-		}
+		else file.store(absolutePath,it->first,it->second);
 	}
 }
 

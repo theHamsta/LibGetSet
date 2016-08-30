@@ -1,0 +1,55 @@
+This is a description of the GetSet scripting syntax
+
+*** List of available commands:
+var list call with if set trigger while foreach file input output
+
+*** A Comment
+#comment
+
+*** Types understood by GetSet
+<string> := "some string" | some_string_no_whitespace
+aliases <varname> <file> <key> and <section>
+<value> := var <varname> | value <string> | key <key>
+
+
+*** Set variable
+var <varname> <value> [...]
+
+*** Same as "var" except multiline. You can define lists of commands.
+list <varname>
+endlist
+call <varname>
+
+*** Assign a section which is used to prefix any <key> and <section> until endwith
+with [<section>]
+
+*** If test fails, parser skips until next occurence of endif
+if [not] strequal <value> <value> 
+if [not] numequal <value> <value> 
+if [not] gequal <value> <value>
+if [not] lequal <value> <value>
+if [not] greater <value> <value> 
+if [not] less <value> <value>
+endif
+
+*** Some useful built-ins
+set <key> <value>
+trigger <key>
+
+
+*** Loops. <value> is converted to boolean (possible values: "true" "True" "yes" "1" etc.)
+while <value>
+endwhile
+
+*** Convert <value> to vector and parse line until endfor with <varname> set to each element
+foreach <varname> in <value>
+endfor
+
+*** File access
+file save ini <file>
+file load ini <file>
+file run <file>
+
+*** Special User-interaction built-ins (depending on implementation)
+input <varname>
+output <value>

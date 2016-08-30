@@ -21,9 +21,14 @@ namespace GetSetIO {
 			std::string key=splitRight(section,"/\\");
 			// Access its value
 			MapStrStr::const_iterator value=sectit->second.find("Value");
-			// Store a string "key = value" in the corresponding "[...]" paragraph
-			if (value!=sectit->second.end())
-				helper[std::string("[")+section+"]\n"] += key + " = " + value->second + "\n";
+			// Access its type
+			MapStrStr::const_iterator type_it=sectit->second.find("Type");
+			std::string type=type_it==sectit->second.end()?"":type_it->second;
+			// Check that it is not a simple GUI element without a value.
+			if (type!="Button" && type!="StaticText")
+				// Store a string "key = value" in the corresponding "[...]" paragraph
+				if (value!=sectit->second.end())
+					helper[std::string("[")+section+"]\n"] += key + " = " + value->second + "\n";
 		}
 		// Then in the end just write contents of helper to ostr
 		for (MapStrStr::iterator it=helper.begin();it!=helper.end();++it)
@@ -69,9 +74,17 @@ namespace GetSetIO {
 		// Simply iterate over all keys and store their value
 		for (MapStrMapStrStr::const_iterator sectit=contents.begin();sectit!=contents.end();++sectit)
 		{
-			MapStrStr::const_iterator cit=sectit->second.find("Value");
-			if (cit!=sectit->second.end())
-				ostr << sectit->first+"="+cit->second+"\n";
+			// Access its type
+			MapStrStr::const_iterator tit=sectit->second.find("Type");
+			std::string type=tit==sectit->second.end()?"":tit->second;
+			// Check that it is not a simple GUI element without a value.
+			if (type!="Button" && type!="StaticText")
+			{
+				// Write
+				MapStrStr::const_iterator cit=sectit->second.find("Value");
+				if (cit!=sectit->second.end())
+					ostr << sectit->first+"="+cit->second+"\n";
+			}
 		}
 	}
 

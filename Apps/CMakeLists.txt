@@ -10,7 +10,8 @@ add_executable(GetSetTest
 target_link_libraries(GetSetTest GetSet GetSetGui Qt5::Widgets)
 qt5_use_modules(GetSetTest Widgets)
 
-# getset config Tool 
+###
+# GetSet config Tool 
 ###
 
 add_executable(config
@@ -19,6 +20,16 @@ add_executable(config
 	getsetconfig.cpp
 )
 target_link_libraries(config GetSet)
+
+###
+# GetSet script Tool 
+###
+
+add_executable(script
+	getsetscript.cpp
+)
+qt5_use_modules(script Core Gui Widgets)
+target_link_libraries(script GetSet GetSetGui Qt5::Widgets)
 
 ###
 # AutoGUI
