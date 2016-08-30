@@ -85,7 +85,7 @@ protected:
 	//
 
 	/// var <varname> <value>
-	void parse_var(std::istream& script);
+	void parse_setvar(std::istream& script);
 	/// list <section> ... endlist
 	void parse_list(std::istream& script);
 	/// call <varname>
@@ -145,7 +145,7 @@ void GetSetScriptParser::parse_commands(const std::string& commands)
 			rest_of_line(script); // ignore rest of line
 			continue;
 		}
-		else if (command == "var") parse_var(script);
+		else if (command == "setvar") parse_setvar(script);
 		else if (command == "list") parse_list(script);
 		else if (command == "call") parse_call(script);
 		else if (command == "with") parse_with(script);
@@ -210,16 +210,16 @@ bool GetSetScriptParser::get_token_value(std::istream& script, std::string& toke
 }
 
 
-void GetSetScriptParser::parse_var(std::istream& script)
+void GetSetScriptParser::parse_setvar(std::istream& script)
 {
 	auto line=rest_of_line(script);
 	std::string varname, value;
 	if (!get_token_string(line,varname))
-		parse_error("parse_var","Failed to parse string.");
+		parse_error("parse_setvar","Failed to parse string.");
 	variables[varname]="";
 	while (get_token_value(line,value))
 		variables[varname]+=value;
-	expect_end_of_line(line,"parse_var");
+	expect_end_of_line(line,"parse_setvar");
 }
 
 void GetSetScriptParser::parse_list(std::istream& script)
