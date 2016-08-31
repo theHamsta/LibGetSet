@@ -62,7 +62,12 @@ GetSetHandler::GetSetHandler(GetSetDictionary& subject, void (*change)(const std
 	, change_handler(change)
 {}
 
+void GetSetHandler::setIgnoreNotifications(bool ignore)
+{
+	ignore_notify=ignore;
+}
+
 void GetSetHandler::notifyChange(const std::string& section, const std::string& key)
 {
-	change_handler(section,key);
+	if (!ignore_notify) change_handler(section,key);
 }
