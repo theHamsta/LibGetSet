@@ -1,204 +1,8 @@
-//
-//  Library: GetSet
-//  c++ library for load/saving *typed* and *named* properties and automatic GUI.
-//  
-//  Copyright (c) by André Aichert (aaichert@gmail.com)
-//    
-//  Licensed under the Apache License, Version 2.0 (the "License");
-//  you may not use this file except in compliance with the License.
-//  You may obtain a copy of the License at
-//  
-//    http://www.apache.org/licenses/LICENSE-2.0
-//    
-//  Unless required by applicable law or agreed to in writing, software
-//  distributed under the License is distributed on an "AS IS" BASIS,
-//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//  See the License for the specific language governing permissions and
-//  limitations under the License.
-//
 
-#ifndef __GetSetScripting_hxx
-#define __GetSetScripting_hxx
+#include "GetSetScripting.h"
 
 #include "GetSet.hxx"
 #include "GetSetIO.h"
-
-#include <sstream>
-
-/// Store the current state and record all changes with the possibility of playing them back.
-// class GetSetScriptRecorder TODO
-/// This is where a detailed log of all events will be stored
-//	std::ofstream file;
-
-/// Parse a script line-by-line. Language is not context free. See ScriptSyntax.txt for more info.
-class GetSetScriptParser
-{
-public:
-	GetSetScriptParser(GetSetDictionary& _subject=GetSetDictionary::global());
-
-	/// Callback for user input (optional)
-	std::string (*user_input)();
-
-	/// Callback for output (optional)
-	void (*user_output)(const std::string&);
-
-	/// Parse the scrip provided by text
-	bool parse(const std::string& commands)
-	{
-		parse_error_occured=false;
-		parse_commands(commands);
-		return parse_error_occured;
-	}
-
-	///
-	std::string synopsis(const std::string& command="", bool with_example=false)
-	{
-		static std::map<std::string,std::string> help,examples;
-		if (help.empty())
-		{
-			help    ["set"]     +="   set var <varname> <value>\n";
-			help    ["set"]     +="   set key <key> <value>\n";
-			help    ["set"]     +="   set trigger <key>\n";
-			examples["set"]     +="   set key \"Personal/Last Name\" var user_name\n";
-			help    ["function"]+="   function <varname> ... endfunction\n";
-			examples["function"]+="   function greetings\n";
-			examples["function"]+="      echo value Hallo!\n";
-			examples["function"]+="   endfunction\n";
-			help    ["call"]    +="   call <varname>\n";
-			examples["call"]    +="   call greetings\n";
-			help    ["with"]    +="   with <section>\n";
-			examples["with"]    +="   with \"Personal\"\n";
-			examples["with"]    +="   set key \"Last Name\" value \"John\"\n";
-			examples["with"]    +="   with \"\"\n";
-			help    ["if"]      +="   if <value> [not] <op> <value>\n";
-			help    ["if"]      +="   <op>:=strequal numequal gequal lequal greater less\n";
-			examples["if"]      +="   if key \"Personal/Last Name\" not strequal \"John\"\n";
-			examples["if"]      +="      echo value \"Name is not John\"\n";
-			examples["if"]      +="   endif\n";
-			help    ["while"]   +="   while <boolean value> ... endwhile\n";
-			help    ["while"]   +="   <boolean value>:=<value> converted to boolean (e.g. 1 True true yes etc.)\n";
-			examples["while"]   +="   while var active\n";
-			examples["while"]   +="      call do_something\n";
-			examples["while"]   +="   endwhile\n";
-			help    ["for"]     +="   for each <varname> in <list> ... endfor\n";
-			help    ["for"]     +="   <list>:=<value> with semicolon separated strings\n";
-			help    ["for"]     +="   for each <varname> from <value> to <value> step <value> ... endfor\n";
-			examples["for"]     +="   for each i from value 5 to value 9\n";
-			examples["for"]     +="      echo var i\n";
-			examples["for"]     +="   endfor\n";
-			help    ["file"]    +="   file {load|save} ini <filename>\n";
-			help    ["file"]    +="   file run <filename>\n";
-			examples["file"]    +="   file save ini \"./file.ini\"\n";
-			examples["file"]    +="   file run script.getset\n";
-			help    ["input"]   +="   input <varname>\n";
-			examples["input"]   +="   echo value \"What's your name?\"\n";
-			examples["input"]   +="   input user_name\n";
-			help    ["echo"]    +="   echo <value>\n";
-			examples["echo"]    +="   echo value \"Hello World\"\n";
-			examples["echo"]    +="   echo key user_name\n";
-			examples["echo"]    +="   echo var \"Personal/Last Name\"\n";
-			help    ["eval"]    +="   eval <varname> as <value> {plus|minus|times|over} <value>\n";
-			examples["eval"]    +="   eval i as var i plus value 1\n";
-		}
-		std::string help_message;
-		if (command.empty() || help.find(command)==help.end())
-		{
-			help_message="Try: help <command>\ncommands:";
-			for (auto it=help.begin();it!=help.end();++it)
-				help_message=help_message+" "+it->first;
-			help_message=help_message+"\n";
-		}
-		else
-		{
-			help_message="Synopsis:\n";
-			help_message=help_message+help[command];
-			if (with_example)
-				help_message=help_message+"Example:\n"+examples[command];
-		}
-		return help_message;	
-	}
-
-protected:
-	/// Only this dictionary will be affectd by this parser
-	GetSetDictionary& subject;
-	
-	/// Map of temporary variables and command functions (i.e. subroutines)
-	std::map<std::string,std::string> variables;
-
-	/// A section used as prefix for all keys ("with" command)
-	std::string section_prefix;
-
-	/// Set to true on syntax error
-	bool parse_error_occured;
-	
-	/// Parse the scrip provided by text
-	void parse_commands(const std::string& script);
-
-	/// Report a parse error
-	void parse_error(const std::string& where, const std::string& why);
-
-	//
-	// Tokens: <string> <varname> <value> <key> <section>
-	//
-
-	/// Token: <string> (or: <varname> <file> <key> and <section>)
-	bool get_token_string(std::istream& script, std::string& token);
-	/// Token: <string>
-	bool expect_token_string(std::istream& script, const std::string& fn_name, std::string& token);
-	/// Token: <key>
-	bool expect_token_key(std::istream& script, const std::string& fn_name, std::string& token);
-	/// Token: <value> or <numeric value> if numeric is set
-	bool expect_token_value(std::istream& script, const std::string& fn_name, std::string& token, bool numeric=false);
-	/// Token: <numeric value>
-	bool expect_token_value(std::istream& script, const std::string& fn_name, double& token);
-
-	//
-	// Commands: set function call with if while for file input echo
-	//
-
-	/// help [<command>]
-	void parse_help(std::istream& script);
-	/// set [key <key>|var <varname>] <value>
-	void parse_set(std::istream& script);
-	/// function <varname> ... endfunction
-	void parse_function(std::istream& script);
-	/// call <varname>
-	void parse_call(std::istream& script);
-	/// with <section> ... endwith, where section has same format as <key>
-	void parse_with(std::istream& script);
-	/// if [not] {strequal|numequal|gequal|lequal|greater|less} <value> <value> ... endif
-	void parse_if(std::istream& script);
-	/// while <boolean value> ... endwhile
-	void parse_while(std::istream& script);
-	/// EITHER for each <varname> in <';' delimited strings> ... endfor
-	/// OR     for each <varname> from <numeric value> to <numeric value> step <numeric value> ... endfor
-	void parse_for(std::istream& script);
-	// file {run|save ini|load ini} <file>, where file is a string
-	void parse_file(std::istream& script);
-	// input
-	void parse_input(std::istream& script);
-	// echo
-	void parse_echo(std::istream& script);
-	// eval (avoid double calculations: GetSet works with strings internally)
-	void parse_eval(std::istream& script);
-	
-	/// Advance to the next line
-	std::stringstream rest_of_line(std::istream& script);
-
-	/// Make sure end of line or end of file is reached
-	bool expect_end_of_line(std::istream& script, const std::string& fn_name);
-
-	/// Make sure we encounter a certain set of keywords (semicolon separated)
-	int expect_keyword(std::istream& script, const std::string& fn_name, const std::string& keywords);
-
-	/// Access everything from current location to line starting with end_block
-	std::string get_block(std::istream& script, const std::string& end_block);
-};
-
-
-//
-// GetSetScripting Implementation
-//
 
 GetSetScriptParser::GetSetScriptParser(GetSetDictionary& _subject)
 	: subject(_subject)
@@ -207,6 +11,72 @@ GetSetScriptParser::GetSetScriptParser(GetSetDictionary& _subject)
 	, parse_error_occured(false)
 {}
 
+std::string GetSetScriptParser::synopsis(const std::string& command, bool with_example)
+{
+	static std::map<std::string,std::string> help,examples;
+	if (help.empty())
+	{
+		help    ["set"]     +="   set var <varname> <value>\n";
+		help    ["set"]     +="   set key <key> <value>\n";
+		help    ["set"]     +="   set trigger <key>\n";
+		examples["set"]     +="   set key \"Personal/Last Name\" var user_name\n";
+		help    ["function"]+="   function <varname> ... endfunction\n";
+		examples["function"]+="   function greetings\n";
+		examples["function"]+="      echo value Hallo!\n";
+		examples["function"]+="   endfunction\n";
+		help    ["call"]    +="   call <varname>\n";
+		examples["call"]    +="   call greetings\n";
+		help    ["with"]    +="   with <section>\n";
+		examples["with"]    +="   with \"Personal\"\n";
+		examples["with"]    +="   set key \"Last Name\" value \"John\"\n";
+		examples["with"]    +="   with \"\"\n";
+		help    ["if"]      +="   if <value> [not] <op> <value>\n";
+		help    ["if"]      +="   <op>:=strequal numequal gequal lequal greater less\n";
+		examples["if"]      +="   if key \"Personal/Last Name\" not strequal \"John\"\n";
+		examples["if"]      +="      echo value \"Name is not John\"\n";
+		examples["if"]      +="   endif\n";
+		help    ["while"]   +="   while <boolean value> ... endwhile\n";
+		help    ["while"]   +="   <boolean value>:=<value> converted to boolean (e.g. 1 True true yes etc.)\n";
+		examples["while"]   +="   while var active\n";
+		examples["while"]   +="      call do_something\n";
+		examples["while"]   +="   endwhile\n";
+		help    ["for"]     +="   for each <varname> in <list> ... endfor\n";
+		help    ["for"]     +="   <list>:=<value> with semicolon separated strings\n";
+		help    ["for"]     +="   for each <varname> from <value> to <value> step <value> ... endfor\n";
+		examples["for"]     +="   for each i from value 5 to value 9\n";
+		examples["for"]     +="      echo var i\n";
+		examples["for"]     +="   endfor\n";
+		help    ["file"]    +="   file {load|save} ini <filename>\n";
+		help    ["file"]    +="   file run <filename>\n";
+		examples["file"]    +="   file save ini \"./file.ini\"\n";
+		examples["file"]    +="   file run script.getset\n";
+		help    ["input"]   +="   input <varname>\n";
+		examples["input"]   +="   echo value \"What's your name?\"\n";
+		examples["input"]   +="   input user_name\n";
+		help    ["echo"]    +="   echo <value>\n";
+		examples["echo"]    +="   echo value \"Hello World\"\n";
+		examples["echo"]    +="   echo key user_name\n";
+		examples["echo"]    +="   echo var \"Personal/Last Name\"\n";
+		help    ["eval"]    +="   eval <varname> as <value> {plus|minus|times|over} <value>\n";
+		examples["eval"]    +="   eval i as var i plus value 1\n";
+	}
+	std::string help_message;
+	if (command.empty() || help.find(command)==help.end())
+	{
+		help_message="Try: help <command>\ncommands:";
+		for (auto it=help.begin();it!=help.end();++it)
+			help_message=help_message+" "+it->first;
+		help_message=help_message+"\n";
+	}
+	else
+	{
+		help_message="Synopsis:\n";
+		help_message=help_message+help[command];
+		if (with_example)
+			help_message=help_message+"Example:\n"+examples[command];
+	}
+	return help_message;	
+}
 void GetSetScriptParser::parse_commands(const std::string& commands)
 {
 	std::istringstream script(commands);
@@ -566,5 +436,3 @@ std::string GetSetScriptParser::get_block(std::istream& script, const std::strin
 	}
 	return block;
 }
-
-#endif // __GetSetScripting_hxx

@@ -6,7 +6,7 @@
 
 #include <iostream>
 
-#include <GetSet/GetSetScripting.hxx>
+#include <GetSet/GetSetScripting.h>
 
 std::string g_ini_file="Scripting.ini";
 
