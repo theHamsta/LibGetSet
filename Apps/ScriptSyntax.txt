@@ -41,8 +41,7 @@ if key \"Personal/Last Name\" not strequal \"John\"
    echo value \"Name is not John\"
 endif
 
-while <boolean value> ... endwhile
-<boolean value>:=<value> converted to boolean (e.g. 1 True true yes etc.)
+while <varname> ... endwhile
 while var active
    call do_something
 endwhile
@@ -118,33 +117,38 @@ endfor
 echo value "after for sequence"
 
 # Test if
-if strequal value "1;2;3;4" key Console/b
-   echo value ok
-endif
 if not strequal value "1" value "1.0"
-   echo value ok
+	if strequal value "1;2;3;4" key Console/b
+	   echo value ok1
+	endif
+	if numequal value "1" value "1.0"
+	   echo value ok2
+	endif
+   echo value ok3
 endif
-if numequal value "1" value "1.0"
-   echo value ok
-endif
+echo value "after if"
 
 # Test function
 function decrement_j
    eval j as var j minus value 1
 endfunction
+echo value "after function"
 
 # Test while
 set var j value 4
-while var result
-    call decrement_j
-	if greater var j value 0
-		set var result false
-	endif
+set var active value true
+while active
 	echo var j
+    call decrement_j
+	if less var j value 0
+		set var active value false
+	endif
 endwhile
+echo value "after while"
 
 # Test 
 eval result as value 6 plus value 4
 echo var result
 
 echo value "If you see this message the GetSet script test has been passed"
+

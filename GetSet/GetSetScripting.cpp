@@ -35,9 +35,8 @@ std::string GetSetScriptParser::synopsis(const std::string& command, bool with_e
 		examples["if"]      +="   if key \"Personal/Last Name\" not strequal \"John\"\n";
 		examples["if"]      +="      echo value \"Name is not John\"\n";
 		examples["if"]      +="   endif\n";
-		help    ["while"]   +="   while <boolean value> ... endwhile\n";
-		help    ["while"]   +="   <boolean value>:=<value> converted to boolean (e.g. 1 True true yes etc.)\n";
-		examples["while"]   +="   while var active\n";
+		help    ["while"]   +="   while <varname> ... endwhile\n";
+		examples["while"]   +="   while active\n";
 		examples["while"]   +="      call do_something\n";
 		examples["while"]   +="   endwhile\n";
 		help    ["for"]     +="   for each <varname> in <list> ... endfor\n";
@@ -211,7 +210,7 @@ void GetSetScriptParser::parse_function(std::istream& script)
 	expect_token_string(line,"function",varname);
 	expect_end_of_line(line,"function");
 	if (!parse_error_occured)
-		variables[varname]=get_block(script,"endfunction");
+		variables[varname]=get_block(script,"function");
 }
 
 void GetSetScriptParser::parse_call(std::istream& script)
@@ -265,7 +264,7 @@ void GetSetScriptParser::parse_if(std::istream& script)
 	}
 	expect_end_of_line(line,"if");
 	if (negate) result=!result;
-	std::string if_block=get_block(script,"endif");
+	std::string if_block=get_block(script,"if");
 	if (!parse_error_occured && result)
 		parse_commands(if_block);
 }
@@ -273,11 +272,12 @@ void GetSetScriptParser::parse_if(std::istream& script)
 void GetSetScriptParser::parse_while(std::istream& script)
 {
 	auto line=rest_of_line(script);
-	std::string value;
-	expect_token_value(line,"while",value);
+	std::string varname;
+	expect_token_string(line,"while",varname);
 	if (!expect_end_of_line(line,"while")) return;
-	std::string while_block=get_block(script,"endwhile");
-	while (!parse_error_occured && stringTo<bool>(value)) parse_commands(while_block);
+	std::string while_block=get_block(script,"while");
+	while (!parse_error_occured && stringTo<bool>(variables[varname]))
+		parse_commands(while_block);
 }
 
 void GetSetScriptParser::parse_for(std::istream& script)
@@ -307,7 +307,7 @@ void GetSetScriptParser::parse_for(std::istream& script)
 		else     for (double d=a;d>=b;d-=step) values.push_back(toString(d));
 	}
 	expect_end_of_line(line,"for");
-	std::string foreach_block=get_block(script,"endfor");
+	std::string foreach_block=get_block(script,"for");
 	for (auto value=values.begin();value!=values.end();++value)
 	{
 		if (parse_error_occured) break;
@@ -410,10 +410,12 @@ int GetSetScriptParser::expect_keyword(std::istream& script, const std::string& 
 	return index;
 }
 
-std::string GetSetScriptParser::get_block(std::istream& script, const std::string& end_block)
+std::string GetSetScriptParser::get_block(std::istream& script, const std::string& block_name)
 {
+	std::string end_block=std::string("end")+block_name;
 	std::string block;
 	bool block_found=false;
+	int stack_depth=1;
 	while (script && !script.eof())
 	{
 		std::string line,command;
@@ -421,15 +423,17 @@ std::string GetSetScriptParser::get_block(std::istream& script, const std::strin
 		getline(script, line, '\n');
 		std::istringstream line_str(line);
 		line_str >> command;
-		if (command.length()>=end_block.size() && command.substr(0,end_block.size())==end_block )
+		if (command==block_name)
+			stack_depth++;
+		else if (command.length()>=end_block.size() && command.substr(0,end_block.size())==end_block )
 		{
 			expect_end_of_line(line_str,std::string("After ")+end_block);
-			block_found=true;
-			break;
+			stack_depth--;
+			if (stack_depth==0) break;
 		}
 		if (line.front()!='#') block+=line+"\n";
 	}
-	if (!block_found)
+	if (stack_depth!=0)
 	{
 		parse_error(end_block,"Unexpected end of file.");
 		return "";
