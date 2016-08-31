@@ -52,6 +52,12 @@ public:
 	/// Get help for script language
 	std::string synopsis(const std::string& command="", bool with_example=false);
 
+	/// Check to see whether errors have occured
+	bool good() const
+	{
+		return !parse_error_occured;
+	}
+
 protected:
 	/// Only this dictionary will be affectd by this parser
 	GetSetDictionary& subject;

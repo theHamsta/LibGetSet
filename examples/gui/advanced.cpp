@@ -6,7 +6,7 @@
 
 #include <iostream>
 
-std::string g_ini_file="ExampleAdvanced.ini";
+GetSetGui::GetSetApplication *g_app=0x0;
 
 /// Predeclaration of a callback function to handle events
 void gui(const std::string& section, const std::string& key);
@@ -43,13 +43,9 @@ int main(int argc, char** argv)
 	GetSetGui::StaticText("More/Advanced/Some Info")=	"I  have no idea what \"Some Result\" is.\n"
 														"But I'm sure it's there for your convenience.";
 
-	GetSetIO::load<GetSetIO::IniFile>(g_ini_file);
-
-	// Tell GetSet which function to call when something changes
-	GetSetHandler call_back(gui);
-
-	// If we have qt:
-	return GetSetGui::runQtApp("Settings",argc,argv);
+	// Show Qt window
+	g_app=new GetSetGui::GetSetApplication("ExampleAdvanced",gui,argc,argv);
+	return g_app->exec();
 }
 
 /// Handle all kinds of input
@@ -74,5 +70,5 @@ void gui(const std::string& section, const std::string& key)
 			GetSet<>("Setup","Some Text")="Bla";
 	}
 
-	GetSetIO::save<GetSetIO::IniFile>(g_ini_file);
+	g_app->saveSettings();
 }

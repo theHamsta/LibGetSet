@@ -20,12 +20,38 @@
 #ifndef __GetSetGui_h
 #define __GetSetGui_h
 
-#include <string>
+#include "GetSetSettingsWindow.h"
+#include "../GetSet/GetSetScripting.h"
+#include <QApplication>
 
 namespace GetSetGui
 {
-	/// If the only GUI this program uses is a Settings window, simply call this function at the end of main.
-	int runQtApp(const std::string& windowTitle, int argc, char **argv);
+	class GetSetApplication
+	{
+	protected:
+		const std::string appname;
+		QApplication  qt_app;
+		GetSetHandler callback;
+		GetSetSettingsWindow *main_window;
+		GetSetScriptParser parser;
+	public:
+			
+		GetSetApplication(std::string _appname, void (*gui)(const std::string&, const std::string&), int argc, char **argv);
+
+		void showSettings();
+
+		void saveSettings() const;
+
+		void loadSettings();
+
+		void setIgnoreNotifications(bool ignore);
+
+		bool parse(const std::string& script);
+
+		int exec();
+
+	};
+
 } // namespace GetSetGui
 
 #endif // __GetSetGui_h

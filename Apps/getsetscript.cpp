@@ -6,11 +6,7 @@
 
 #include <iostream>
 
-#include <GetSet/GetSetScripting.h>
-
-std::string g_ini_file="Scripting.ini";
-
-GetSetScriptParser g_parser;
+GetSetGui::GetSetApplication *g_app=0x0;
 
 /// Handle all kinds of input
 void gui(const std::string& section, const std::string& key)
@@ -23,29 +19,24 @@ void gui(const std::string& section, const std::string& key)
 		if (!command.empty())
 		{
 			std::cout << command << std::endl;
-			g_parser.parse(command);
+			g_app->parse(command);
 		}
 	}
 	else
 	{
 		std::string path=section+"/"+key;
 		std::cout << "info: " << path << " = " << GetSet<>(path).getString() << std::endl;
-		GetSetIO::save<GetSetIO::IniFile>(g_ini_file);
+		g_app->saveSettings();
 	}
 }
 
 /// A typical main function using GetSet
 int main(int argc, char** argv)
 {
-
-	GetSetIO::load<GetSetIO::IniFile>(g_ini_file);
+	g_app=new GetSetGui::GetSetApplication("script",gui,argc,argv);
 
 	GetSet<>("Console/Parse Line")="";
 	GetSetGui::Button("Console/Run Script")="Run";
 
-	// Tell GetSet which function to call when something changes
-	GetSetHandler call_back(gui);
-
-	// If we have qt:
-	return GetSetGui::runQtApp("Settings",argc,argv);
+	return g_app->exec();
 }
