@@ -15,7 +15,9 @@ GetSetScriptParser g_parser;
 /// Handle all kinds of input
 void gui(const std::string& section, const std::string& key)
 {
-	if (key=="Parse Line")
+	if (key=="Run Script")
+		GetSet<>("Console/Parse Line")="file run script.getset";
+	else if (key=="Parse Line")
 	{
 		std::string command=GetSet<>("Console/Parse Line");
 		if (!command.empty())
@@ -39,6 +41,7 @@ int main(int argc, char** argv)
 	GetSetIO::load<GetSetIO::IniFile>(g_ini_file);
 
 	GetSet<>("Console/Parse Line")="";
+	GetSetGui::Button("Console/Run Script")="Run";
 
 	// Tell GetSet which function to call when something changes
 	GetSetHandler call_back(gui);

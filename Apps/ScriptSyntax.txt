@@ -1,55 +1,150 @@
 This is a description of the GetSet scripting syntax
 
 *** List of available commands:
-var list call with if set trigger while foreach file input output
+set function call with if while for endfor file input echo eval
 
 *** A Comment
 #comment
 
 *** Types understood by GetSet
 <string> := "some string" | some_string_no_whitespace
-aliases <varname> <file> <key> and <section>
+aliases <varname> <file> <key>
 <value> := var <varname> | value <string> | key <key>
+alias <numeric value>, which will be converted to double (e.g. "123" or "1.23")
+
+##############################
+# synopsis
+##############################
+
+set var <varname> <value>
+set key <key> <value>
+set trigger <key>
+set key \"Personal/Last Name\" var user_name
+
+function <varname> ... endfunction
+function greetings
+   echo value Hallo!
+endfunction
 
 
-*** Set variable
-var <varname> <value> [...]
-
-*** Same as "var" except multiline. You can define lists of commands.
-list <varname>
-endlist
 call <varname>
+call greetings
 
-*** Assign a section which is used to prefix any <key> and <section> until endwith
-with [<section>]
+with <section>
+with \"Personal\"
+set key \"Last Name\" value \"John\"
+with \"\"
 
-*** If test fails, parser skips until next occurence of endif
-if [not] strequal <value> <value> 
-if [not] numequal <value> <value> 
-if [not] gequal <value> <value>
-if [not] lequal <value> <value>
-if [not] greater <value> <value> 
-if [not] less <value> <value>
+if <value> [not] <op> <value>
+<op>:=strequal numequal gequal lequal greater less
+if key \"Personal/Last Name\" not strequal \"John\"
+   echo value \"Name is not John\"
 endif
 
-*** Some useful built-ins
-set <key> <value>
-trigger <key>
-
-
-*** Loops. <value> is converted to boolean (possible values: "true" "True" "yes" "1" etc.)
-while <value>
+while <boolean value> ... endwhile
+<boolean value>:=<value> converted to boolean (e.g. 1 True true yes etc.)
+while var active
+   call do_something
 endwhile
 
-*** Convert <value> to vector and parse line until endfor with <varname> set to each element
-foreach <varname> in <value>
+for each <varname> in <list> ... endfor
+<list>:=<value> with semicolon separated strings
+for each <varname> from <value> to <value> step <value> ... endfor
+for each i from value 5 to value 9
+   echo var i
 endfor
 
-*** File access
-file save ini <file>
-file load ini <file>
-file run <file>
+file {load|save} ini <filename>
+file run <filename>
+file save ini \"./file.ini\"
+file run script.getset
 
-*** Special User-interaction built-ins (depending on implementation)
 input <varname>
-output <value>
+echo value \"What's your name?\"
+input user_name
+
+echo <value>
+echo value \"Hello World\"
+echo key user_name
+echo var \"Personal/Last Name\"
+
+eval <varname> as <value> {plus|minus|times|over} <value>
+eval i as var i plus value 1
+
+
+##############################
+# syntax highlighting:
+##############################
+commands:
+	set function endfunction call with if endif while endwhile for endfor file input echo eval
+types:
+	key var value
+other keywords:
+	each in from to step as load save run 
+operators:
+	not strequal numequal gequal lequal greater less plus minus times
+	
+###############
+#Test Script
+###############
+# Test echo
+echo value hallo
+
+# Test set
+set var blubb value "this is a test"
+echo var blubb
+set key "Console/b" value "test"
+echo key Console/b
+
+# Test with
+with Console
+set key b value "1;2;3;4"
+with ""
+
+# Test for
+for each i in key Console/b
+	echo value "current iteration:"
+	echo var i
+	if numequal var i value 2
+		echo value "Found value 2"
+	endif
+endfor
+echo value after_for
+
+# Test for^ sequence
+for each i from value 1 to value 2.9 step value 1.75
+	echo var i
+endfor
+echo value "after for sequence"
+
+# Test if
+if strequal value "1;2;3;4" key Console/b
+   echo value ok
+endif
+if not strequal value "1" value "1.0"
+   echo value ok
+endif
+if numequal value "1" value "1.0"
+   echo value ok
+endif
+
+# Test function
+function decrement_j
+   eval j as var j minus value 1
+endfunction
+
+# Test while
+set var j value 4
+while var result
+    call decrement_j
+	if greater var j value 0
+		set var result false
+	endif
+	echo var j
+endwhile
+
+# Test 
+eval result as value 6 plus value 4
+echo var result
+
+echo value "If you see this message the GetSet script test has been passed"

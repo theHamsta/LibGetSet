@@ -1,0 +1,51 @@
+###############
+# Test echo
+echo value hallo
+
+# Test set
+set var blubb value "this is a test"
+echo var blubb
+set key "Console/b" value "test"
+echo key Console/b
+
+# Test with
+with Console
+set key b value "1;2;3;4"
+with ""
+
+# Test for
+for each i in key Console/b
+	echo value "current iteration:"
+	echo var i
+	if numequal var i value 2
+		echo value "Found value 2"
+	endif
+endfor
+echo value after_for
+
+# Test if
+if strequal value "1;2;3;4" key Console/b
+	echo value ok
+endif
+if not strequal value "1" value "1.0"
+	echo value ok
+endif
+if numequal value "1" value "1.0"
+	echo value ok
+endif
+
+# Test function
+function greetings
+	echo value "Hello World"
+endfunction
+# Test calling functions and for sequece
+for each i from value 1 to value 2.9 step value 1.75
+	echo var i
+	call greetings
+endfor
+
+# Test 
+eval result as value 6 plus value 4
+echo var result
+
+echo value "If you see this message the GetSet script test was passed"
