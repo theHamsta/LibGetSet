@@ -20,34 +20,69 @@
 #ifndef __GetSetGui_h
 #define __GetSetGui_h
 
-#include "GetSetSettingsWindow.h"
-#include "../GetSet/GetSetScripting.h"
+#include "../GetSet/GetSetCmdLine.hxx"
+
 #include <QApplication>
+#include <QWidget>
+
+// 2do move to GetSetGui namespace
+class GetSetSettingsWindow;
+class GetSetProgressWindow;
 
 namespace GetSetGui
 {
 	class GetSetApplication
 	{
 	protected:
-		const std::string appname;
-		QApplication  qt_app;
-		GetSetHandler callback;
-		GetSetSettingsWindow *main_window;
-		GetSetScriptParser parser;
+		const std::string		appname;
+		std::string				ini_file;
+		GetSetIO::CmdLineParser	cmd;
+		QApplication			*qt_app;
+		GetSetHandler			*callback;
+		GetSetSettingsWindow	*main_window;
+		GetSetProgressWindow	*progress_window;
 	public:
-			
-		GetSetApplication(std::string _appname, void (*gui)(const std::string&, const std::string&), int argc, char **argv);
 
-		void showSettings();
+		GetSetApplication(std::string _appname);
+		~GetSetApplication();
 
+		/// Define now to handle command line arguments
+		GetSetIO::CmdLineParser& commandLine();
+
+		/// Parse command line and load settings. Must be called before exec!
+		bool init(int &argc, char **argv, void (*gui)(const std::string&, const std::string&));
+
+		/// Ignores notifications temporarily
+		void setIgnoreNotifications(bool ignore);
+		
+		/// Access to main window
+		GetSetSettingsWindow& window();
+		
+		/// Access to progress window
+		GetSetProgressWindow& progress();
+
+		/// Show progress bar and hide main window (optionall includes a "cancel" button)
+		void progressStart(const std::string& progress, const std::string& info, int maximum=100, bool *cancel_clicked=0x0);
+
+		/// Show progress bar and hide main window
+		void progressUpdate(int i);
+
+		/// Hide progress bar and show main window
+		void progressEnd();
+
+		/// Show a dialog with with an "Ok" button to inform the user of something important
+		int warn(const std::string& who, const std::string& what, bool only_inormative=true);
+
+		/// Save ini-file
 		void saveSettings() const;
 
+		/// Load ini-file
 		void loadSettings();
 
-		void setIgnoreNotifications(bool ignore);
+		/// Parse a GetSet script (see GetSetScriptParser)
+		bool parseScript(const std::string& script);
 
-		bool parse(const std::string& script);
-
+		/// Run application (shows gui and enters Qt's event loop)
 		int exec();
 
 	};

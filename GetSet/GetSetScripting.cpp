@@ -1,5 +1,6 @@
 
 #include "GetSetScripting.h"
+#include "GetSetDictionary.h"
 
 #include "GetSet.hxx"
 #include "GetSetIO.h"
@@ -10,6 +11,19 @@ GetSetScriptParser::GetSetScriptParser(GetSetDictionary& _subject)
 	, user_output(0x0)
 	, parse_error_occured(false)
 {}
+
+GetSetScriptParser& GetSetScriptParser::global()
+{
+	static GetSetScriptParser* instance;
+	if (!instance)
+		instance=new GetSetScriptParser(GetSetDictionary::global());
+	return *instance;
+}
+
+bool GetSetScriptParser::good() const
+{
+	return !parse_error_occured;
+}
 
 std::string GetSetScriptParser::synopsis(const std::string& command, bool with_example)
 {

@@ -20,20 +20,30 @@
 #ifndef __GetSetScripting_h
 #define __GetSetScripting_h
 
-#include "GetSetDictionary.h"
-
 #include <sstream>
+#include <map>
 
 /// Store the current state and record all changes with the possibility of playing them back.
 // class GetSetScriptRecorder TODO
 /// This is where a detailed log of all events will be stored
 //	std::ofstream file;
 
+class GetSetDictionary;
+
 /// Parse a script line-by-line. Language is not context free. See ScriptSyntax.txt for more info.
 class GetSetScriptParser
 {
 public:
-	GetSetScriptParser(GetSetDictionary& _subject=GetSetDictionary::global());
+	GetSetScriptParser(GetSetDictionary& _subject);
+
+	/// Global instance
+	static GetSetScriptParser& global();
+
+	/// Check to see whether errors have occured
+	bool good() const;
+
+	/// Get help for script language
+	std::string synopsis(const std::string& command="", bool with_example=false);
 
 	/// Callback for user input (optional)
 	std::string (*user_input)();
@@ -47,15 +57,6 @@ public:
 		parse_error_occured=false;
 		parse_commands(commands);
 		return parse_error_occured;
-	}
-
-	/// Get help for script language
-	std::string synopsis(const std::string& command="", bool with_example=false);
-
-	/// Check to see whether errors have occured
-	bool good() const
-	{
-		return !parse_error_occured;
 	}
 
 protected:

@@ -43,14 +43,11 @@ qt5_use_modules(AutoConf Widgets)
 target_link_libraries(AutoConf GetSet GetSetGui Qt5::Widgets)
 
 # AutoGUI host
-#QT5_WRAP_CPP(LibAutoGUI_MOC AutoGUI/QClientWindow.h)
 add_executable(AutoGUI
 	AutoGUI/AutoGUI.cpp
 	AutoGUI/Process.h
 	AutoGUI/Process.cpp
 	AutoGUI/ConfigureProcess.h
-	AutoGUI/QClientWindow.h
-	AutoGUI/QClientWindow.cpp
 #	${LibAutoGUI_MOC}
 )
 qt5_use_modules(AutoGUI Core Gui Widgets)

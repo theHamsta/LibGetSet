@@ -1,6 +1,6 @@
 
 #include "Process.h"
-#include "QClientWindow.h"
+#include <GetSetGui\GetSetProgressWindow.h>
 
 #include <QMessageBox>
 
@@ -127,15 +127,15 @@ public:
 			else
 				return -1!=QMessageBox::information(0x0,identifier.c_str(),data.c_str(),QMessageBox::Ok);
 
-		QClientWindow *w=0x0;
+		GetSetProgressWindow *w=0x0;
 		if (client_gui.find(identifier)!=client_gui.end() && client_gui[identifier]!=0x0)
 		{
-			w=dynamic_cast<QClientWindow*>(client_gui[identifier]);
+			w=dynamic_cast<GetSetProgressWindow*>(client_gui[identifier]);
 			if (!w) return false;
 		}
 		else
 		{
-			client_gui[identifier]=w=new QClientWindow(ConfigureProcess::callback);
+			client_gui[identifier]=w=new GetSetProgressWindow(ConfigureProcess::callback);
 			w->setWindowTitle(identifier.c_str());
 			w->setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::CustomizeWindowHint | Qt::WindowSystemMenuHint);
 			w->show();

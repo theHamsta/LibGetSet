@@ -6,7 +6,7 @@
 
 #include <iostream>
 
-GetSetGui::GetSetApplication *g_app=0x0;
+GetSetGui::GetSetApplication g_app("ExampleAdvanced");
 
 /// Predeclaration of a callback function to handle events
 void gui(const std::string& section, const std::string& key);
@@ -43,9 +43,12 @@ int main(int argc, char** argv)
 	GetSetGui::StaticText("More/Advanced/Some Info")=	"I  have no idea what \"Some Result\" is.\n"
 														"But I'm sure it's there for your convenience.";
 
+	// Declare command line interface
+	g_app.commandLine().declare();
+
 	// Show Qt window
-	g_app=new GetSetGui::GetSetApplication("ExampleAdvanced",gui,argc,argv);
-	return g_app->exec();
+	g_app.init(argc,argv,gui);
+	return g_app.exec();
 }
 
 /// Handle all kinds of input
@@ -70,5 +73,5 @@ void gui(const std::string& section, const std::string& key)
 			GetSet<>("Setup","Some Text")="Bla";
 	}
 
-	g_app->saveSettings();
+	g_app.saveSettings();
 }

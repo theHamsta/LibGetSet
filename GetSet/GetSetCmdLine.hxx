@@ -37,6 +37,9 @@ namespace GetSetIO {
 		/// Parse. Returns true if all required flags have been found. There may still be unhandled args.
 		bool parse(int argc, char **argv);
 
+		/// Direct access to declared flags
+		const MapStrStr& CmdLineParser::getFlags() const;
+
 		// FIXME just print a list of all registered command line flags
 		std::string getSynopsis() const;
 
@@ -171,6 +174,11 @@ namespace GetSetIO {
 				declare(path.empty() ? it->first : path+"/"+it->first);
 		}
 		return *this;
+	}
+
+	const CmdLineParser::MapStrStr& CmdLineParser::getFlags() const
+	{
+		return flags;
 	}
 
 	bool CmdLineParser::parse(int argc, char **argv)
