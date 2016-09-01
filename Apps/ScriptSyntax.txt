@@ -1,7 +1,7 @@
 This is a description of the GetSet scripting syntax
 
 *** List of available commands:
-set function call with if while for endfor file input echo eval
+exit help who set function call with if while for file input echo
 
 *** A Comment
 #comment
@@ -16,6 +16,12 @@ alias <numeric value>, which will be converted to double (e.g. "123" or "1.23")
 # synopsis
 ##############################
 
+exit <value>
+
+help <command>
+
+who
+
 set var <varname> <value>
 set key <key> <value>
 set trigger <key>
@@ -25,7 +31,6 @@ function <varname> ... endfunction
 function greetings
    echo value Hallo!
 endfunction
-
 
 call <varname>
 call greetings
@@ -75,7 +80,7 @@ eval i as var i plus value 1
 # syntax highlighting:
 ##############################
 commands:
-	set function endfunction call with if endif while endwhile for endfor file input echo eval
+	exit help who set function endfunction call with if endif while endwhile for endfor file input echo eval
 types:
 	key var value
 other keywords:
@@ -152,3 +157,4 @@ echo var result
 
 echo value "If you see this message the GetSet script test has been passed"
 
+exit

@@ -1,41 +1,20 @@
 #include <GetSet/GetSet.hxx>
-#include <GetSet/GetSetIO.h>
-
-// only needed for Qt GUI:
-#include <GetSetGui/GetSetGui.h>
+#include <GetSet/GetSetScripting.h>
 
 #include <iostream>
+#include <string>
 
-GetSetGui::GetSetApplication g_app("script");
 
-/// Handle all kinds of input
-void gui(const std::string& section, const std::string& key)
-{
-	if (key=="Run Script")
-		GetSet<>("Console/Parse Line")="file run script.getset";
-	else if (key=="Parse Line")
-	{
-		std::string command=GetSet<>("Console/Parse Line");
-		if (!command.empty())
-		{
-			std::cout << command << std::endl;
-			g_app.parseScript(command);
-		}
-	}
-	else
-	{
-		std::string path=section+"/"+key;
-		std::cout << "info: " << path << " = " << GetSet<>(path).getString() << std::endl;
-		g_app.saveSettings();
-	}
-}
-
-/// A typical main function using GetSet
 int main(int argc, char** argv)
 {
-	GetSet<>("Console/Parse Line")="";
-	GetSetGui::Button("Console/Run Script")="Run";
+	if (argc>2) {
+		std::cerr << "Usage:\n   script [file.getset]\n";
+		return 1;
+	}
+	if (argc==2)
+		GetSetScriptParser::global().parse(std::string("file run ")+argv[1]);
 
-	g_app.init(argc,argv,gui);
-	return g_app.exec();
+	GetSetScriptParser::global().prompt();
+	
+	return 0;
 }

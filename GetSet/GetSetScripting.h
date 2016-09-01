@@ -42,6 +42,12 @@ public:
 	/// Check to see whether errors have occured
 	bool good() const;
 
+	/// User prompt
+	void prompt();
+
+	/// Parse the scrip provided by text
+	bool parse(const std::string& commands);
+
 	/// Get help for script language
 	std::string synopsis(const std::string& command="", bool with_example=false);
 
@@ -50,16 +56,14 @@ public:
 
 	/// Callback for output (optional)
 	void (*user_output)(const std::string&);
-
-	/// Parse the scrip provided by text
-	bool parse(const std::string& commands)
-	{
-		parse_error_occured=false;
-		parse_commands(commands);
-		return parse_error_occured;
-	}
-
 protected:
+
+	/// Get user input
+	std::string input();
+
+	/// Write user output
+	void output(const std::string& text);
+
 	/// Only this dictionary will be affectd by this parser
 	GetSetDictionary& subject;
 	
@@ -94,11 +98,15 @@ protected:
 	bool expect_token_value(std::istream& script, const std::string& fn_name, double& token);
 
 	//
-	// Commands: set function call with if while for file input echo
+	// Commands: exit help who set function call with if while for file input echo
 	//
 
+	/// exit [<string>], where string is converted to int and used as exit code.
+	void GetSetScriptParser::parse_exit(std::istream& script);
 	/// help [<command>]
 	void parse_help(std::istream& script);
+	/// who
+	void parse_who(std::istream& script);
 	/// set [key <key>|var <varname>] <value>
 	void parse_set(std::istream& script);
 	/// function <varname> ... endfunction

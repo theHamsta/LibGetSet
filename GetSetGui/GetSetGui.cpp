@@ -62,12 +62,24 @@ namespace GetSetGui
 					loadSettings();
 				}
 				else if (ext=="getset")
-					return parseScript(std::string("file run ")+argv[1]);
-				else
 				{
-					std::cerr << "Unrecognized command line argument.\n";
-					return false;
+					loadSettings();
+					callback=new GetSetHandler(gui);
+					callback->setIgnoreNotifications(true);
+					std::string script=fileReadString(argv[1]);
+					if (script.empty())
+					{
+						std::cerr <<
+							"Failed to parse command line arguments!\n"
+							"Try:\n"
+							"   " << appname << " --help\n";
+						return false;
+					}
+					else return parseScript(script);
 				}
+				else
+					std::cerr << "Unrecognized command line argument.\n";
+
 			}
 		}
 		else if (!cmd.parse(argc,argv))

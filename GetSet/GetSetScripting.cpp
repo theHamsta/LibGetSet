@@ -25,11 +25,58 @@ bool GetSetScriptParser::good() const
 	return !parse_error_occured;
 }
 
+void GetSetScriptParser::prompt()
+{
+	output("GetSet scripting language \nhttps://sourceforge.net/p/getset/");
+	output("To leave prompt type:\n   set key Prompt value false");
+	GetSet<bool>("Prompt")=true;
+	while (GetSet<bool>("Prompt")) {
+		std::string command=input();
+		parse(command);
+	}
+}
+
+bool GetSetScriptParser::parse(const std::string& commands)
+{
+	parse_error_occured=false;
+	parse_commands(commands);
+	return parse_error_occured;
+}
+
+std::string GetSetScriptParser::input()
+{
+	if (user_input) return user_input();
+	else {
+		std::cout << ">> ";
+		std::string line;
+		std::getline(std::cin,line);
+		if (line.empty())
+		{
+			std::cout << "Multiline mode. Next empty line parses all lines at once.\n";
+			line=input();
+			std::string next_line=line;
+			while (!next_line.empty()) {
+				std::getline(std::cin,next_line);
+				line=line+"\n"+next_line;
+			}
+		}
+		return line;
+	}
+}
+
+void GetSetScriptParser::output(const std::string& text)
+{
+	if (user_output) return user_output(text);
+	else std::cout << text << std::endl;
+}
+
 std::string GetSetScriptParser::synopsis(const std::string& command, bool with_example)
 {
 	static std::map<std::string,std::string> help,examples;
 	if (help.empty())
 	{
+		help    ["who"]     +="   who\n";
+		help    ["exit"]    +="   exit <value>\n";
 		help    ["set"]     +="   set var <varname> <value>\n";
 		help    ["set"]     +="   set key <key> <value>\n";
 		help    ["set"]     +="   set trigger <key>\n";
@@ -85,7 +132,7 @@ std::string GetSetScriptParser::synopsis(const std::string& command, bool with_e
 	{
 		help_message="Synopsis:\n";
 		help_message=help_message+help[command];
-		if (with_example)
+		if (with_example && examples.find(command)!=examples.end())
 			help_message=help_message+"Example:\n"+examples[command];
 	}
 	return help_message;	
@@ -102,7 +149,9 @@ void GetSetScriptParser::parse_commands(const std::string& commands)
 			rest_of_line(script); // ignore rest of line
 			continue;
 		}
+		else if (command == "exit") parse_exit(script);
 		else if (command == "help") parse_help(script);
+		else if (command == "who") parse_who(script);
 		else if (command == "set") parse_set(script);
 		else if (command == "function") parse_function(script);
 		else if (command == "call") parse_call(script);
@@ -120,13 +169,8 @@ void GetSetScriptParser::parse_commands(const std::string& commands)
 
 void GetSetScriptParser::parse_error(const std::string& fn_name, const std::string& why)
 {
-	if (user_output) (*user_output)(fn_name+": "+why);
-	else std::cerr << "GetSetScriptParser::" << fn_name << " - " << why << std::endl;
+	output(std::string("GetSetScriptParser::")+fn_name+" - "+why);
 	std::istringstream str(fn_name);
-	std::string command;
-	str >> command;
-	if (user_output) (*user_output)(synopsis(command));
-	else std::cout << synopsis(command);
 	parse_error_occured=true;
 }
 
@@ -181,14 +225,32 @@ bool GetSetScriptParser::expect_token_value(std::istream& script, const std::str
 	return !parse_error_occured;
 }
 
+void GetSetScriptParser::parse_exit(std::istream& script)
+{
+	auto line=rest_of_line(script);
+	std::string optional_exit_code;
+	get_token_string(line, optional_exit_code);
+	expect_end_of_line(line,"exit");
+	exit(stringTo<int>(optional_exit_code));
+}
+
 void GetSetScriptParser::parse_help(std::istream& script)
 {
 	auto line=rest_of_line(script);
 	std::string command_name;
 	get_token_string(line, command_name);
 	expect_end_of_line(line,"help");
-	if (user_output) (*user_output)(synopsis(command_name,true));
-	else std::cout << synopsis(command_name,true);
+	output(synopsis(command_name,true));
+}
+
+void GetSetScriptParser::parse_who(std::istream& script)
+{
+	auto line=rest_of_line(script);
+	if (!expect_end_of_line(line,"who")) return;
+	std::vector<std::string> varnames;
+	for (auto it=variables.begin();it!=variables.end();++it)
+		varnames.push_back(it->first);
+	output(vectorToString(varnames,"\n"));
 }
 
 void GetSetScriptParser::parse_set(std::istream& script)
@@ -360,8 +422,7 @@ void GetSetScriptParser::parse_input(std::istream& script)
 	std::string varname;
 	if (!expect_token_string(line,"input",varname)) return;
 	if (!expect_end_of_line(line,"input")) return;
-	if (user_input) variables[varname]=(*user_input)();
-	else std::cin >> variables[varname];
+	variables[varname]=input();
 }
 
 void GetSetScriptParser::parse_echo(std::istream& script)
@@ -370,8 +431,7 @@ void GetSetScriptParser::parse_echo(std::istream& script)
 	std::string value;
 	if (!expect_token_value(line,"echo",value)) return;
 	if (!expect_end_of_line(line,"echo")) return;
-	if (user_output) (*user_output)(value);
-	else std::cout << value << std::endl;
+	output(value);
 }
 
 void GetSetScriptParser::parse_eval(std::istream& script)
@@ -420,7 +480,7 @@ int GetSetScriptParser::expect_keyword(std::istream& script, const std::string& 
 	std::vector<std::string> c=stringToVector<std::string>(keywords,';');
 	for (int i=0;i<(int)c.size();i++)
 		if (c[i]==keyword) index=i;
-	if (index<0) parse_error(fn_name,std::string("Expected ") + keywords + " but found "+keyword);
+	if (index<0) parse_error(fn_name,std::string("Expected ") + keywords + " but found "+(keyword.empty()?"nothing.":keyword));
 	return index;
 }
 

@@ -30,7 +30,8 @@ add_executable(script
 )
 qt5_use_modules(script Core Gui Widgets)
 target_link_libraries(script GetSet GetSetGui Qt5::Widgets)
-
+install(TARGETS script DESTINATION examples/script)
+install(FILES ../Apps/script.getset DESTINATION examples/script)
 ###
 # AutoGUI
 ###
