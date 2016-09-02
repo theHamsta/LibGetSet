@@ -12,19 +12,20 @@ namespace GetSetGui
 {
 
 	GetSetApplication::GetSetApplication(std::string _appname)
-		: appname(_appname)
-		, ini_file(_appname+".ini")
-		, qt_app(0x0)
+		: qt_app(0x0)
 		, callback(0x0)
 		, main_window(0x0)
 		, progress_window(0x0)
-	{}
+	{
+		GetSet<>("Application")=_appname;
+		GetSet<>("ini-File")=_appname+".ini";
+	}
 
 	GetSetApplication::~GetSetApplication()
 	{
 		if (main_window) delete main_window;
-		if (qt_app) delete qt_app;
 		if (callback) delete callback;
+//		if (qt_app) delete qt_app; // Crashed on delete on windows (why?)
 	}
 
 	GetSetIO::CmdLineParser& GetSetApplication::commandLine()
@@ -34,6 +35,7 @@ namespace GetSetGui
 
 	bool GetSetApplication::init(int &argc, char **argv, void (*gui)(const std::string&, const std::string&))
 	{
+		std::string appname=GetSet<>("Application");
 		qt_app=new QApplication(argc,argv);
 		if ( argc==2 && (std::string(argv[1])=="--help"||std::string(argv[1])=="-h") )
 		{
@@ -58,12 +60,11 @@ namespace GetSetGui
 				std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
 				if (ext=="ini")
 				{
-					ini_file=argv[1];
+					GetSet<>("ini-File")=argv[1];
 					loadSettings();
 				}
 				else if (ext=="getset")
 				{
-					loadSettings();
 					callback=new GetSetHandler(gui);
 					callback->setIgnoreNotifications(true);
 					std::string script=fileReadString(argv[1]);
@@ -113,7 +114,7 @@ namespace GetSetGui
 		if (!main_window)
 		{
 			main_window=new GetSetSettingsWindow();
-			main_window->setWindowTitle(appname.c_str());
+			main_window->setWindowTitle(GetSet<>("Application").getString().c_str());
 			main_window->setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::CustomizeWindowHint | Qt::WindowSystemMenuHint);
 		}
 		return *main_window;
@@ -124,7 +125,7 @@ namespace GetSetGui
 		if (!progress_window)
 		{
 			progress_window=new GetSetProgressWindow();
-			progress_window->setWindowTitle(appname.c_str());
+			progress_window->setWindowTitle(GetSet<>("Application").getString().c_str());
 		}
 		return *progress_window;
 	}
@@ -164,22 +165,27 @@ namespace GetSetGui
 		window().show();
 	}
 
-	int warn(const std::string& who, const std::string& what, bool only_inormative=true)
+	void GetSetApplication::info(const std::string& who, const std::string& what, bool show_dialog)
 	{
-		if (only_inormative)
-			return QMessageBox::information(0x0,who.c_str(),what.c_str(),QMessageBox::Ok);
-		else
-			return QMessageBox::warning(0x0,who.c_str(),what.c_str(),QMessageBox::Ok);
+		if (show_dialog)
+			QMessageBox::information(0x0,who.c_str(),what.c_str(),QMessageBox::Ok);
+	}
+
+	void GetSetApplication::warn(const std::string& who, const std::string& what, bool show_dialog)
+	{
+		if (show_dialog)
+			QMessageBox::warning(0x0,who.c_str(),what.c_str(),QMessageBox::Ok);
+		else std::cerr << who << ": " << what << std::endl;
 	}
 
 	void GetSetApplication::saveSettings() const
 	{
-		GetSetIO::save<GetSetIO::IniFile>(ini_file);
+		GetSetIO::save<GetSetIO::IniFile>(GetSet<>("ini-File"));
 	}
 
 	void GetSetApplication::loadSettings()
 	{
-		GetSetIO::load<GetSetIO::IniFile>(ini_file);		
+		GetSetIO::load<GetSetIO::IniFile>(GetSet<>("ini-File"));		
 	}
 
 	bool GetSetApplication::parseScript(const std::string& script)

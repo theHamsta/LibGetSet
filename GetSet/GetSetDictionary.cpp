@@ -55,11 +55,13 @@ GetSetDictionary::Observer::~Observer()
 GetSetHandler::GetSetHandler(void (*change)(const std::string& section, const std::string& key))
 	: GetSetDictionary::Observer(GetSetDictionary::global())
 	, change_handler(change)
+	, ignore_notify(false)
 {}
 
 GetSetHandler::GetSetHandler(GetSetDictionary& subject, void (*change)(const std::string& section, const std::string& key))
 	: GetSetDictionary::Observer(subject)
 	, change_handler(change)
+	, ignore_notify(false)
 {}
 
 void GetSetHandler::setIgnoreNotifications(bool ignore)
