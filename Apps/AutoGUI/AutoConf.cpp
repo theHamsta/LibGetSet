@@ -8,7 +8,7 @@
 #include <GetSet/GetSetIO.h>
 #include <GetSet/GetSetXML.h>
 
-#include <GetSetGui/GetSetSettingsWindow.h>
+#include <GetSetGui/GetSetTabWidget.h>
 
 std::string g_file_xml;
 std::string g_file_ini;
@@ -87,7 +87,7 @@ int main(int argc, char ** argv)
 
 	GetSetHandler on_value_change(g_config,save);
 
-	GetSetSettingsWindow w("",g_config,GetSet<>("Window/Title"),vectorToString(tabs));
+	GetSetTabWidget w("",g_config,GetSet<>("Window/Title"),vectorToString(tabs));
 	if (!GetSet<>("Window/Button").getValue().empty())
 		w.setButton(GetSet<>("Window/Button"),die)->setDefault(true);
 	w.show();

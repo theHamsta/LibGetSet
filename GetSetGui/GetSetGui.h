@@ -26,7 +26,7 @@
 #include <QWidget>
 
 // 2do move to GetSetGui namespace
-class GetSetSettingsWindow;
+class GetSetTabWidget;
 class GetSetProgressWindow;
 
 namespace GetSetGui
@@ -37,7 +37,7 @@ namespace GetSetGui
 		GetSetIO::CmdLineParser	cmd;
 		QApplication			*qt_app;
 		GetSetHandler			*callback;
-		GetSetSettingsWindow	*main_window;
+		GetSetTabWidget	*main_window;
 		GetSetProgressWindow	*progress_window;
 	public:
 
@@ -54,7 +54,7 @@ namespace GetSetGui
 		void setIgnoreNotifications(bool ignore);
 		
 		/// Access to main window
-		GetSetSettingsWindow& window();
+		GetSetTabWidget& window();
 		
 		/// Access to progress window
 		GetSetProgressWindow& progress();

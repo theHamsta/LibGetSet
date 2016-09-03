@@ -29,19 +29,20 @@
 #include "GetSet/GetSet.hxx"
 #include "GetSet/GetSetXML.h"
 #include "GetSet/GetSetCmdLine.hxx"
-#include "GetSetGui/GetSetSettingsWindow.h"
+#include "GetSetGui/GetSetGui.h"
 
 #include "Process.h"
 #include "ConfigureProcess.h"
 
-GetSetSettingsWindow *autogui_window;
+
 ConfigureProcess *childProcess=0x0;
-std::string config_file="AutoGUI.ini";
+
+GetSetGui::GetSetApplication g_app("AutoGUI");
 
 // Handle GUI-events
 void gui(const std::string& section, const std::string& key)
 {
-	GetSetIO::save<GetSetIO::IniFile>(config_file);
+	g_app.saveSettings();
 
 	if (section=="AutoGUI" && key=="Ok")
 	{
@@ -55,12 +56,10 @@ void gui(const std::string& section, const std::string& key)
 			GetSet<>("Advanced/Command Line Args (config)")
 			);
 		childProcess->setWorkingDirectory(GetSet<>("Advanced/Working Directory"));
-		GetSetSettingsWindow *w=childProcess->configure();
+		GetSetTabWidget *w=childProcess->configure();
 		if (w)
 		{
-			if (autogui_window)
-				autogui_window->close();
-			// w->setWindowTitle("Client Program");
+			g_app.window().close();
 			std::string exe_path=GetSet<>("Basic/Binary File");
 			std::string exe_name=splitRight(exe_path,"/\\");
 			std::string exe=splitRight(exe_name,".");
@@ -151,51 +150,22 @@ int main(int argc, char **argv)
 	if (extension.length()>4 && extension != "agui") // for example /bin/linux_noextension
 		std::swap(path,extension);
 
-	// Handle command line arguments
-	if (argc==1 || (argc==2 && (extension=="ini" || extension=="agui")))
-	{
-		if (argc==2)
-		{
-			showAutoGuiConfig=false;
-			config_file=argv[1];
-		}
-		GetSetIO::load<GetSetIO::IniFile>(config_file);
-	}
-	else
-	{
-		GetSetIO::CmdLineParser cmd;
-		cmd.index("Basic/Binary File",1);
-		cmd.declare(); // add all GetSet parameters and resp. flags
-		if (!cmd.parse(argc,argv))
-		{
-			std::cerr << "Failed to parse command line arguments. Try:\n   AutoGUI --help\n";
-			return 1;
-		}
-		if (cmd.getUnhandledArgs().size()>1)
-		{
-			// Handle -r flag
-			if (cmd.getUnhandledArgs().size()==2 && (++(cmd.getUnhandledArgs().begin()))->second=="-R")
-				showAutoGuiConfig=false;
-			else if (cmd.getUnhandledArgs().size()==2 && (++(cmd.getUnhandledArgs().begin()))->second=="-r")
-				directRun=true;
-			else
-			{
-				std::cerr << "Unrecognized command line arguments. Try:\n   AutoGUI --help\n";
-				return 1;
-			}
-		}
-		if (GetSet<>("Basic/Config File").getString().empty())
-		GetSet<>("Basic/Config File")=path+".ini";	// eg. ./bin/bla.ini
-		if (GetSet<>("Basic/Log File").getString().empty())
-			GetSet<>("Basic/Log File")=path+".log"; 	// eg. ./bin/bla.log
-		splitRight(path,"/\\");
-		if (GetSet<>("Advanced/Working Directory").getString().empty())
-		GetSet<>("Advanced/Working Directory")=path;// eg. ./bin
-	}
+	
+	GetSetIO::CmdLineParser& cmd=g_app.commandLine();
+	cmd.index("Basic/Binary File",1);
+	cmd.declare(); // add all GetSet parameters and resp. flags
+		
+	if (!g_app.init(argc,argv,gui))
+		return 1;
 
+	if (GetSet<>("Basic/Config File").getString().empty())
+	GetSet<>("Basic/Config File")=path+".ini";	// eg. ./bin/bla.ini
+	if (GetSet<>("Basic/Log File").getString().empty())
+		GetSet<>("Basic/Log File")=path+".log"; 	// eg. ./bin/bla.log
+	splitRight(path,"/\\");
+	if (GetSet<>("Advanced/Working Directory").getString().empty())
+	GetSet<>("Advanced/Working Directory")=path;// eg. ./bin
 
-	// Run Qt GUI
-	QApplication app(argc,argv);
 
 	if (directRun) // "-r" flag
 	{
@@ -215,17 +185,8 @@ int main(int argc, char **argv)
 	}
 	else
 	{
-		// Tell GetSet to callback gui(...) for any GUI-input
-		GetSetHandler callback(gui);
-
-		if (showAutoGuiConfig)
-		{
-			autogui_window=new GetSetSettingsWindow();
-			autogui_window->setWindowTitle("AutoGUI");
-			autogui_window->setButton("Ok",gui)->setDefault(true);
-			autogui_window->show();
-		}
-		else gui("AutoGUI", "Ok"); // Pretend user already clicked the "Ok" button ("-R"-flag)
+		if (!showAutoGuiConfig)
+			gui("AutoGUI", "Ok"); // Pretend user already clicked the "Ok" button ("-R"-flag)
 	}
-	return app.exec();
+	return g_app.exec();
 }

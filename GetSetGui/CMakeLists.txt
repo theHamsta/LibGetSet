@@ -1,10 +1,10 @@
 # Choose public headers
-set(GETSETGUI_HEADERS "GetSetGui.h;GetSetWidget.h;GetSetSettingsWindow.h;GetSetProgressWindow.h")
+set(GETSETGUI_HEADERS "GetSetGui.h;GetSetWidget.h;GetSetTabWidget.h;GetSetProgressWindow.h")
 # Build library
 add_library(GetSetGui
 	${GETSETGUI_HEADERS}
 	GetSetWidget.cpp
-	GetSetSettingsWindow.cpp
+	GetSetTabWidget.cpp
 	GetSetProgressWindow.cpp
 	GetSetGui.cpp
 )

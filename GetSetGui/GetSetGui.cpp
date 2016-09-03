@@ -1,9 +1,8 @@
 #include "GetSetGui.h"
-#include "GetSetSettingsWindow.h"
+#include "GetSetTabWidget.h"
 #include "GetSetProgressWindow.h"
 #include "../GetSet/GetSetIO.h"
 #include "../GetSet/GetSetScripting.h"
-#include "GetSetSettingsWindow.h"
 
 #include <QApplication>
 #include <QMessageBox>
@@ -37,6 +36,7 @@ namespace GetSetGui
 	{
 		std::string appname=GetSet<>("Application");
 		qt_app=new QApplication(argc,argv);
+		bool single_unhandled_arg=false;
 		if ( argc==2 && (std::string(argv[1])=="--help"||std::string(argv[1])=="-h") )
 		{
 			std::cerr <<
@@ -49,6 +49,7 @@ namespace GetSetGui
 					<< cmd.getSynopsis();
 			return false;
 		}
+		// Default is to try and load ini-file or run a script
 		else if (argc<=2)
 		{
 			if (argc==1)
@@ -78,29 +79,33 @@ namespace GetSetGui
 					}
 					else return parseScript(script);
 				}
-				else
-					std::cerr << "Unrecognized command line argument.\n";
+				else single_unhandled_arg=true;
 
 			}
 		}
-		else if (!cmd.parse(argc,argv))
+		// We have multiple command line args or we did not understand the first one.
+		if (argc>2 || single_unhandled_arg)
 		{
-			std::cerr <<
-				"Failed to parse command line arguments!\n"
-				"Try:\n"
-				"   " << appname << " --help\n";
-			return false;
-		}
-		else if (cmd.getUnhandledArgs().size()>1)
-		{
-			std::cerr << "Unrecognized command line arguments:\n";
-			for (auto it=cmd.getUnhandledArgs().begin();it!=cmd.getUnhandledArgs().end();++it)
-				std::cout << "   " << it->first << "\t" << it->second << std::endl;
-			return false;
+			if (!cmd.parse(argc,argv))
+			{
+				std::cerr <<
+					"Failed to parse command line arguments!\n"
+					"Try:\n"
+					"   " << appname << " --help\n";
+				return false;
+			}
+			else if (cmd.getUnhandledArgs().size()>1)
+			{
+				std::cerr << "Unrecognized command line arguments:\n";
+				for (auto it=cmd.getUnhandledArgs().begin();it!=cmd.getUnhandledArgs().end();++it)
+					std::cout << "   " << it->first << "\t" << it->second << std::endl;
+				return false;
+			}
 		}
 
 		callback=new GetSetHandler(gui);
 		callback->setIgnoreNotifications(true);
+		window().setCallBack(gui);
 		return true;
 	}
 
@@ -109,11 +114,11 @@ namespace GetSetGui
 		if (callback) callback->setIgnoreNotifications(ignore);
 	}
 		
-	GetSetSettingsWindow& GetSetApplication::window()
+	GetSetTabWidget& GetSetApplication::window()
 	{
 		if (!main_window)
 		{
-			main_window=new GetSetSettingsWindow();
+			main_window=new GetSetTabWidget();
 			main_window->setWindowTitle(GetSet<>("Application").getString().c_str());
 			main_window->setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::CustomizeWindowHint | Qt::WindowSystemMenuHint);
 		}

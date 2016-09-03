@@ -6,6 +6,8 @@
 
 #include <iostream>
 
+#include <GetSetGui/GetSetTabWidget.h>
+
 GetSetGui::GetSetApplication g_app("ExampleAdvanced");
 
 /// Predeclaration of a callback function to handle events
@@ -46,8 +48,12 @@ int main(int argc, char** argv)
 	// Declare command line interface
 	g_app.commandLine().declare();
 
+
 	// Show Qt window
 	g_app.init(argc,argv,gui);
+
+	g_app.window().addMenuItem("File","Quit","Ctrl+Q");
+
 	return g_app.exec();
 }
 

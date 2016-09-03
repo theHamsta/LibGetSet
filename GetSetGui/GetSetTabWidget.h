@@ -17,8 +17,8 @@
 //  limitations under the License.
 //
 
-#ifndef __GetSetSettingsWindow_h
-#define __GetSetSettingsWindow_h
+#ifndef __GetSetTabWidget_h
+#define __GetSetTabWidget_h
 
 #include "../GetSet/GetSetDictionary.h"
 
@@ -26,36 +26,45 @@
 
 #include <string>
 
-#include <QDialog>
-
+class QVBoxLayout;
+class QMenu;
+class QMenuBar;
 class QTabWidget;
 class QPushButton;
-class QVBoxLayout;
 
-class GetSetSettingsWindow : public QDialog, public GetSetInternal::Access
+class GetSetTabWidget : public QWidget, public GetSetInternal::Access
 {
 	Q_OBJECT
 
 protected slots:
 	void ctxMenu(const QPoint &pos);
-	void buttonClicked();
+	void handle_action();
 
 protected:
+	std::map<std::string,QMenu*> m_menus;
+	std::map<std::string,QPushButton*> m_push_buttons;
+
+	void (*callback)(const std::string& sender, const std::string& action);
+
+protected:
+	QMenuBar	*m_menuBar;
 	QTabWidget	*m_tabWidget;
 	QVBoxLayout *m_mainLayout;
-
-	std::map<QPushButton*, void (*)(const std::string&,const std::string&)> m_buttons;
 
 	/// (Re-)Create the tabs and GetSetWidgets
 	void create(GetSetDictionary& dict, const std::vector<std::string>& tabs);
 
 public:
 	/// Settings dialog with a selection of sections from a dictionary
-	GetSetSettingsWindow(const std::string& path="", GetSetDictionary& dict=GetSetDictionary::global() ,const std::string& title="Settings", const std::string& listOfTabs="", QWidget *parent=0x0);
+	GetSetTabWidget(const std::string& path="", GetSetDictionary& dict=GetSetDictionary::global() ,const std::string& title="Settings", const std::string& listOfTabs="", QWidget *parent=0x0);
 
-	QPushButton* setButton(const std::string& name, void (*clicked)(const std::string& windowTitle,const std::string& buttonName)=0x0);
+	void setCallBack(void (*gui)(const std::string& sender, const std::string& action));
 
-	virtual ~GetSetSettingsWindow();
+	/// Shortcut for example "Ctrl+O"
+	QAction* addMenuItem(const std::string& menu, const std::string& action, const std::string& shortcut);
+	QPushButton* addButton(const std::string& action);
+
+	virtual ~GetSetTabWidget();
 };
 
-#endif // __GetSetSettingsWindow.h
+#endif // __GetSetTabWidget.h

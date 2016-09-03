@@ -4,7 +4,7 @@
 #include "GetSet/GetSetIO.h"
 #include "GetSet/GetSetCmdLine.hxx"
 
-#include "GetSetGui/GetSetSettingsWindow.h"
+#include "GetSetGui/GetSetTabWidget.h"
 
 #include <QApplication>
 

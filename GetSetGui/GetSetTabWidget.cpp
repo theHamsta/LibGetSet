@@ -17,15 +17,18 @@
 //  limitations under the License.
 //
 
-#include "GetSetSettingsWindow.h"
+#include "GetSetTabWidget.h"
 
 #include <QTabWidget>
 #include <QPushButton>
 #include <QVBoxLayout>
 #include <QMenu>
+#include <QMenuBar>
 
 // Minor leaks. FIXME
-void GetSetSettingsWindow::create(GetSetDictionary& dict, const std::vector<std::string>& tabs)
+
+
+void GetSetTabWidget::create(GetSetDictionary& dict, const std::vector<std::string>& tabs)
 {
 	m_tabWidget = new QTabWidget;
 	for (int i=0;i<(int)tabs.size(); i++)
@@ -44,9 +47,10 @@ void GetSetSettingsWindow::create(GetSetDictionary& dict, const std::vector<std:
 
 }
 
-GetSetSettingsWindow::GetSetSettingsWindow(const std::string& path, GetSetDictionary& dict ,const std::string& title, const std::string& listOfTabs, QWidget *parent)
-	: QDialog(parent)
+GetSetTabWidget::GetSetTabWidget(const std::string& path, GetSetDictionary& dict ,const std::string& title, const std::string& listOfTabs, QWidget *parent)
+	: QWidget(parent)
 	, Access(dict)
+	, m_menuBar(0x0)
 {
 	setWindowTitle(title.c_str());
 	std::vector<std::string> tabs=stringToVector<std::string>(listOfTabs,';');
@@ -65,45 +69,56 @@ GetSetSettingsWindow::GetSetSettingsWindow(const std::string& path, GetSetDictio
 	}
 	else
 		create(dict,tabs);
-
-	setMinimumWidth(300);
-	// fixme... correct size?
 }
 
-QPushButton* GetSetSettingsWindow::setButton(const std::string& name, void (*clicked)(const std::string& windowTitle,const std::string& buttonName))
+void GetSetTabWidget::setCallBack(void (*gui)(const std::string& sender, const std::string& action))
 {
-	// Find a button that matches name
-	for (std::map<QPushButton*, void (*)(const std::string&,const std::string&)>::iterator it=m_buttons.begin(); it!=m_buttons.end();++it)
-	{
-        std::string n=it->first->objectName().toStdString();
-		if (n==name)
-		{
-			if (!clicked)
-			{
-				delete it->first;
-				m_buttons.erase(it);
-				return 0x0;
-			}
-			else
-				it->second=clicked;
-			return it->first;
-		}
-	}
-	// Button does not yet exist
-	QPushButton *pb=new QPushButton(name.c_str(),this);
-	pb->setObjectName(name.c_str());
-	connect(pb, SIGNAL(clicked()), this, SLOT(buttonClicked()) );
-	m_mainLayout->addWidget(pb);
-	m_buttons[pb]=clicked;
-	return pb;
+	callback=gui;
 }
 
-GetSetSettingsWindow::~GetSetSettingsWindow()
+QAction* GetSetTabWidget::addMenuItem(const std::string& menu, const std::string& action, const std::string& shortcut)
+{
+	if (m_menuBar==0x0)
+	{
+		m_menuBar=new QMenuBar();
+		m_mainLayout->setMenuBar(m_menuBar);
+	}
+	if (m_menus.find(menu)==m_menus.end())
+	{
+		QMenu *m=new QMenu(menu.c_str(),this);
+		m_menuBar->addMenu(m);
+	}
+	QAction* item=m_menus[menu]->addAction(action.c_str()); // , this, SLOT(handle_action()), QKeySequence(shortcut.c_str()));
+	item->setObjectName(action.c_str());
+	return item;
+}
+
+QPushButton* GetSetTabWidget::addButton(const std::string& action)
+{
+	if (m_push_buttons.find(action)==m_push_buttons.end())
+	{
+		QPushButton *pb=new QPushButton(action.c_str(),this);
+		pb->setObjectName(action.c_str());
+		connect(pb, SIGNAL(clicked()), this, SLOT(handle_action()) );
+		m_mainLayout->addWidget(pb);
+	}
+	return m_push_buttons[action];
+}
+
+void GetSetTabWidget::handle_action()
+{
+    std::string who=sender()->objectName().toStdString();
+    std::string what=windowTitle().toStdString();
+	if (callback) callback(who,what);
+
+}
+
+GetSetTabWidget::~GetSetTabWidget()
 {
 	delete m_mainLayout;
 }
 
-void GetSetSettingsWindow::ctxMenu(const QPoint &pos)
+void GetSetTabWidget::ctxMenu(const QPoint &pos)
 {
 	QMenu menu;
 	menu.addAction("Pop out");
@@ -122,14 +137,3 @@ void GetSetSettingsWindow::ctxMenu(const QPoint &pos)
 	}
 }
 
-void GetSetSettingsWindow::buttonClicked()
-{
-    std::string button=sender()->objectName().toStdString();
-    std::string window=windowTitle().toStdString();
-	for (std::map<QPushButton*, void (*)(const std::string&,const std::string&)>::iterator it=m_buttons.begin(); it!=m_buttons.end();++it)
-	{
-        std::string name=it->first->objectName().toStdString();
-		if (button==name)
-			it->second(window,name);
-	}
-}

@@ -1,6 +1,7 @@
 
 #include "Process.h"
 #include <GetSetGui\GetSetProgressWindow.h>
+#include <GetSetGui\GetSetTabWidget.h>
 
 #include <QMessageBox>
 
@@ -40,7 +41,7 @@ public:
 	}
 
 	/// Open Configuration Window
-	GetSetSettingsWindow* configure()
+	GetSetTabWidget* configure()
 	{
 		closeWindow();
 		if (!setCommanLineArgs("--xml "+config_cmdline_cfg).run())
@@ -52,7 +53,7 @@ public:
 		GetSetIO::load<GetSetIO::IniFile>(config_file,configuration);
 		if (configuration.empty())
 			return 0x0;
-		window=new GetSetSettingsWindow("",configuration, binaryFile);
+		window=new GetSetTabWidget("",configuration, binaryFile);
 		return window;
 	}
 
@@ -178,7 +179,7 @@ protected:
 	std::string				config_cmdline_cfg;	//< Arguments passed to client along with the --xml flag
 	std::string				config_cmdline_run;	//< Additional command line arguments passed to the client 
 	GetSetDictionary		configuration;		//< Dictionary created from the XML description and GUI
-	GetSetSettingsWindow*	window;				//< The GUI to configure the client process.
+	GetSetTabWidget*	window;				//< The GUI to configure the client process.
 	std::map<std::string,QWidget*> client_gui;	//< Runtime client GUI (progess bars, dialogs etc.)
 	GetSetHandler			handler;			//< call the gui(...) callback when configuration changes
 };
