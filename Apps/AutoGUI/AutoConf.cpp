@@ -89,7 +89,10 @@ int main(int argc, char ** argv)
 
 	GetSetTabWidget w("",g_config,GetSet<>("Window/Title"),vectorToString(tabs));
 	if (!GetSet<>("Window/Button").getValue().empty())
-		w.setButton(GetSet<>("Window/Button"),die)->setDefault(true);
+	{
+		w.setCallBack(die);
+		w.addButton(GetSet<>("Window/Button"))->setDefault(true);
+	}
 	w.show();
 
 	app.exec();

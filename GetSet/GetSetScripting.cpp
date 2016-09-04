@@ -269,13 +269,13 @@ void GetSetScriptParser::parse_set(std::istream& script)
 	{
 		std::string key,value;
 		if (!expect_token_key(line,"set",key)) return;
-		if (type==2)
-			value=GetSet<>(key,subject);
-		else 
+		if (type==2) // trigger an action
+			GetSetGui::Button(key,subject).trigger();
+		else // set value
 			expect_token_value(line,"set",value);
 		expect_end_of_line(line,"set");
-		if (!parse_error_occured)
-			GetSet<>(key,subject)=value;
+			if (!parse_error_occured && type==1)
+				GetSet<>(key,subject)=value;
 	}
 }
 

@@ -268,8 +268,8 @@ namespace GetSetGui {
 	/// A GetSet&lt;double&gt; with additional range information, so that it could be represented as a slider
 	GETSET_SPECIALIZATION(Slider,double, GETSET_TAG(Slider,double,Min) GETSET_TAG(Slider,double,Max), )
 
-	/// A button that creates a GetSet change event when pressed.
-	GETSET_SPECIALIZATION(Button,std::string, , )
+	/// A button that creates a GetSet change event when pressed. Can be tagged with additional info for script execution.
+	GETSET_SPECIALIZATION(Button,std::string, GETSET_TAG(Button,std::string,Script) void trigger() { setString(getString()); }, )
 
 	/// A static text with some information. StaticTexts are not included in ini-Files (user-info in GUI)
 	GETSET_SPECIALIZATION(StaticText,std::string, , )

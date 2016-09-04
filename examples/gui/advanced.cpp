@@ -52,14 +52,32 @@ int main(int argc, char** argv)
 	// Show Qt window
 	g_app.init(argc,argv,gui);
 
+	g_app.window().addMenuItem("File","About");
 	g_app.window().addMenuItem("File","Quit","Ctrl+Q");
-
+	
+	g_app.window().addMenuItem("Edit/Functions","Do Something");
+	
+	g_app.window().addButton("Quit");
+	
 	return g_app.exec();
 }
 
 /// Handle all kinds of input
 void gui(const std::string& section, const std::string& key)
 {
+	// Window title indicates either a button or a menu item
+	if (section=="ExampleAdvanced")
+	{
+		if (key=="Quit")
+			exit(0);
+		if (key=="About")
+			g_app.info("Lib GetSet Advanced Example","For more information see Sourceforge https://sourceforge.net/projects/getset/",true);
+		if (key=="Do Something")
+			GetSetGui::Button("More","Do Something").trigger();
+		return;
+
+	}
+
 	std::cout << "Key \"" << key << "\" in section \"" << section << "\" has chaged to " << GetSet<>(section,key).getString() << std::endl;
 
 	// Make sure your value really is between 0 and 1

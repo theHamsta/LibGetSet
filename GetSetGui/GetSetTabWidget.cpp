@@ -41,6 +41,9 @@ void GetSetTabWidget::create(GetSetDictionary& dict, const std::vector<std::stri
 	connect(m_tabWidget, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(ctxMenu(const QPoint &)));
 
 	m_mainLayout = new QVBoxLayout;
+	m_menuBar=new QMenuBar();
+	
+	m_mainLayout->setMenuBar(m_menuBar);
 	m_mainLayout->addWidget(m_tabWidget);
 
 	setLayout(m_mainLayout);
@@ -78,19 +81,34 @@ void GetSetTabWidget::setCallBack(void (*gui)(const std::string& sender, const s
 
 QAction* GetSetTabWidget::addMenuItem(const std::string& menu, const std::string& action, const std::string& shortcut)
 {
-	if (m_menuBar==0x0)
-	{
-		m_menuBar=new QMenuBar();
-		m_mainLayout->setMenuBar(m_menuBar);
-	}
+	// First create menu structure
 	if (m_menus.find(menu)==m_menus.end())
 	{
-		QMenu *m=new QMenu(menu.c_str(),this);
-		m_menuBar->addMenu(m);
+		std::vector<std::string> submenus=stringToVector<std::string>(menu,'/');
+		std::string this_menu=submenus.back();
+		submenus.pop_back();
+		m_menus[menu]=new QMenu(this_menu.c_str(),this);
+		if (submenus.empty())
+		{
+			m_menuBar->addMenu(m_menus[menu]);
+		}
+		else
+		{
+			std::string super_menu=vectorToString(submenus,"/");
+			if (m_menus.find(super_menu)==m_menus.end())
+				addMenuItem(super_menu,"");
+			m_menus[super_menu]->addMenu(m_menus[menu]);
+		}
+
 	}
-	QAction* item=m_menus[menu]->addAction(action.c_str()); // , this, SLOT(handle_action()), QKeySequence(shortcut.c_str()));
-	item->setObjectName(action.c_str());
-	return item;
+	// Then create menu item
+	if (!action.empty())
+	{
+		QAction* item=m_menus[menu]->addAction(action.c_str(), this, SLOT(handle_action()), QKeySequence(shortcut.c_str()));
+		item->setObjectName(action.c_str());
+		return item;
+	}
+	else return 0x0;
 }
 
 QPushButton* GetSetTabWidget::addButton(const std::string& action)
@@ -107,8 +125,8 @@ QPushButton* GetSetTabWidget::addButton(const std::string& action)
 
 void GetSetTabWidget::handle_action()
 {
-    std::string who=sender()->objectName().toStdString();
-    std::string what=windowTitle().toStdString();
+    std::string who=windowTitle().toStdString();
+    std::string what=sender()->objectName().toStdString();
 	if (callback) callback(who,what);
 
 }

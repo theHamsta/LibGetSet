@@ -65,7 +65,8 @@ void gui(const std::string& section, const std::string& key)
 			std::string exe=splitRight(exe_name,".");
 			if (exe_name.empty()) std::swap(exe,exe_name);
 			w->setWindowTitle(exe_name.c_str());
-			w->setButton("Run...",gui)->setDefault(true);
+			w->setCallBack(gui);
+			w->addButton("Run...")->setDefault(true);
 			w->show();
 		}
 		else

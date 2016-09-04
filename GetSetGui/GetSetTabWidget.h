@@ -61,7 +61,7 @@ public:
 	void setCallBack(void (*gui)(const std::string& sender, const std::string& action));
 
 	/// Shortcut for example "Ctrl+O"
-	QAction* addMenuItem(const std::string& menu, const std::string& action, const std::string& shortcut);
+	QAction* addMenuItem(const std::string& menu, const std::string& action, const std::string& shortcut="");
 	QPushButton* addButton(const std::string& action);
 
 	virtual ~GetSetTabWidget();

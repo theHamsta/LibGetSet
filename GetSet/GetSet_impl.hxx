@@ -170,7 +170,7 @@ GETSET_SPECIALIZATION(Enum,int,GETSET_ENUM_CLASS_BODY, GETSET_ENUM_KEY_BODY)
 GETSET_SPECIALIZATION(Slider,double, GETSET_TAG(Slider,double,Min) GETSET_TAG(Slider,double,Max), )
 
 /// A button that creates a GetSet change event when pressed.
-GETSET_SPECIALIZATION(Button,std::string, void action() {signalChange(section,key);}, )
+GETSET_SPECIALIZATION(Button,std::string, void trigger() {signalChange(section,key);}, )
 
 /// A static text with some information. StaticTexts are not included in ini-Files (user-info in GUI)
 GETSET_SPECIALIZATION(StaticText,std::string, , )
