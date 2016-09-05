@@ -39,15 +39,13 @@ namespace GetSetGui
 
 	void GetSetScriptEdit::saveFile(const QString &path)
 	{
-		QString fileName = path;
+		std::string fileName = path.toStdString();
 
-		if (fileName.isNull())
-			fileName = QFileDialog::getSaveFileName(this, tr("Save File"), "", "GetSet scripts (*.getset);;All Files (*)");
+		if (fileName.empty())
+			fileName = QFileDialog::getSaveFileName(this, tr("Save File"), "", "GetSet scripts (*.getset);;All Files (*)").toStdString();
 
-		if (!fileName.isEmpty()) {
-			QFile file(fileName);
-			file.write(editor->toPlainText().toLatin1());
-		}
+		if (!fileName.empty())
+			fileWriteString(fileName, editor->toPlainText().toStdString());
 	}
 
 	void GetSetScriptEdit::execute()
@@ -86,10 +84,13 @@ namespace GetSetGui
 		fileMenu->addAction(tr("&New"), this, SLOT(newFile()), QKeySequence::New);
 		fileMenu->addAction(tr("&Open..."), this, SLOT(openFile()), QKeySequence::Open);
 		fileMenu->addAction(tr("&Save..."), this, SLOT(saveFile()), QKeySequence::Save);
-		fileMenu->addAction(tr("E&xecute"), this, SLOT(execute()), QKeySequence("Ctrl+x"));
-		fileMenu->addAction(tr("&Quit"), qApp, SLOT(quit()), QKeySequence::Quit);
+		fileMenu->addAction(tr("E&xecute"), this, SLOT(execute()), QKeySequence(QKeySequence(Qt::CTRL + Qt::Key_X)));
 	}
 
+	void GetSetScriptEdit::setScript(const std::string& script)
+	{
+		editor->setPlainText(script.c_str());
+	}
 
 	GetSetScriptSyntaxHighlighter::GetSetScriptSyntaxHighlighter(QTextDocument *parent)
 		: QSyntaxHighlighter(parent)

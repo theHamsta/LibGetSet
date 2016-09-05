@@ -137,6 +137,23 @@ std::string GetSetScriptParser::synopsis(const std::string& command, bool with_e
 	}
 	return help_message;	
 }
+
+std::string GetSetScriptParser::state()
+{
+	std::string ret;
+	for (auto it=variables.begin();it!=variables.end();++it)
+	{
+		if (it->second.find_first_of('\n')!=std::string::npos) // FIXME multiline ??
+		{
+			ret=ret+"function "+it->first+"\n";
+			ret=ret+it->second+"\n";
+			ret=ret+"endfunction\n";
+		}
+		else ret=ret+ "set var " + it->first + " value \"" + it->second + "\"\n";
+	}
+	return ret;
+}
+
 void GetSetScriptParser::parse_commands(const std::string& commands)
 {
 	std::istringstream script(commands);

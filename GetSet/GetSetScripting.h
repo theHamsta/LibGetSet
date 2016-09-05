@@ -51,11 +51,15 @@ public:
 	/// Get help for script language
 	std::string synopsis(const std::string& command="", bool with_example=false);
 
+	/// Creates a script which stores all current variables
+	std::string state();
+
 	/// Callback for user input (optional)
 	std::string (*user_input)();
 
 	/// Callback for output (optional)
 	void (*user_output)(const std::string&);
+
 protected:
 
 	/// Get user input

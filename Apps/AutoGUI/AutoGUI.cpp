@@ -35,7 +35,7 @@
 #include "ConfigureProcess.h"
 
 
-ConfigureProcess *childProcess=0x0;
+GetSetGui::ConfigureProcess *childProcess=0x0;
 
 GetSetGui::GetSetApplication g_app("AutoGUI");
 
@@ -48,7 +48,7 @@ void gui(const std::string& section, const std::string& key)
 	{
 		if (childProcess)
 			delete childProcess;
-		childProcess=new ConfigureProcess(
+		childProcess=new GetSetGui::ConfigureProcess(
 			GetSet<>("Basic/Binary File"),
 			GetSet<>("Basic/Config File"),
 			GetSet<>("Basic/Log File"),
@@ -56,7 +56,7 @@ void gui(const std::string& section, const std::string& key)
 			GetSet<>("Advanced/Command Line Args (config)")
 			);
 		childProcess->setWorkingDirectory(GetSet<>("Advanced/Working Directory"));
-		GetSetTabWidget *w=childProcess->configure();
+		GetSetGui::GetSetTabWidget *w=childProcess->configure();
 		if (w)
 		{
 			g_app.window().close();
@@ -171,7 +171,7 @@ int main(int argc, char **argv)
 	if (directRun) // "-r" flag
 	{
 		// execute child process right away
-		childProcess=new ConfigureProcess(
+		childProcess=new GetSetGui::ConfigureProcess(
 			GetSet<>("Basic/Binary File"),
 			GetSet<>("Basic/Config File"),
 			GetSet<>("Basic/Log File"),

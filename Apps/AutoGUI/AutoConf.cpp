@@ -87,7 +87,7 @@ int main(int argc, char ** argv)
 
 	GetSetHandler on_value_change(g_config,save);
 
-	GetSetTabWidget w("",g_config,GetSet<>("Window/Title"),vectorToString(tabs));
+	GetSetGui::GetSetTabWidget w("",g_config,GetSet<>("Window/Title"),vectorToString(tabs));
 	if (!GetSet<>("Window/Button").getValue().empty())
 	{
 		w.setCallBack(die);

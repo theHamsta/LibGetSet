@@ -6,6 +6,9 @@
 
 #include <QApplication>
 #include <QMessageBox>
+#include <QLabel>
+#include <QProgressBar>
+#include <QPushButton>
 
 namespace GetSetGui
 {
@@ -22,8 +25,8 @@ namespace GetSetGui
 
 	GetSetApplication::~GetSetApplication()
 	{
-		if (main_window) delete main_window;
-		if (callback) delete callback;
+//		if (main_window) delete main_window;
+//		if (callback) delete callback;
 //		if (qt_app) delete qt_app; // Crashed on delete on windows (why?)
 	}
 
@@ -121,6 +124,7 @@ namespace GetSetGui
 			main_window=new GetSetTabWidget();
 			main_window->setWindowTitle(GetSet<>("Application").getString().c_str());
 			main_window->setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::CustomizeWindowHint | Qt::WindowSystemMenuHint);
+			main_window->addDefaultFileMenu();
 		}
 		return *main_window;
 	}

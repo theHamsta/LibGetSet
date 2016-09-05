@@ -32,39 +32,58 @@ class QMenuBar;
 class QTabWidget;
 class QPushButton;
 
-class GetSetTabWidget : public QWidget, public GetSetInternal::Access
+namespace GetSetGui
 {
-	Q_OBJECT
+	class GetSetScriptEdit;
 
-protected slots:
-	void ctxMenu(const QPoint &pos);
-	void handle_action();
+	class GetSetTabWidget : public QWidget, public GetSetInternal::Access
+	{
+		Q_OBJECT
 
-protected:
-	std::map<std::string,QMenu*> m_menus;
-	std::map<std::string,QPushButton*> m_push_buttons;
+	protected slots:
+		void ctxMenu(const QPoint &pos);
+		void handle_action();
+		void about();
+		void script_editor();
+		void script_recorder_start();
+		void script_recorder_stop();
+		void script_run_default();
 
-	void (*callback)(const std::string& sender, const std::string& action);
 
-protected:
-	QMenuBar	*m_menuBar;
-	QTabWidget	*m_tabWidget;
-	QVBoxLayout *m_mainLayout;
+	protected:
+		std::map<std::string,QMenu*> m_menus;
+		std::map<std::string,QPushButton*> m_push_buttons;
 
-	/// (Re-)Create the tabs and GetSetWidgets
-	void create(GetSetDictionary& dict, const std::vector<std::string>& tabs);
+		void (*callback)(const std::string& sender, const std::string& action);
 
-public:
-	/// Settings dialog with a selection of sections from a dictionary
-	GetSetTabWidget(const std::string& path="", GetSetDictionary& dict=GetSetDictionary::global() ,const std::string& title="Settings", const std::string& listOfTabs="", QWidget *parent=0x0);
+	protected:
+		QMenuBar	*m_menuBar;
+		QTabWidget	*m_tabWidget;
+		QVBoxLayout	*m_mainLayout;
+		GetSetGui::GetSetScriptEdit	*m_script_editor;
 
-	void setCallBack(void (*gui)(const std::string& sender, const std::string& action));
+		/// (Re-)Create the tabs and GetSetWidgets
+		void create(GetSetDictionary& dict, const std::string& path, const std::vector<std::string>& tabs);
 
-	/// Shortcut for example "Ctrl+O"
-	QAction* addMenuItem(const std::string& menu, const std::string& action, const std::string& shortcut="");
-	QPushButton* addButton(const std::string& action);
+	public:
+	
+		/// Settings dialog with a selection of sections from a dictionary
+		GetSetTabWidget(QWidget *parent);
 
-	virtual ~GetSetTabWidget();
-};
+		/// Settings dialog with a selection of sections from a dictionary
+		GetSetTabWidget(const std::string& path="", GetSetDictionary& dict=GetSetDictionary::global() ,const std::string& title="Settings", const std::string& listOfTabs="", QWidget *parent=0x0);
+
+		void setCallBack(void (*gui)(const std::string& sender, const std::string& action));
+
+		/// Shortcut for example "Ctrl+O"
+		QAction* addMenuItem(const std::string& menu, const std::string& action, const std::string& shortcut="");
+		QPushButton* addButton(const std::string& action);
+
+		void addDefaultFileMenu();
+
+		virtual ~GetSetTabWidget();
+	};
+
+} // namespace GetSetGui
 
 #endif // __GetSetTabWidget.h

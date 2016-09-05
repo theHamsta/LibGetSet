@@ -54,16 +54,7 @@ int main(int argc, char** argv)
 	// Show Qt window
 	g_app.init(argc,argv,gui);
 
-	g_app.window().addMenuItem("File","About");
-	g_app.window().addMenuItem("File","Quit","Ctrl+Q");
-	
 	g_app.window().addMenuItem("Edit/Functions","Do Something");
-	
-	g_app.window().addButton("Quit");
-	
-	GetSetGui::GetSetScriptEdit *test=new GetSetGui::GetSetScriptEdit();
-	test->show();
-
 
 	return g_app.exec();
 }

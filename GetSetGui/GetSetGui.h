@@ -25,20 +25,20 @@
 #include <QApplication>
 #include <QWidget>
 
-// 2do move to GetSetGui namespace
-class GetSetTabWidget;
-class GetSetProgressWindow;
-
 namespace GetSetGui
 {
+	class GetSetTabWidget;
+	class GetSetProgressWindow;
+
 	class GetSetApplication
 	{
 	protected:
 		GetSetIO::CmdLineParser	cmd;
 		QApplication			*qt_app;
 		GetSetHandler			*callback;
-		GetSetTabWidget	*main_window;
+		GetSetTabWidget			*main_window;
 		GetSetProgressWindow	*progress_window;
+
 	public:
 
 		GetSetApplication(std::string _appname);

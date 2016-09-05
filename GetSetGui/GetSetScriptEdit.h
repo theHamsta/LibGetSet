@@ -41,6 +41,8 @@ namespace GetSetGui
 	public:
 		GetSetScriptEdit(QWidget *parent = 0);
 
+		void setScript(const std::string& script);
+
 	public slots:
 		void newFile();
 		void openFile(const QString &path = QString());
@@ -61,6 +63,7 @@ namespace GetSetGui
 
 	public:
 		GetSetScriptSyntaxHighlighter(QTextDocument *parent = 0);
+
 
 	protected:
 		void highlightBlock(const QString &text) Q_DECL_OVERRIDE;
