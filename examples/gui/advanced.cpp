@@ -8,6 +8,8 @@
 
 #include <GetSetGui/GetSetTabWidget.h>
 
+#include <GetSetGui/GetSetScriptEdit.h>
+
 GetSetGui::GetSetApplication g_app("ExampleAdvanced");
 
 /// Predeclaration of a callback function to handle events
@@ -59,6 +61,10 @@ int main(int argc, char** argv)
 	
 	g_app.window().addButton("Quit");
 	
+	GetSetGui::GetSetScriptEdit *test=new GetSetGui::GetSetScriptEdit();
+	test->show();
+
+
 	return g_app.exec();
 }
 
@@ -96,6 +102,7 @@ void gui(const std::string& section, const std::string& key)
 		else
 			GetSet<>("Setup","Some Text")="Bla";
 	}
+
 
 	g_app.saveSettings();
 }
