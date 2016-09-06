@@ -71,6 +71,9 @@ namespace GetSetGui
 		setLayout(m_mainLayout);
 
 		m_script_editor=new GetSetGui::GetSetScriptEdit(this);
+		std::string appname=GetSet<>("Application");
+		m_script_editor->openFile((appname+".getset").c_str());
+
 
 	}
 
@@ -147,13 +150,14 @@ namespace GetSetGui
 	{
 		addMenuItem("File","");
 		m_menus["File"]->addAction(tr("&About"), this, SLOT(about()));
-		m_menus["File"]->addAction(tr("&Quit"), QApplication::instance(), SLOT(quit()), QKeySequence::Quit);
 		auto *scripting_menu=m_menus["File"]->addMenu("Scripting");
-		scripting_menu->addAction(tr("Show Script &Editor..."), this, SLOT(script_editor()), QKeySequence(Qt::CTRL + Qt::Key_E));
+		scripting_menu->addAction(tr("(Re-)Start Recording"), this, SLOT(rec_start()) );
+		scripting_menu->addAction(tr("Stop Recording"), this, SLOT(rec_stop()) );
 		scripting_menu->addSeparator();
-		scripting_menu->addAction(tr("Re-Start Recording"), this, SLOT((script_recorder_start)), QKeySequence(Qt::CTRL + + Qt::SHIFT + Qt::Key_R));
-		scripting_menu->addAction(tr("Stop Recording"), this, SLOT((script_recorder_start)), QKeySequence(Qt::CTRL + + Qt::SHIFT + Qt::Key_R));
-		scripting_menu->addAction(tr("Run default script."), this, SLOT(script_run_default()), QKeySequence(Qt::CTRL + Qt::Key_Space));
+		scripting_menu->addAction(tr("Run default script."), this, SLOT(script_run_default()), QKeySequence(Qt::CTRL + Qt::SHIFT+ Qt::Key_D));
+		scripting_menu->addAction(tr("Show Script &Editor..."), this, SLOT(script_editor()), QKeySequence(Qt::CTRL + Qt::Key_E));
+		m_menus["File"]->addSeparator();
+		m_menus["File"]->addAction(tr("&Quit"), QApplication::instance(), SLOT(quit()), QKeySequence::Quit);
 	}
 
 
@@ -168,32 +172,26 @@ namespace GetSetGui
 	void GetSetTabWidget::about()
 	{
 		QMessageBox::about( this, "GetSet c++ Library",
-			"<h4>Named and typed parameters for quick loading, saving and automatix GUI</h4>\n\n"
-			"Created by Andre Aichert aaichert@gmail.com <br> See slso: "
-			"<a href=\"https://sourceforge.net/projects/getset/\">SourceForge Project Page</a>" );
+			"<h4>Load/saving *typed* and *named* properties and automatic GUI</h4>\n\n"
+			"Copyright 2011-2016 by <a href=\"mailto:aaichert@gmail.com?Subject=GetSet\">Andre Aichert</a> <br><br> See slso: "
+			"<a href=\"https://sourceforge.net/projects/getset/\">SourceForge Project Page</a> <br><br>"
+			"<h4>Licensed under the Apache License, Version 2.0 (the \"License\")</h4>\n\n"
+			"You may not use this file except in compliance with the License. You may obtain a copy of the License at "
+			"<a href=\"http://www.apache.org/licenses/LICENSE-2.0\">http://www.apache.org/licenses/LICENSE-2.0</a><br>"
+			);
 	}
 
 	void GetSetTabWidget::script_editor()
 	{
-		std::string appname=GetSet<>("Application");
-
-		if (!m_script_editor->isVisible())
-		{
-			std::string state=GetSetScriptParser::global().state();
-			if (!state.empty())
-				m_script_editor->setScript(state);
-		}
-		else
-			m_script_editor->openFile((appname+".getset").c_str());
 		m_script_editor->show();
 	}
 
-	void GetSetTabWidget::script_recorder_start()
+	void GetSetTabWidget::rec_start()
 	{
 	
 	}
 	
-	void GetSetTabWidget::script_recorder_stop()
+	void GetSetTabWidget::rec_stop()
 	{
 	
 	}
@@ -201,6 +199,7 @@ namespace GetSetGui
 	void GetSetTabWidget::script_run_default()
 	{
 		std::string appname=GetSet<>("Application");
+		std::cout << "Running script " << appname << ".getset" << std::endl;
 		GetSetScriptParser::global().parse(std::string("file run ")+appname+".getset");
 	}
 

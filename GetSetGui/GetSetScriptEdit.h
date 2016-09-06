@@ -53,6 +53,8 @@ namespace GetSetGui
 		void setupEditor();
 		void setupFileMenu();
 
+		void closeEvent(QCloseEvent *event);
+
 		QTextEdit *editor;
 		GetSetScriptSyntaxHighlighter *highlighter;
 	};
@@ -64,12 +66,15 @@ namespace GetSetGui
 	public:
 		GetSetScriptSyntaxHighlighter(QTextDocument *parent = 0);
 
+		/// Define syntax highlighting. Default format is for commands.
+		void addHighlightingRule(const std::string& pattern, unsigned char r, unsigned char g, unsigned char b, bool bold=false, bool italic=false, bool underline=false);
 
 	protected:
 		void highlightBlock(const QString &text) Q_DECL_OVERRIDE;
 
 	private:
 		std::vector<std::pair<std::string,QTextCharFormat > > highlightingRules;
+		std::vector<std::pair<std::string,QTextCharFormat > > overridingRules;
 
 	};
 

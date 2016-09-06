@@ -377,6 +377,7 @@ void GetSetScriptParser::parse_for(std::istream& script)
 {
 	auto line=rest_of_line(script);
 	if (expect_keyword(line,"for","each")<0) return;
+	if (expect_keyword(line,"for","var")<0) return;
 	std::string varname;
 	if (!expect_token_string(line,"for",varname)) return;
 	int op=expect_keyword(line,"for","in;from");
@@ -454,7 +455,8 @@ void GetSetScriptParser::parse_echo(std::istream& script)
 void GetSetScriptParser::parse_eval(std::istream& script)
 {
 	auto line=rest_of_line(script);
-	// Parse: <varname> as ...
+	// Parse: var <varname> as ...
+	if (expect_keyword(line,"eval","var")<0) return;
 	std::string varname;
 	if (!get_token_string(line,varname))
 	{

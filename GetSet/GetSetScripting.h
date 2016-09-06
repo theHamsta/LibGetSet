@@ -49,7 +49,7 @@ public:
 	bool parse(const std::string& commands);
 
 	/// Get help for script language
-	std::string synopsis(const std::string& command="", bool with_example=false);
+	static std::string synopsis(const std::string& command="", bool with_example=false);
 
 	/// Creates a script which stores all current variables
 	std::string state();

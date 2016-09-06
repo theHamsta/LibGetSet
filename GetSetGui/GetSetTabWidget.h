@@ -45,8 +45,8 @@ namespace GetSetGui
 		void handle_action();
 		void about();
 		void script_editor();
-		void script_recorder_start();
-		void script_recorder_stop();
+		void rec_start();
+		void rec_stop();
 		void script_run_default();
 
 

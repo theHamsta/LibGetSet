@@ -54,7 +54,7 @@ int main(int argc, char** argv)
 	// Show Qt window
 	g_app.init(argc,argv,gui);
 
-	g_app.window().addMenuItem("Edit/Functions","Do Something");
+	g_app.window().addMenuItem("Edit/Functions","Do Something","Ctrl+D");
 
 	return g_app.exec();
 }
