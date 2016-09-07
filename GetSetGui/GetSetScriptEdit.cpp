@@ -23,6 +23,26 @@ namespace GetSetGui
 		setWindowIcon(style()->standardIcon(QStyle::SP_FileIcon));
 
 		resize(600,480);
+
+	}
+
+	void GetSetScriptEdit::highlightCurrentLine()
+	{
+		QList<QTextEdit::ExtraSelection> extraSelections;
+
+		if (!editor->isReadOnly()) {
+			QTextEdit::ExtraSelection selection;
+
+			QColor lineColor = QColor(Qt::yellow).lighter(160);
+
+			selection.format.setBackground(lineColor);
+			selection.format.setProperty(QTextFormat::FullWidthSelection, true);
+			selection.cursor = editor->textCursor();
+			selection.cursor.clearSelection();
+			extraSelections.append(selection);
+		}
+
+		editor->setExtraSelections(extraSelections);
 	}
 
 	void GetSetScriptEdit::setupEditor()
@@ -45,6 +65,7 @@ namespace GetSetGui
 			if (file.open(QFile::ReadOnly | QFile::Text))
 				editor->setPlainText(file.readAll());
 		}
+		connect(editor, SIGNAL(cursorPositionChanged()), this, SLOT(highlightCurrentLine()));
 	}
 
 	void GetSetScriptEdit::setupToolBarsAndMenus()

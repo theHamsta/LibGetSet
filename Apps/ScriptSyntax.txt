@@ -80,81 +80,11 @@ eval i as var i plus value 1
 # syntax highlighting:
 ##############################
 commands:
-	exit help who set function endfunction call with if endif while endwhile for endfor file input echo eval
+	help|call|concat|define|discard|echo|eval|exit|file|for|if|input|set|while|who|with|enddefine|endfor|endif|endwhile
 types:
 	key var value
 other keywords:
-	each in from to step as load save run 
+	each|in|from|to|than|step|and|ini|load|save|get|remove|run|trigger
 operators:
 	not strequal numequal gequal lequal greater less plus minus times
 	
-###############
-#Test Script
-###############
-# Test echo
-echo value hallo
-
-# Test set
-set var blubb value "this is a test"
-echo var blubb
-set key "Console/b" value "test"
-echo key Console/b
-
-# Test with
-with Console
-set key b value "1;2;3;4"
-with ""
-
-# Test for
-for each i in key Console/b
-	echo value "current iteration:"
-	echo var i
-	if numequal var i value 2
-		echo value "Found value 2"
-	endif
-endfor
-echo value after_for
-
-# Test for^ sequence
-for each i from value 1 to value 2.9 step value 1.75
-	echo var i
-endfor
-echo value "after for sequence"
-
-# Test if
-if not strequal value "1" value "1.0"
-	if strequal value "1;2;3;4" key Console/b
-	   echo value ok1
-	endif
-	if numequal value "1" value "1.0"
-	   echo value ok2
-	endif
-   echo value ok3
-endif
-echo value "after if"
-
-# Test function
-function decrement_j
-   eval j as var j minus value 1
-endfunction
-echo value "after function"
-
-# Test while
-set var j value 4
-set var active value true
-while active
-	echo var j
-    call decrement_j
-	if less var j value 0
-		set var active value false
-	endif
-endwhile
-echo value "after while"
-
-# Test 
-eval result as value 6 plus value 4
-echo var result
-
-echo value "If you see this message the GetSet script test has been passed"
-
-exit

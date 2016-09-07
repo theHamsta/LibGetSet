@@ -47,6 +47,7 @@ namespace GetSetGui
 		void setText(const QString &text);
 		void openFile(const QString &path = QString());
 		void saveFile(const QString &path = QString());
+		void highlightCurrentLine();
 		void help();
 		void execute();
 		void force_stop();

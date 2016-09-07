@@ -10,7 +10,6 @@
 #include <QProgressBar>
 #include <QPushButton>
 
-
 #include <QApplication>
 
 void script_output(const std::string& text)
