@@ -85,7 +85,7 @@ int main(int argc, char ** argv)
 			GetSetIO::save<GetSetIO::TxtFileDescription>(g_file_xml,g_config);
 	}
 
-	GetSetHandler on_value_change(g_config,save);
+	GetSetHandler on_value_change(save,g_config);
 
 	GetSetGui::GetSetTabWidget w("",g_config,GetSet<>("Window/Title"),vectorToString(tabs));
 	if (!GetSet<>("Window/Button").getValue().empty())

@@ -10,6 +10,15 @@
 #include <QProgressBar>
 #include <QPushButton>
 
+
+#include <QApplication>
+
+void script_output(const std::string& text)
+{
+	std::cout << text << std::endl;
+	QApplication::processEvents();
+}
+
 namespace GetSetGui
 {
 
@@ -21,6 +30,7 @@ namespace GetSetGui
 	{
 		GetSet<>("Application")=_appname;
 		GetSet<>("ini-File")=_appname+".ini";
+		GetSetScriptParser::global().user_output=script_output;
 	}
 
 	GetSetApplication::~GetSetApplication()

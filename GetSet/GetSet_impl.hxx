@@ -57,6 +57,12 @@ const BasicType GetSet<BasicType>::getValue() const
 }
 
 template <typename BasicType>
+const std::string GetSet<BasicType>::getType() const
+{
+	return property->getType();
+}
+
+template <typename BasicType>
 void GetSet<BasicType>::setString(const std::string& value)
 {
 	property->setString(value);

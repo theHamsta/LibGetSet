@@ -26,7 +26,7 @@ namespace GetSetGui
 			, config_cmdline_run(cmdlinearg_run)
 			, config_cmdline_cfg(cmdlinearg_cfg)
 			, window(0x0)
-			, handler(configuration,ConfigureProcess::gui)
+			, handler(ConfigureProcess::gui,configuration)
 		{
 			_instance=this; // FIXME hack for callbacks
 		}

@@ -29,10 +29,32 @@
 #include <QMenu>
 #include <QMenuBar>
 #include <QMessageBox>
+#include <QStyle>
 
 #include <QApplication>
 
 // Minor leaks. FIXME
+
+/// Same as GetSetHandler, but keeps track of state changes
+class GetSetScriptRecorder : public GetSetDictionary::Observer
+{
+public:
+	GetSetScriptRecorder(GetSetDictionary& subject=GetSetDictionary::global())
+		: GetSetDictionary::Observer(subject) {}
+	std::string log;
+
+protected:
+	virtual void notifyChange(const std::string& section, const std::string& key)
+	{
+		std::string path=section+"/"+key;
+		if (GetSet<>(path).getType()=="Button")
+			log=log+"set trigger \""+ path + "\"\n";
+		else
+			log=log+"set key \""+ path + "\" to value \"" + GetSet<>(path).getString() + "\"\n"; 
+	}
+
+};
+
 
 namespace GetSetGui
 {
@@ -74,7 +96,9 @@ namespace GetSetGui
 		std::string appname=GetSet<>("Application");
 		m_script_editor->openFile((appname+".getset").c_str());
 
+		setWindowIcon(style()->standardIcon(QStyle::SP_TitleBarMenuButton));
 
+		m_script_recorder=new GetSetScriptRecorder(dict);
 	}
 
 	GetSetTabWidget::GetSetTabWidget(QWidget *parent)
@@ -125,6 +149,8 @@ namespace GetSetGui
 
 		}
 		// Then create menu item
+		if (action=="-")
+			m_menus[menu]->addSeparator();
 		if (!action.empty())
 		{
 			QAction* item=m_menus[menu]->addAction(action.c_str(), this, SLOT(handle_action()), QKeySequence(shortcut.c_str()));
@@ -148,18 +174,20 @@ namespace GetSetGui
 
 	void GetSetTabWidget::addDefaultFileMenu()
 	{
+		// File menu
 		addMenuItem("File","");
 		m_menus["File"]->addAction(tr("&About"), this, SLOT(about()));
 		auto *scripting_menu=m_menus["File"]->addMenu("Scripting");
+		m_menus["File"]->addSeparator();
+		m_menus["File"]->addAction(tr("&Quit"), QApplication::instance(), SLOT(quit()), QKeySequence::Quit);
+		// Scripting menu
 		scripting_menu->addAction(tr("(Re-)Start Recording"), this, SLOT(rec_start()) );
 		scripting_menu->addAction(tr("Stop Recording"), this, SLOT(rec_stop()) );
 		scripting_menu->addSeparator();
 		scripting_menu->addAction(tr("Run default script."), this, SLOT(script_run_default()), QKeySequence(Qt::CTRL + Qt::SHIFT+ Qt::Key_D));
 		scripting_menu->addAction(tr("Show Script &Editor..."), this, SLOT(script_editor()), QKeySequence(Qt::CTRL + Qt::Key_E));
-		m_menus["File"]->addSeparator();
-		m_menus["File"]->addAction(tr("&Quit"), QApplication::instance(), SLOT(quit()), QKeySequence::Quit);
-	}
 
+	}
 
 	void GetSetTabWidget::handle_action()
 	{
@@ -181,19 +209,22 @@ namespace GetSetGui
 			);
 	}
 
+	void GetSetTabWidget::rec_start()
+	{
+		m_script_recorder->log.clear();
+	}
+
+	void GetSetTabWidget::rec_stop()
+	{
+		m_script_recorder->log;
+		m_script_editor->setText(m_script_recorder->log.c_str());
+		m_script_editor->show();
+		rec_start();
+	}
+
 	void GetSetTabWidget::script_editor()
 	{
 		m_script_editor->show();
-	}
-
-	void GetSetTabWidget::rec_start()
-	{
-	
-	}
-	
-	void GetSetTabWidget::rec_stop()
-	{
-	
 	}
 	
 	void GetSetTabWidget::script_run_default()

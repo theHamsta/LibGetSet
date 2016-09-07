@@ -124,7 +124,7 @@ int main(int argc, char ** argv)
 		std::string value=argv[4];
 		if (!GetSetIO::load<GetSetIO::IniFile>(file))
 		{
-			// Fix 2013-07-09: It's okay it the file does not exist yet.
+			// Fix 2013-07-09: It's okay if the file does not exist yet.
 			//std::cerr << "Failed to load " << file << "!\n";
 			//return 2;
 		}

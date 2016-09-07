@@ -76,8 +76,7 @@ protected:
 class GetSetHandler : public GetSetDictionary::Observer
 {
 public:
-	GetSetHandler(void (*change)(const std::string& section, const std::string& key));
-	GetSetHandler(GetSetDictionary& subject, void (*change)(const std::string& section, const std::string& key));
+	GetSetHandler(void (*change)(const std::string& section, const std::string& key), GetSetDictionary& subject=GetSetDictionary::global());
 	void setIgnoreNotifications(bool ignore);
 protected:
 	bool ignore_notify;

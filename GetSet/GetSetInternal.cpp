@@ -169,6 +169,12 @@ void GetSetSection::setProperty(const std::vector<std::string>& path, GetSetNode
 			properties.erase(properties.find(key));
 			signalDestroy(absolutePath,key);
 		}
+		if (properties.empty())
+		{
+			auto mypath=path;
+			mypath.pop_back();
+			setProperty(mypath, 0x0, 0);
+		}
 		return;
 	}
 	// We have reached the end of the path, so we set the property and are done

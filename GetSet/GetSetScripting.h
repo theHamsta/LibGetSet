@@ -23,12 +23,7 @@
 #include <sstream>
 #include <map>
 
-/// Store the current state and record all changes with the possibility of playing them back.
-// class GetSetScriptRecorder TODO
-/// This is where a detailed log of all events will be stored
-//	std::ofstream file;
-
-class GetSetDictionary;
+#include "GetSetDictionary.h"
 
 /// Parse a script line-by-line. Language is not context free. See ScriptSyntax.txt for more info.
 class GetSetScriptParser
@@ -46,7 +41,10 @@ public:
 	void prompt();
 
 	/// Parse the scrip provided by text
-	bool parse(const std::string& commands);
+	bool parse(const std::string& commands, const std::string& scriptname="script");
+
+	/// Force stop execution
+	void force_stop();
 
 	/// Get help for script language
 	static std::string synopsis(const std::string& command="", bool with_example=false);
@@ -60,7 +58,11 @@ public:
 	/// Callback for output (optional)
 	void (*user_output)(const std::string&);
 
+	/// Access everything from current location to line starting with end_block
+	std::string get_block(std::istream& script, const std::string& end_block);
+
 protected:
+
 
 	/// Get user input
 	std::string input();
@@ -81,10 +83,13 @@ protected:
 	bool parse_error_occured;
 	
 	/// Parse the scrip provided by text
-	void parse_commands(const std::string& script);
+	void parse_commands(const std::string& script, const std::string& file_or_function_name);
 
 	/// Report a parse error
 	void parse_error(const std::string& where, const std::string& why);
+
+	/// Figure out current location within a stringstream
+	static std::string location(std::istream& script);
 
 	//
 	// Tokens: <string> <varname> <value> <key> <section>
@@ -102,38 +107,42 @@ protected:
 	bool expect_token_value(std::istream& script, const std::string& fn_name, double& token);
 
 	//
-	// Commands: exit help who set function call with if while for file input echo
+	// Commands: call concat define discard echo eval exit file for if input set while who with
 	//
 
-	/// exit [<string>], where string is converted to int and used as exit code.
-	void GetSetScriptParser::parse_exit(std::istream& script);
 	/// help [<command>]
 	void parse_help(std::istream& script);
-	/// who
-	void parse_who(std::istream& script);
-	/// set [key <key>|var <varname>] <value>
-	void parse_set(std::istream& script);
-	/// function <varname> ... endfunction
-	void parse_function(std::istream& script);
 	/// call <varname>
 	void parse_call(std::istream& script);
-	/// with <section> ... endwith, where section has same format as <key>
-	void parse_with(std::istream& script);
-	/// if [not] {strequal|numequal|gequal|lequal|greater|less} <value> <value> ... endif
-	void parse_if(std::istream& script);
-	/// while <boolean value> ... endwhile
-	void parse_while(std::istream& script);
+	/// concat var <varname> from <value> [and <value>]+
+	void parse_concat(std::istream& script);
+	/// define function <varname> ... enddefine
+	void parse_define(std::istream& script);
+	/// discard [key <key>|var <varname>|function <varname:function>]
+	void parse_discard(std::istream& script);
+	/// echo
+	void parse_echo(std::istream& script);
+	/// eval var <varname> from <value> <op> <value> (avoid double calculations: GetSet works with strings internally)
+	void parse_eval(std::istream& script);
+	/// exit [<string>], where string is converted to int and used as exit code.
+	void GetSetScriptParser::parse_exit(std::istream& script);
+	/// file {run|save ini|load ini} <file>, where file is a string
+	void parse_file(std::istream& script);
 	/// EITHER for each <varname> in <';' delimited strings> ... endfor
 	/// OR     for each <varname> from <numeric value> to <numeric value> step <numeric value> ... endfor
 	void parse_for(std::istream& script);
-	/// file {run|save ini|load ini} <file>, where file is a string
-	void parse_file(std::istream& script);
+	/// if [not] {strequal|numequal|gequal|lequal|greater|less} <value> <value> ... endif
+	void parse_if(std::istream& script);
 	/// input
 	void parse_input(std::istream& script);
-	/// echo
-	void parse_echo(std::istream& script);
-	/// eval (avoid double calculations: GetSet works with strings internally)
-	void parse_eval(std::istream& script);
+	/// set [key <key>|var <varname>] <value>
+	void parse_set(std::istream& script);
+	/// while <boolean value> ... endwhile
+	void parse_while(std::istream& script);
+	/// who
+	void parse_who(std::istream& script);
+	/// with <section> ... endwith, where section has same format as <key>
+	void parse_with(std::istream& script);
 	
 	/// Advance to the next line
 	std::stringstream rest_of_line(std::istream& script);
@@ -144,8 +153,7 @@ protected:
 	/// Make sure we encounter a certain set of keywords (semicolon separated)
 	int expect_keyword(std::istream& script, const std::string& fn_name, const std::string& keywords);
 
-	/// Access everything from current location to line starting with end_block
-	std::string get_block(std::istream& script, const std::string& end_block);
+
 };
 
 #endif // __GetSetScripting_h

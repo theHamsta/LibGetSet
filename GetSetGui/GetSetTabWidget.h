@@ -32,6 +32,8 @@ class QMenuBar;
 class QTabWidget;
 class QPushButton;
 
+class GetSetScriptRecorder;
+
 namespace GetSetGui
 {
 	class GetSetScriptEdit;
@@ -44,9 +46,9 @@ namespace GetSetGui
 		void ctxMenu(const QPoint &pos);
 		void handle_action();
 		void about();
-		void script_editor();
 		void rec_start();
 		void rec_stop();
+		void script_editor();
 		void script_run_default();
 
 
@@ -61,7 +63,7 @@ namespace GetSetGui
 		QTabWidget	*m_tabWidget;
 		QVBoxLayout	*m_mainLayout;
 		GetSetGui::GetSetScriptEdit	*m_script_editor;
-
+		GetSetScriptRecorder		*m_script_recorder;
 		/// (Re-)Create the tabs and GetSetWidgets
 		void create(GetSetDictionary& dict, const std::string& path, const std::vector<std::string>& tabs);
 

@@ -5,6 +5,10 @@
 #include "GetSet.hxx"
 #include "GetSetIO.h"
 
+//
+// GetSetScriptParser
+//
+
 GetSetScriptParser::GetSetScriptParser(GetSetDictionary& _subject)
 	: subject(_subject)
 	, user_input(0x0)
@@ -36,12 +40,18 @@ void GetSetScriptParser::prompt()
 	}
 }
 
-bool GetSetScriptParser::parse(const std::string& commands)
+bool GetSetScriptParser::parse(const std::string& commands, const std::string& scriptname)
 {
 	parse_error_occured=false;
-	parse_commands(commands);
-	return parse_error_occured;
+	parse_commands(commands, scriptname);
+	return !parse_error_occured;
 }
+
+void GetSetScriptParser::force_stop()
+{
+	parse_error("User interaction","Forced stop.");
+}
+
 
 std::string GetSetScriptParser::input()
 {
@@ -76,39 +86,47 @@ std::string GetSetScriptParser::synopsis(const std::string& command, bool with_e
 	if (help.empty())
 	{
 		help    ["who"]     +="   who\n";
-		help    ["exit"]    +="   exit <value>\n";
-		help    ["set"]     +="   set var <varname> <value>\n";
-		help    ["set"]     +="   set key <key> <value>\n";
+		help    ["exit"]    +="   exit <value:int>\n";
+		help    ["set"]     +="   set var <varname> to <value>\n";
+		help    ["set"]     +="   set key <key> to <value>\n";
 		help    ["set"]     +="   set trigger <key>\n";
-		examples["set"]     +="   set key \"Personal/Last Name\" var user_name\n";
-		help    ["function"]+="   function <varname> ... endfunction\n";
-		examples["function"]+="   function greetings\n";
-		examples["function"]+="      echo value Hallo!\n";
-		examples["function"]+="   endfunction\n";
-		help    ["call"]    +="   call <varname>\n";
-		examples["call"]    +="   call greetings\n";
-		help    ["with"]    +="   with <section>\n";
-		examples["with"]    +="   with \"Personal\"\n";
-		examples["with"]    +="   set key \"Last Name\" value \"John\"\n";
-		examples["with"]    +="   with \"\"\n";
-		help    ["if"]      +="   if <value> [not] <op> <value>\n";
-		help    ["if"]      +="   <op>:=strequal numequal gequal lequal greater less\n";
-		examples["if"]      +="   if key \"Personal/Last Name\" not strequal \"John\"\n";
+		examples["set"]     +="   set key \"Personal/Last Name\" to var user_name\n";
+		help    ["discard"] +="   discard key <key>\n";
+		help    ["discard"] +="   discard {var|function} <varname>\n";
+		examples["discard"] +="   discard key \"Personal/Last Name\"";
+		help    ["define"]  +="   define {var|function} <varname:function> ... endfunction\n";
+		examples["define"]  +="   define function greetings\n";
+		examples["define"]  +="      echo value Hallo!\n";
+		examples["define"]  +="   enddefine\n";
+		help    ["call"]    +="   call function <varname:function>\n";
+		examples["call"]    +="   call function greetings\n";
+		help    ["with"]    +="   with section <key:section>\n";
+		examples["with"]    +="   with section \"Personal\"\n";
+		examples["with"]    +="   set key \"Last Name\" to value \"John\"\n";
+		examples["with"]    +="   with section \"\"\n";
+		help    ["if"]      +="   if  [not] <op> <value> to <value>\n";
+		help    ["if"]      +="   <op>:=strequal or numequal (test for string or numeric equality)\n";
+		help    ["if"]      +="   if  [not] <op> <value> than <value>\n";
+		help    ["if"]      +="   <op>:=gequal lequal greater less (compare two numeric values)\n";
+		examples["if"]      +="   if not strequal key \"Personal/Last Name\" to value \"John\"\n";
 		examples["if"]      +="      echo value \"Name is not John\"\n";
 		examples["if"]      +="   endif\n";
 		help    ["while"]   +="   while <varname> ... endwhile\n";
 		examples["while"]   +="   while active\n";
 		examples["while"]   +="      call do_something\n";
 		examples["while"]   +="   endwhile\n";
-		help    ["for"]     +="   for each <varname> in <list> ... endfor\n";
-		help    ["for"]     +="   <list>:=<value> with semicolon separated strings\n";
-		help    ["for"]     +="   for each <varname> from <value> to <value> step <value> ... endfor\n";
-		examples["for"]     +="   for each i from value 5 to value 9\n";
+		help    ["for"]     +="   for each var <varname> in <value:list> ... endfor\n";
+		help    ["for"]     +="   <value:list> is a semicolon separated list of strings\n";
+		help    ["for"]     +="   for each var <varname> from <value> to <value> step <value> ... endfor\n";
+		examples["for"]     +="   for each var i from value 5 to value 9\n";
 		examples["for"]     +="      echo var i\n";
 		examples["for"]     +="   endfor\n";
-		help    ["file"]    +="   file {load|save} ini <filename>\n";
+		help    ["file"]    +="   file ini {load|save} <filename>\n";
+		help    ["file"]    +="   file ini remove key <key> from <value:filename>\n";
+		help    ["file"]    +="   file ini set key <key> in <value:filename> to <value>\n";
+		help    ["file"]    +="   file ini get var <varname> from key <key> in <value:filename>\n";
 		help    ["file"]    +="   file run <filename>\n";
-		examples["file"]    +="   file save ini \"./file.ini\"\n";
+		examples["file"]    +="   file ini save  \"./file.ini\"\n";
 		examples["file"]    +="   file run script.getset\n";
 		help    ["input"]   +="   input <varname>\n";
 		examples["input"]   +="   echo value \"What's your name?\"\n";
@@ -117,8 +135,11 @@ std::string GetSetScriptParser::synopsis(const std::string& command, bool with_e
 		examples["echo"]    +="   echo value \"Hello World\"\n";
 		examples["echo"]    +="   echo key user_name\n";
 		examples["echo"]    +="   echo var \"Personal/Last Name\"\n";
-		help    ["eval"]    +="   eval <varname> as <value> {plus|minus|times|over} <value>\n";
-		examples["eval"]    +="   eval i as var i plus value 1\n";
+		help    ["eval"]    +="   eval var <varname> from <value> [{plus|minus|times|over} <value>]+\n";
+		examples["eval"]    +="   eval var i from var i times value \"2\" plus value 1 times value 0.5\n";
+		examples["eval"]    +="   (careful: left-to-right evaluation ((i*2)+1)*0.5 )\n";
+		help    ["concat"]  +="   concat var <varname> from <value> [and <value>]+\n";
+		examples["concat"]  +="   concat var c from var a and var b\n";
 	}
 	std::string help_message;
 	if (command.empty() || help.find(command)==help.end())
@@ -154,33 +175,44 @@ std::string GetSetScriptParser::state()
 	return ret;
 }
 
-void GetSetScriptParser::parse_commands(const std::string& commands)
+void GetSetScriptParser::parse_commands(const std::string& commands, const std::string& file_or_function_name)
 {
 	std::istringstream script(commands);
 	while (!parse_error_occured && !script.eof())
 	{
 		std::string command;
+		script >> std::ws;
+		auto pos_before=script.tellg();
 		script >> command;
 		if (command.empty() || command[0]=='#')
 		{
 			rest_of_line(script); // ignore rest of line
 			continue;
 		}
-		else if (command == "exit") parse_exit(script);
 		else if (command == "help") parse_help(script);
-		else if (command == "who") parse_who(script);
-		else if (command == "set") parse_set(script);
-		else if (command == "function") parse_function(script);
 		else if (command == "call") parse_call(script);
-		else if (command == "with") parse_with(script);
-		else if (command == "if") parse_if(script);
-		else if (command == "while") parse_while(script);
-		else if (command == "for") parse_for(script);
-		else if (command == "file") parse_file(script);
-		else if (command == "input") parse_input(script);
+		else if (command == "concat") parse_concat(script);
+		else if (command == "define") parse_define(script);
+		else if (command == "discard") parse_discard(script);
 		else if (command == "echo") parse_echo(script);
 		else if (command == "eval") parse_eval(script);
+		else if (command == "exit") parse_exit(script);
+		else if (command == "file") parse_file(script);
+		else if (command == "for") parse_for(script);
+		else if (command == "if") parse_if(script);
+		else if (command == "input") parse_input(script);
+		else if (command == "set") parse_set(script);
+		else if (command == "while") parse_while(script);
+		else if (command == "who") parse_who(script);
+		else if (command == "with") parse_with(script);
 		else parse_error(command,"Unknown command.");
+		if (parse_error_occured) {
+			auto pos_now=script.tellg();
+			script.clear();
+			script.seekg(pos_before);
+			output(std::string("   called from ") + file_or_function_name + " " + location(script));
+			script.seekg(pos_now);
+		}
 	}
 }
 
@@ -189,6 +221,19 @@ void GetSetScriptParser::parse_error(const std::string& fn_name, const std::stri
 	output(std::string("GetSetScriptParser::")+fn_name+" - "+why);
 	std::istringstream str(fn_name);
 	parse_error_occured=true;
+}
+
+std::string GetSetScriptParser::location(std::istream& script)
+{
+	auto pos=script.tellg();
+	if (pos<0) return "end of file";
+	script.seekg(0,script.beg);
+	std::string commands;
+	getline(script,commands,'\0');
+	script.seekg(pos);
+	int line_number=(int)std::count(commands.begin(),commands.begin()+pos,'\n') ;
+	std::string location=std::string("line: ")+toString(line_number)+ " ch:" +toString(pos);
+	return location;
 }
 
 bool GetSetScriptParser::get_token_string(std::istream& script, std::string& token)
@@ -242,14 +287,9 @@ bool GetSetScriptParser::expect_token_value(std::istream& script, const std::str
 	return !parse_error_occured;
 }
 
-void GetSetScriptParser::parse_exit(std::istream& script)
-{
-	auto line=rest_of_line(script);
-	std::string optional_exit_code;
-	get_token_string(line, optional_exit_code);
-	expect_end_of_line(line,"exit");
-	exit(stringTo<int>(optional_exit_code));
-}
+//
+// Commands: call concat define discard echo eval exit file for if input set while who with
+//
 
 void GetSetScriptParser::parse_help(std::istream& script)
 {
@@ -260,71 +300,117 @@ void GetSetScriptParser::parse_help(std::istream& script)
 	output(synopsis(command_name,true));
 }
 
-void GetSetScriptParser::parse_who(std::istream& script)
-{
-	auto line=rest_of_line(script);
-	if (!expect_end_of_line(line,"who")) return;
-	std::vector<std::string> varnames;
-	for (auto it=variables.begin();it!=variables.end();++it)
-		varnames.push_back(it->first);
-	output(vectorToString(varnames,"\n"));
-}
-
-void GetSetScriptParser::parse_set(std::istream& script)
-{
-	auto line=rest_of_line(script);
-	int type=expect_keyword(line,"set","var;key;trigger");
-	if (type<0) return;
-	else if (type==0)
-	{
-		std::string varname, value;
-		if (!expect_token_string(line,"set",varname)) return;
-		if (!expect_token_value(line,"set",variables[varname])) return;
-		expect_end_of_line(line,"set");
-	}
-	else
-	{
-		std::string key,value;
-		if (!expect_token_key(line,"set",key)) return;
-		if (type==2) // trigger an action
-			GetSetGui::Button(key,subject).trigger();
-		else // set value
-			expect_token_value(line,"set",value);
-		expect_end_of_line(line,"set");
-			if (!parse_error_occured && type==1)
-				GetSet<>(key,subject)=value;
-	}
-}
-
-void GetSetScriptParser::parse_function(std::istream& script)
-{
-	auto line=rest_of_line(script);
-	std::string varname;
-	expect_token_string(line,"function",varname);
-	expect_end_of_line(line,"function");
-	if (!parse_error_occured)
-		variables[varname]=get_block(script,"function");
-}
-
 void GetSetScriptParser::parse_call(std::istream& script)
 {
 	auto line=rest_of_line(script);
+	if (expect_keyword(line,"call","var;function")<0) return;
 	std::string varname;
 	expect_token_string(line,"call",varname);
 	if (!expect_end_of_line(line,"call")) return;
 	if (variables.find(varname)==variables.end())
 		parse_error("call", varname + " variable undefined.");
 	else
-		parse_commands(variables[varname]);
+		parse_commands(variables[varname], std::string("function ")+varname);
 }
 
-void GetSetScriptParser::parse_with(std::istream& script)
+void GetSetScriptParser::parse_concat(std::istream& script)
 {
 	auto line=rest_of_line(script);
-	expect_token_string(line,"with",section_prefix);
-	expect_end_of_line(line,"with");
-	if (!section_prefix.empty() && section_prefix.back()!='/')
-		section_prefix.push_back('/');
+	// Parse: var <varname> from ...
+	if (expect_keyword(line,"concat","var")<0) return;
+	std::string varname;
+	if (!expect_token_string(line,"file",varname)) return;
+	if (expect_keyword(line,"concat","from")<0) return;
+	// Parse: <numeric value> op <numeric value> ...
+	std::string value, rhs;
+	if (!expect_token_value(line,"concat (lhs)",value)) return;
+	while (!line.eof() && !parse_error_occured)
+	{
+		int op=expect_keyword(line,"concat","and");
+		if (op<0 || !expect_token_value(line,"concat (rhs)",rhs)) return;
+		// Concatenation
+		value=value+rhs;
+		line >> std::ws;
+	}
+	if (!parse_error_occured)
+		variables[varname]=toString(value);
+}
+
+void GetSetScriptParser::parse_define(std::istream& script)
+{
+	auto line=rest_of_line(script);
+	if (expect_keyword(line,"define","var;function")<0) return;
+	std::string varname;
+	expect_token_string(line,"define",varname);
+	expect_end_of_line(line,"define");
+	auto pos_start=script.tellg();
+	std::string block_start=location(script);
+	std::string function_block=get_block(script,"define");
+	std::string thisblock=std::string("# function ")+ varname + " (at " + block_start + " to " + location(script)+")";
+	if (!parse_error_occured)
+		variables[varname]=thisblock+"\n"+function_block;
+}
+
+void GetSetScriptParser::parse_discard(std::istream& script)
+{
+	auto line=rest_of_line(script);
+	int type=expect_keyword(line,"discard","key;var;function");
+	std::string var_or_key_name;
+	if (!expect_token_string(line,"discard",var_or_key_name)) return;
+	if (!expect_end_of_line(line,"discard")) return;
+	if (type<0) return;
+	else if (type==0)
+		GetSetDictionary::global().remove(var_or_key_name);
+	else
+	{
+		auto it=variables.find(var_or_key_name);
+		if (it!=variables.end())
+			variables.erase(it);
+	}
+}
+
+void GetSetScriptParser::parse_echo(std::istream& script)
+{
+	auto line=rest_of_line(script);
+	std::string value;
+	if (!expect_token_value(line,"echo",value)) return;
+	if (!expect_end_of_line(line,"echo")) return;
+	output(value);
+}
+
+void GetSetScriptParser::parse_eval(std::istream& script)
+{
+	auto line=rest_of_line(script);
+	// Parse: var <varname> as ...
+	if (expect_keyword(line,"eval","var")<0) return;
+	std::string varname;
+	if (!expect_token_string(line,"file",varname)) return;
+	if (expect_keyword(line,"eval","from")<0) return;
+	// Parse: <numeric value> op <numeric value> ...
+	double value, rhs;
+	if (!expect_token_value(line,"eval (lhs)",value)) return;
+	while (!line.eof() && !parse_error_occured)
+	{
+		int op=expect_keyword(line,"eval","plus;minus;times;over");
+		if (op<0 || !expect_token_value(line,"eval (rhs)",rhs)) return;
+		// Calculation
+		if (op==0)      value+=rhs;
+		else if (op==1) value-=rhs;
+		else if (op==2) value*=rhs;
+		else if (op==3) value/=rhs;
+		line >> std::ws;
+	}
+	if (!parse_error_occured)
+		variables[varname]=toString(value);
+}
+
+void GetSetScriptParser::parse_exit(std::istream& script)
+{
+	auto line=rest_of_line(script);
+	std::string optional_exit_code;
+	get_token_string(line, optional_exit_code);
+	expect_end_of_line(line,"exit");
+	exit(stringTo<int>(optional_exit_code));
 }
 
 void GetSetScriptParser::parse_if(std::istream& script)
@@ -341,6 +427,7 @@ void GetSetScriptParser::parse_if(std::istream& script)
 	{
 		std::string lhs, rhs;
 		expect_token_value(line,"if (lhs)",lhs);
+		if (expect_keyword(line,"if","to")<0) return;
 		expect_token_value(line,"if (rhs)",rhs);
 		result = lhs == rhs;
 	}
@@ -348,6 +435,8 @@ void GetSetScriptParser::parse_if(std::istream& script)
 	{
 		double lhs, rhs;
 		expect_token_value(line,"if (lhs)",lhs);
+		if (comparator==1 && expect_keyword(line,"if","to")<0) return;
+		if (comparator!=1 && expect_keyword(line,"if","than")<0) return;
 		expect_token_value(line,"if (rhs)",rhs);
 		if      (comparator==1) result = lhs==rhs;
 		else if (comparator==2) result = lhs>=rhs;
@@ -355,22 +444,106 @@ void GetSetScriptParser::parse_if(std::istream& script)
 		else if (comparator==4) result = lhs>rhs;
 		else if (comparator==5) result = lhs<rhs;
 	}
-	expect_end_of_line(line,"if");
 	if (negate) result=!result;
+	expect_end_of_line(line,"if");
+	auto pos_start=script.tellg();
+	std::string block_start=location(script);
 	std::string if_block=get_block(script,"if");
+	auto pos_end=script.tellg();
+	std::string thisblock=std::string("if block (at ") + block_start + " + " + toString(pos_end-pos_start)+")";
 	if (!parse_error_occured && result)
-		parse_commands(if_block);
+		parse_commands(if_block, thisblock );
 }
 
-void GetSetScriptParser::parse_while(std::istream& script)
+void GetSetScriptParser::parse_file(std::istream& script)
 {
 	auto line=rest_of_line(script);
-	std::string varname;
-	expect_token_string(line,"while",varname);
-	if (!expect_end_of_line(line,"while")) return;
-	std::string while_block=get_block(script,"while");
-	while (!parse_error_occured && stringTo<bool>(variables[varname]))
-		parse_commands(while_block);
+	std::string file;
+	int what=expect_keyword(line,"file","ini;run");
+	if (what==1) // run
+	{
+		if (!expect_token_string(line,"file",file)) return;
+		if (!expect_end_of_line(line,"file")) return;
+		std::string commands=fileReadString(file);
+		if (commands.empty()) parse_error("file","File not found or file empty.");
+		else parse_commands(commands, std::string("file \"")+file+"\"");
+	}
+	else // ini
+	{
+		int action=expect_keyword(line,"file","load;save;get;set;remove");
+		if (action<0) return;
+		if (action==0||action==1) // load/save
+		{
+			if (!expect_token_value(line,"file",file)) return;
+			if (!expect_end_of_line(line,"file")) return;
+			if (action==0) GetSetIO::load<GetSetIO::IniFile>(file);		
+			else           GetSetIO::save<GetSetIO::IniFile>(file);	
+		}
+		if (action==2) // get
+		{
+			//  file ini get var <varname> from key <key> in <value:filename>\n";
+			if (expect_keyword(line,"file","var")<0) return;
+			std::string varname;
+			if (!expect_token_string(line,"file",varname)) return;
+			if (expect_keyword(line,"file","from")<0) return;
+			if (expect_keyword(line,"file","key")<0) return;
+			std::string keyname;
+			if (!expect_token_string(line,"file",keyname)) return;
+			if (expect_keyword(line,"file","in")<0) return;
+			std::string ini_file;
+			if (!expect_token_string(line,"file",ini_file)) return;
+			if (!expect_end_of_line(line,"file")) return;
+			// Implementation:
+			GetSetDictionary file_contents;
+			if (!GetSetIO::load<GetSetIO::IniFile>(ini_file,file_contents)) {
+				parse_error("file", ini_file + " could not be loaded.");
+				return;
+			}
+			std::string value=GetSet<>(keyname,file_contents);
+			variables[varname]=value;
+		}
+		else if (action==3) // set
+		{
+			//  file ini set key <key> in <value:filename> to <value>\n";
+			if (expect_keyword(line,"file","key")<0) return;
+			std::string keyname;
+			if (!expect_token_string(line,"file",keyname)) return;
+			if (expect_keyword(line,"file","in")<0) return;
+			std::string ini_file;
+			if (!expect_token_string(line,"file",ini_file)) return;
+			if (expect_keyword(line,"file","to")<0) return;
+			std::string value;
+			if (!expect_token_value(line,"file",value)) return;
+			if (!expect_end_of_line(line,"file")) return;
+			// Implementation:
+			GetSetDictionary file_contents;
+			if (!GetSetIO::load<GetSetIO::IniFile>(ini_file,file_contents)) {
+				// if file does not exist, we may still want to set some values.
+			}
+			GetSet<>(keyname,file_contents)=value;
+			if (!GetSetIO::save<GetSetIO::IniFile>(ini_file,file_contents))
+				parse_error("file", ini_file + " could not be saved.");
+		}
+		else // remove
+		{
+			if (expect_keyword(line,"file","key")<0) return;
+			std::string keyname;
+			if (!expect_token_string(line,"file",keyname)) return;
+			if (expect_keyword(line,"file","from")<0) return;
+			std::string ini_file;
+			if (!expect_token_string(line,"file",ini_file)) return;
+			if (!expect_end_of_line(line,"file")) return;
+			// Implementation:
+			GetSetDictionary file_contents;
+			if (!GetSetIO::load<GetSetIO::IniFile>(ini_file,file_contents)) {
+				parse_error("file", ini_file + " could not be loaded.");
+				return;
+			}
+			file_contents.remove(keyname);
+			if (!GetSetIO::save<GetSetIO::IniFile>(ini_file,file_contents))
+				parse_error("file", ini_file + " could not be saved.");
+		}
+	}
 }
 
 void GetSetScriptParser::parse_for(std::istream& script)
@@ -401,36 +574,16 @@ void GetSetScriptParser::parse_for(std::istream& script)
 		else     for (double d=a;d>=b;d-=step) values.push_back(toString(d));
 	}
 	expect_end_of_line(line,"for");
+	auto pos_start=script.tellg();
+	std::string block_start=location(script);
 	std::string foreach_block=get_block(script,"for");
+	auto pos_end=script.tellg();
+	std::string thisblock=std::string("for block (at ") + block_start + " + " + toString(pos_end-pos_start)+")";
 	for (auto value=values.begin();value!=values.end();++value)
 	{
 		if (parse_error_occured) break;
 		variables[varname]=*value;
-		parse_commands(foreach_block);
-	}
-}
-
-void GetSetScriptParser::parse_file(std::istream& script)
-{
-	auto line=rest_of_line(script);
-	std::string file;
-	int action=expect_keyword(line,"file","load;save;run");
-	if (action<0) return;
-	if (action==0||action==1) // load/save
-	{
-		expect_keyword(line,"file","ini");
-		if (!expect_token_value(line,"file",file)) return;
-		if (!expect_end_of_line(line,"file")) return;
-		if (action==0) GetSetIO::load<GetSetIO::IniFile>(file);		
-		else           GetSetIO::save<GetSetIO::IniFile>(file);	
-	}
-	else if (action==2) // run
-	{
-		if (!expect_token_string(line,"file",file)) return;
-		if (!expect_end_of_line(line,"file")) return;
-		std::string commands=fileReadString(file);
-		if (commands.empty()) parse_error("file","File not found or file empty.");
-		else parse_commands(commands);
+		parse_commands(foreach_block, thisblock);
 	}
 }
 
@@ -443,39 +596,75 @@ void GetSetScriptParser::parse_input(std::istream& script)
 	variables[varname]=input();
 }
 
-void GetSetScriptParser::parse_echo(std::istream& script)
+void GetSetScriptParser::parse_set(std::istream& script)
 {
 	auto line=rest_of_line(script);
-	std::string value;
-	if (!expect_token_value(line,"echo",value)) return;
-	if (!expect_end_of_line(line,"echo")) return;
-	output(value);
+	int type=expect_keyword(line,"set","var;key;trigger");
+	if (type<0) return;
+	else if (type==0) // set var to <value>
+	{
+		std::string varname, value;
+		if (!expect_token_string(line,"set",varname)) return;
+		if (expect_keyword(line,"set","to")<0) return;
+		if (!expect_token_value(line,"set",variables[varname])) return;
+		expect_end_of_line(line,"set");
+	}
+	else
+	{
+		std::string key,value;
+		if (!expect_token_key(line,"set",key)) return;
+		if (type==2) // trigger an action
+			GetSetGui::Button(key,subject).trigger();
+		else // set key to <value>
+		{
+			if (expect_keyword(line,"set","to")<0) return;
+			expect_token_value(line,"set",value);
+		}
+		expect_end_of_line(line,"set");
+		if (!parse_error_occured && type==1)
+			GetSet<>(key,subject)=value;
+	}
 }
 
-void GetSetScriptParser::parse_eval(std::istream& script)
+void GetSetScriptParser::parse_while(std::istream& script)
 {
 	auto line=rest_of_line(script);
-	// Parse: var <varname> as ...
-	if (expect_keyword(line,"eval","var")<0) return;
+	if (expect_keyword(line,"set","var")<0) return;
 	std::string varname;
-	if (!get_token_string(line,varname))
-	{
-		parse_error("eval","Failed to parse variable name.");
-		return;
-	}
-	if (expect_keyword(line,"eval","as")<0) return;
-	// Parse: <numeric value> op <numeric value> ...
-	double lhs, rhs;
-	if (!expect_token_value(line,"eval (lhs)",lhs)) return;
-	int op=expect_keyword(line,"eval","plus;minus;times;over");
-	if (op<0 || !expect_token_value(line,"eval (rhs)",rhs)) return;
-	// Calculation
-	if (op==0)      variables[varname]=toString(lhs+rhs);
-	else if (op==1) variables[varname]=toString(lhs-rhs);
-	else if (op==2) variables[varname]=toString(lhs*rhs);
-	else if (op==3) variables[varname]=toString(lhs/rhs);
-	expect_end_of_line(line,"eval");
+	expect_token_string(line,"while",varname);
+	if (!expect_end_of_line(line,"while")) return;
+	auto pos_start=script.tellg();
+	std::string block_start=location(script);
+	std::string while_block=get_block(script,"while");
+	auto pos_end=script.tellg();
+	std::string thisblock=std::string("while block (at ") + block_start + " + " + toString(pos_end-pos_start)+")";
+	while (!parse_error_occured && stringTo<bool>(variables[varname]))
+		parse_commands(while_block, thisblock );
 }
+
+void GetSetScriptParser::parse_who(std::istream& script)
+{
+	auto line=rest_of_line(script);
+	if (!expect_end_of_line(line,"who")) return;
+	std::vector<std::string> varnames;
+	for (auto it=variables.begin();it!=variables.end();++it)
+		varnames.push_back(it->first);
+	output(vectorToString(varnames,"\n"));
+}
+
+void GetSetScriptParser::parse_with(std::istream& script)
+{
+	auto line=rest_of_line(script);
+	if (expect_keyword(line,"with","section")<0) return;
+	expect_token_string(line,"with",section_prefix);
+	expect_end_of_line(line,"with");
+	if (!section_prefix.empty() && section_prefix.back()!='/')
+		section_prefix.push_back('/');
+}
+
+//
+// Commands end
+//
 
 std::stringstream GetSetScriptParser::rest_of_line(std::istream& script)
 {
@@ -524,7 +713,7 @@ std::string GetSetScriptParser::get_block(std::istream& script, const std::strin
 			stack_depth--;
 			if (stack_depth==0) break;
 		}
-		if (line.front()!='#') block+=line+"\n";
+		if (!line.empty() && line.front()!='#') block+=line+"\n";
 	}
 	if (stack_depth!=0)
 	{

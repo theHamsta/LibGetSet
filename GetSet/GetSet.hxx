@@ -44,6 +44,9 @@ public:
 	/// Get the value of a GetSet property (same as: cast operator)
 	const BasicType getValue() const;
 
+	/// Get the actual type of the underlying GetSet property (differs from BaseType!)
+	const std::string GetSet<BasicType>::getType() const;
+
 	/// Set the value of this property from a string
 	virtual void setString(const std::string& value);
 	/// Get the value of the property as string

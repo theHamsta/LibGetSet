@@ -40,7 +40,6 @@ namespace GetSetGui
 		GetSetProgressWindow	*progress_window;
 
 	public:
-
 		GetSetApplication(std::string _appname);
 		~GetSetApplication();
 

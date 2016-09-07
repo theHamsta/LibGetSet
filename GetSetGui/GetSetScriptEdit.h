@@ -44,14 +44,17 @@ namespace GetSetGui
 		void setScript(const std::string& script);
 
 	public slots:
-		void newFile();
+		void setText(const QString &text);
 		void openFile(const QString &path = QString());
 		void saveFile(const QString &path = QString());
+		void help();
 		void execute();
+		void force_stop();
+		void executeSelected();
 
 	private:
 		void setupEditor();
-		void setupFileMenu();
+		void setupToolBarsAndMenus();
 
 		void closeEvent(QCloseEvent *event);
 
