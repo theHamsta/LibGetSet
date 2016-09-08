@@ -24,10 +24,13 @@
 #define __GetSetScriptEdit_h
 
 #include <QMainWindow>
-#include <QSyntaxHighlighter>
+#include <QTextEdit>
 #include <QTextCharFormat>
+#include <QSyntaxHighlighter>
 
-class QTextEdit;
+#include "../GetSet/GetSetScripting.h"
+
+
 class QTextDocument;
 
 namespace GetSetGui
@@ -42,6 +45,9 @@ namespace GetSetGui
 		GetSetScriptEdit(QWidget *parent = 0);
 
 		void setScript(const std::string& script);
+
+		static void setOutputPane(const std::string& text, void* instance);
+		static void setStatusPane(const std::string& text, void* instance);
 
 	public slots:
 		void setText(const QString &text);
@@ -59,8 +65,12 @@ namespace GetSetGui
 
 		void closeEvent(QCloseEvent *event);
 
-		QTextEdit *editor;
+		QTextEdit			*editor;
+		GetSetScriptParser	parser;
+		QTextEdit			*m_statusMsg;
+		QTextEdit			*m_outputMsg;
 		GetSetScriptSyntaxHighlighter *highlighter;
+		QList<QTextEdit::ExtraSelection> extraSelections;
 	};
 
 	class GetSetScriptSyntaxHighlighter : public QSyntaxHighlighter
@@ -79,7 +89,6 @@ namespace GetSetGui
 	private:
 		std::vector<std::pair<std::string,QTextCharFormat > > highlightingRules;
 		std::vector<std::pair<std::string,QTextCharFormat > > overridingRules;
-
 	};
 
 } // namespace GetSetGui

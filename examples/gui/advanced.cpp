@@ -50,7 +50,6 @@ int main(int argc, char** argv)
 	// Declare command line interface
 	g_app.commandLine().declare();
 
-
 	// Show Qt window
 	g_app.init(argc,argv,gui);
 
@@ -65,10 +64,6 @@ void gui(const std::string& section, const std::string& key)
 	// Window title indicates either a button or a menu item
 	if (section=="ExampleAdvanced")
 	{
-		if (key=="Quit")
-			exit(0);
-		if (key=="About")
-			g_app.info("Lib GetSet Advanced Example","For more information see Sourceforge https://sourceforge.net/projects/getset/",true);
 		if (key=="Do Something")
 			GetSetGui::Button("More","Do Something").trigger();
 		return;

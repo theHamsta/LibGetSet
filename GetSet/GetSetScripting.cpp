@@ -12,7 +12,6 @@
 GetSetScriptParser::GetSetScriptParser(GetSetDictionary& _subject)
 	: subject(_subject)
 	, user_input(0x0)
-	, user_output(0x0)
 	, parse_error_occured(false)
 {}
 
@@ -31,8 +30,8 @@ bool GetSetScriptParser::good() const
 
 void GetSetScriptParser::prompt()
 {
-	output("GetSet scripting language \nhttps://sourceforge.net/p/getset/");
-	output("To leave prompt type:\n   set key Prompt value false");
+	printErr("GetSet scripting language \nhttps://sourceforge.net/p/getset/");
+	printErr("To leave prompt type:\n   set key Prompt value false");
 	GetSet<bool>("Prompt")=true;
 	while (GetSet<bool>("Prompt")) {
 		std::string command=input();
@@ -52,6 +51,42 @@ void GetSetScriptParser::force_stop()
 	parse_error("User interaction","Forced stop.");
 }
 
+void GetSetScriptParser::addOutputCallback(void *identifier,  void (*callback)(const std::string&, void*))
+{
+	if (!callback && user_out.find(identifier)!=user_out.end())
+		user_out.erase(user_out.find(identifier));
+	else user_out[identifier]=callback;
+}
+
+void GetSetScriptParser::addErrorCallback(void *identifier,  void (*callback)(const std::string&, void*))
+{
+	if (!callback && user_err.find(identifier)!=user_err.end())
+		user_err.erase(user_err.find(identifier));
+	else user_err[identifier]=callback;
+}
+
+void GetSetScriptParser::printOut(const std::string& text)
+{
+	if (user_out.empty())
+		std::cout << text << std::endl;
+	else
+		for (auto it=user_out.begin();it!=user_out.end();++it)
+			if (it->second) it->second(text, it->first);
+}
+
+void GetSetScriptParser::printErr(const std::string& text)
+{
+	// The identifier 0x0 is user as a special callback which only forces a GUI update
+	// It is set by GetSetApplication by default.
+	if (user_err.empty()||(user_err.size()==1 && user_err.find(0x0)!=user_err.end()))
+	{
+		if (!text.empty() && text.front()!='@')
+			std::cerr << text << std::endl;
+	}
+	else
+		for (auto it=user_err.begin();it!=user_err.end();++it)
+			if (it->second) it->second(text, it->first);
+}
 
 std::string GetSetScriptParser::input()
 {
@@ -72,12 +107,6 @@ std::string GetSetScriptParser::input()
 		}
 		return line;
 	}
-}
-
-void GetSetScriptParser::output(const std::string& text)
-{
-	if (user_output) return user_output(text);
-	else std::cout << text << std::endl;
 }
 
 std::string GetSetScriptParser::synopsis(const std::string& command, bool with_example)
@@ -102,7 +131,7 @@ std::string GetSetScriptParser::synopsis(const std::string& command, bool with_e
 		examples["call"]    +="   call function greetings\n";
 		help    ["with"]    +="   with section <key:section>\n";
 		examples["with"]    +="   with section \"Personal\"\n";
-		examples["with"]    +="   set key \"Last Name\" to value \"John\"\n";
+		examples["with"]    +="   set key \"First Name\" to value \"John\"\n";
 		examples["with"]    +="   with section \"\"\n";
 		help    ["if"]      +="   if  [not] <op> <value> to <value>\n";
 		help    ["if"]      +="   <op>:=strequal or numequal (test for string or numeric equality)\n";
@@ -131,9 +160,9 @@ std::string GetSetScriptParser::synopsis(const std::string& command, bool with_e
 		help    ["input"]   +="   input <varname>\n";
 		examples["input"]   +="   echo value \"What's your name?\"\n";
 		examples["input"]   +="   input user_name\n";
-		help    ["echo"]    +="   echo <value>\n";
-		examples["echo"]    +="   echo value \"Hello World\"\n";
-		examples["echo"]    +="   echo key user_name\n";
+		help    ["echo"]    +="   echo <value> [and <value>]*\n";
+		examples["echo"]    +="   echo key \"Personal/First Name\"\n";
+		examples["echo"]    +="   echo value \"Hello \" and var user_name and value \"!\"\n";
 		examples["echo"]    +="   echo var \"Personal/Last Name\"\n";
 		help    ["eval"]    +="   eval var <varname> from <value> [{plus|minus|times|over} <value>]+\n";
 		examples["eval"]    +="   eval var i from var i times value \"2\" plus value 1 times value 0.5\n";
@@ -177,12 +206,14 @@ std::string GetSetScriptParser::state()
 
 void GetSetScriptParser::parse_commands(const std::string& commands, const std::string& file_or_function_name)
 {
+	std::string current_location;
 	std::istringstream script(commands);
 	while (!parse_error_occured && !script.eof())
 	{
 		std::string command;
 		script >> std::ws;
-		auto pos_before=script.tellg();
+		current_location=location(script);
+		printErr(std::string("@")+file_or_function_name+" "+current_location);
 		script >> command;
 		if (command.empty() || command[0]=='#')
 		{
@@ -206,19 +237,16 @@ void GetSetScriptParser::parse_commands(const std::string& commands, const std::
 		else if (command == "who") parse_who(script);
 		else if (command == "with") parse_with(script);
 		else parse_error(command,"Unknown command.");
-		if (parse_error_occured) {
-			auto pos_now=script.tellg();
-			script.clear();
-			script.seekg(pos_before);
-			output(std::string("   called from ") + file_or_function_name + " " + location(script));
-			script.seekg(pos_now);
-		}
 	}
+	if (parse_error_occured)
+		printErr(std::string("   called from ") + file_or_function_name + " @" + current_location);
+	else
+		printErr(std::string("@")+file_or_function_name+" success.");
 }
 
 void GetSetScriptParser::parse_error(const std::string& fn_name, const std::string& why)
 {
-	output(std::string("GetSetScriptParser::")+fn_name+" - "+why);
+	printErr(fn_name+" - "+why);
 	std::istringstream str(fn_name);
 	parse_error_occured=true;
 }
@@ -287,6 +315,8 @@ bool GetSetScriptParser::expect_token_value(std::istream& script, const std::str
 	return !parse_error_occured;
 }
 
+
+
 //
 // Commands: call concat define discard echo eval exit file for if input set while who with
 //
@@ -297,7 +327,7 @@ void GetSetScriptParser::parse_help(std::istream& script)
 	std::string command_name;
 	get_token_string(line, command_name);
 	expect_end_of_line(line,"help");
-	output(synopsis(command_name,true));
+	printErr(synopsis(command_name,true));
 }
 
 void GetSetScriptParser::parse_call(std::istream& script)
@@ -374,8 +404,21 @@ void GetSetScriptParser::parse_echo(std::istream& script)
 	auto line=rest_of_line(script);
 	std::string value;
 	if (!expect_token_value(line,"echo",value)) return;
+	while (line && !line.eof())
+	{
+		std::string and;
+		get_token_string(line,and);
+		if (and=="and")
+		{
+			std::string next_value;
+			if (!expect_token_value(line,"echo",value)) return;
+			value=value+next_value;
+		}
+		else if (!and.empty())
+			parse_error("echo",std::string("Expected \"and\" but found " + and));
+	}
 	if (!expect_end_of_line(line,"echo")) return;
-	output(value);
+	printOut(value);
 }
 
 void GetSetScriptParser::parse_eval(std::istream& script)
@@ -649,7 +692,7 @@ void GetSetScriptParser::parse_who(std::istream& script)
 	std::vector<std::string> varnames;
 	for (auto it=variables.begin();it!=variables.end();++it)
 		varnames.push_back(it->first);
-	output(vectorToString(varnames,"\n"));
+	printOut(vectorToString(varnames,"\n"));
 }
 
 void GetSetScriptParser::parse_with(std::istream& script)

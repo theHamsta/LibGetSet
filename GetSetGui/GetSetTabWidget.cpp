@@ -70,41 +70,54 @@ namespace GetSetGui
 				for (GetSetInternal::GetSetSection::PropertyByName::const_iterator it=section->getSection().begin();it!=section->getSection().end();++it)
 					if (dynamic_cast<GetSetInternal::GetSetSection *>(it->second))
 						all.push_back(it->first);
-				return create(dict,path,all);
+				if (!all.empty())
+				{
+					create(dict,path,all);
+					m_tabs.clear();
+					return;
+				}
 			}
+			else return;
 		}
 
-		m_tabWidget = new QTabWidget;
+		m_path=path;
+		m_tabs=tabs;
+
+		if (!m_mainLayout)
+		{
+			m_mainLayout = new QVBoxLayout;
+			setLayout(m_mainLayout);
+		}
+
+		if (m_tabWidget)
+		{
+			int n=m_tabWidget->count();
+			for (int i=0;i<n;i++)
+				delete m_tabWidget->widget(0);
+			m_tabWidget->clear();
+		}
+		else m_tabWidget = new QTabWidget(this);
 		for (int i=0;i<(int)tabs.size(); i++)
 		{
-			GetSetWidget* tab=new GetSetWidget(dict,tabs[i]);
+			GetSetWidget* tab=new GetSetWidget(dict,tabs[i],m_tabWidget);
 			tab->setObjectName(tabs[i].c_str());
 			m_tabWidget->addTab(tab,tabs[i].c_str());
 		}
 		m_tabWidget->setContextMenuPolicy(Qt::CustomContextMenu);
 		connect(m_tabWidget, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(ctxMenu(const QPoint &)));
 
-		m_mainLayout = new QVBoxLayout;
-		m_menuBar=new QMenuBar();
-	
-		m_mainLayout->setMenuBar(m_menuBar);
 		m_mainLayout->addWidget(m_tabWidget);
 
-		setLayout(m_mainLayout);
-
-		m_script_editor=new GetSetGui::GetSetScriptEdit(this);
-		std::string appname=GetSet<>("Application");
-		m_script_editor->openFile((appname+".getset").c_str());
-
 		setWindowIcon(style()->standardIcon(QStyle::SP_TitleBarMenuButton));
-
-		m_script_recorder=new GetSetScriptRecorder(dict);
 	}
 
 	GetSetTabWidget::GetSetTabWidget(QWidget *parent)
 		: QWidget(parent)
-		, Access(GetSetDictionary::global())
+		, GetSetDictionary::Observer(GetSetDictionary::global())
 		, m_menuBar(0x0)
+		, m_mainLayout(0x0)
+		, m_tabWidget(0x0)
+		, m_script_recorder(0x0)
 	{
 		setWindowTitle("Settings");
 		create(GetSetDictionary::global(),"",std::vector<std::string>());
@@ -112,12 +125,14 @@ namespace GetSetGui
 
 	GetSetTabWidget::GetSetTabWidget(const std::string& path, GetSetDictionary& dict ,const std::string& title, const std::string& listOfTabs, QWidget *parent)
 		: QWidget(parent)
-		, Access(dict)
+		, GetSetDictionary::Observer(dict)
 		, m_menuBar(0x0)
+		, m_mainLayout(0x0)
+		, m_tabWidget(0x0)
+		, m_script_recorder(0x0)
 	{
 		setWindowTitle(title.c_str());
 		std::vector<std::string> tabs=stringToVector<std::string>(listOfTabs,';');
-
 		create(dict,path,tabs);
 	}
 
@@ -128,6 +143,8 @@ namespace GetSetGui
 
 	QAction* GetSetTabWidget::addMenuItem(const std::string& menu, const std::string& action, const std::string& shortcut)
 	{
+		// Make sure a menu bar exists
+		addDefaultFileMenu();
 		// First create menu structure
 		if (m_menus.find(menu)==m_menus.end())
 		{
@@ -174,6 +191,9 @@ namespace GetSetGui
 
 	void GetSetTabWidget::addDefaultFileMenu()
 	{
+		if (m_menuBar) return;
+		m_menuBar=new QMenuBar();
+		m_mainLayout->setMenuBar(m_menuBar);
 		// File menu
 		addMenuItem("File","");
 		m_menus["File"]->addAction(tr("&About"), this, SLOT(about()));
@@ -211,20 +231,28 @@ namespace GetSetGui
 
 	void GetSetTabWidget::rec_start()
 	{
-		m_script_recorder->log.clear();
+		if (m_script_recorder) delete m_script_recorder;
+		m_script_recorder=new GetSetScriptRecorder();
 	}
 
 	void GetSetTabWidget::rec_stop()
 	{
-		m_script_recorder->log;
-		m_script_editor->setText(m_script_recorder->log.c_str());
-		m_script_editor->show();
-		rec_start();
+		if (!m_script_recorder) return;
+		GetSetScriptEdit *script_editor=new GetSetScriptEdit();
+		script_editor->setAttribute(Qt::WA_DeleteOnClose);
+		script_editor->setText(m_script_recorder->log.c_str());
+		script_editor->show();
+		delete m_script_recorder;
+		m_script_recorder=0x0;
 	}
 
 	void GetSetTabWidget::script_editor()
 	{
-		m_script_editor->show();
+		std::string appname=GetSet<>("Application");
+		GetSetScriptEdit *script_editor=new GetSetScriptEdit();
+		script_editor->setAttribute(Qt::WA_DeleteOnClose);
+		script_editor->openFile((appname+".getset").c_str());
+		script_editor->show();
 	}
 	
 	void GetSetTabWidget::script_run_default()
@@ -257,5 +285,19 @@ namespace GetSetGui
 			}
 		}
 	}
+
+	void GetSetTabWidget::notifyCreate(const std::string& list, const std::string& key)
+	{
+		if (m_tabs.empty()) // only if this window shows *all* tabs, we have to make sure that a new one was not created
+			create(dictionary,m_path,m_tabs);
+	}
+
+	void GetSetTabWidget::notifyDestroy(const std::string& list, const std::string& key)
+	{
+		if (m_tabs.empty()) // only if this window shows *all* tabs, we have to make sure that a new one was not created
+			create(dictionary,m_path,m_tabs);
+	}
+
+	void GetSetTabWidget::notifyChange(const std::string &,const std::string &) {} // ignore
 
 } // namespace GetSetGui

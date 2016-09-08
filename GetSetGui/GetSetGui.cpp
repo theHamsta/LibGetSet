@@ -12,9 +12,8 @@
 
 #include <QApplication>
 
-void script_output(const std::string& text)
+void gui_update(const std::string&, void*)
 {
-	std::cout << text << std::endl;
 	QApplication::processEvents();
 }
 
@@ -29,7 +28,7 @@ namespace GetSetGui
 	{
 		GetSet<>("Application")=_appname;
 		GetSet<>("ini-File")=_appname+".ini";
-		GetSetScriptParser::global().user_output=script_output;
+		GetSetScriptParser::global().addErrorCallback(0x0,gui_update);
 	}
 
 	GetSetApplication::~GetSetApplication()
@@ -133,7 +132,6 @@ namespace GetSetGui
 			main_window=new GetSetTabWidget();
 			main_window->setWindowTitle(GetSet<>("Application").getString().c_str());
 			main_window->setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::CustomizeWindowHint | Qt::WindowSystemMenuHint);
-			main_window->addDefaultFileMenu();
 		}
 		return *main_window;
 	}

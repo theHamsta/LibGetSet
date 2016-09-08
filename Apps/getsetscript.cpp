@@ -1,20 +1,30 @@
-#include <GetSet/GetSet.hxx>
-#include <GetSet/GetSetScripting.h>
+
+#include <GetSetGui/GetSetGui.h>
+#include <GetSetGui/GetSetTabWidget.h>
+#include <GetSetGui/GetSetScriptEdit.h>
 
 #include <iostream>
 #include <string>
 
+GetSetGui::GetSetApplication g_app("GetSetScript");
+
+void gui(const std::string& section, const std::string& key)
+{
+	std::cout << "Changed: " << section << " -> " << key << std::endl;
+	g_app.saveSettings();
+}
 
 int main(int argc, char** argv)
 {
-	if (argc>2) {
-		std::cerr << "Usage:\n   script [file.getset]\n";
-		return 1;
-	}
-	if (argc==2)
-		GetSetScriptParser::global().parse(std::string("file run ")+argv[1]);
-
-	GetSetScriptParser::global().prompt();
-	
-	return 0;
+	g_app.init(argc,argv,gui);
+	g_app.window().setWindowTitle("GetSet Keys");
+	GetSetGui::GetSetScriptEdit script_edit;
+	script_edit.setWindowFlags(Qt::WindowTitleHint | Qt::WindowMinimizeButtonHint);
+	script_edit.openFile("GetSetScript.getset");
+	script_edit.show();
+	GetSetGui::GetSetWidget global(GetSetDictionary::global(),"");
+	global.setWindowFlags(Qt::WindowTitleHint | Qt::WindowMinimizeButtonHint);
+	global.setWindowTitle("Global GetSet Dictionary (including hidden keys)");
+	global.show();
+	return g_app.exec();
 }

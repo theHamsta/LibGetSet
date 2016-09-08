@@ -163,18 +163,24 @@ void GetSetSection::setProperty(const std::vector<std::string>& path, GetSetNode
 	// In case we would like to delete
 	if (!prop)
 	{
-		if (properties.find(key)!=properties.end())
+		auto item=properties.find(key);
+		if (item!=properties.end())
 		{
+			// Handle sub-sections individually (DFS)
+			GetSetSection* section=dynamic_cast<GetSetSection*>(item->second);
+			if (section)
+			{
+				while (!section->properties.empty())
+				{
+					std::vector<std::string> path_to_child(1,section->properties.begin()->first);
+					section->setProperty(path_to_child, 0x0, 0);
+				}
+			}
 			delete properties[key];
-			properties.erase(properties.find(key));
+			properties.erase(item);
 			signalDestroy(absolutePath,key);
 		}
-		if (properties.empty())
-		{
-			auto mypath=path;
-			mypath.pop_back();
-			setProperty(mypath, 0x0, 0);
-		}
+		// if (properties.empty()) ; // you are leaving an empty section behind.
 		return;
 	}
 	// We have reached the end of the path, so we set the property and are done

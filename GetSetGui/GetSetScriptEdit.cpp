@@ -1,15 +1,34 @@
-﻿#include <sstream>
+﻿#include "GetSetScriptEdit.h"
+
+#include <sstream>
 
 #include <QtWidgets>
 #include <QToolBar>
 #include <QStyle>
 
 #include "../GetSet/GetSet.hxx"
-#include "GetSetScriptEdit.h"
-#include "../GetSet/GetSetScripting.h"
+
+
 
 namespace GetSetGui
 {
+	void GetSetScriptEdit::setOutputPane(const std::string& text, void* instance)
+	{
+		using GetSetGui::GetSetScriptEdit;
+		GetSetScriptEdit* se=static_cast<GetSetScriptEdit*>(instance);
+		if (se) se->m_outputMsg->setText(se->m_outputMsg->toPlainText() +"\n"+ text.c_str());
+	}
+
+	void GetSetScriptEdit::setStatusPane(const std::string& text, void* instance)
+	{
+		using GetSetGui::GetSetScriptEdit;
+		GetSetScriptEdit* se=static_cast<GetSetScriptEdit*>(instance);
+		if (!se || text.empty()) return;
+		if (text.front()=='@')
+			se->statusBar()->showMessage(text.c_str());
+		else se->m_statusMsg->setText(se->m_statusMsg->toPlainText() +"\n"+ text.c_str());
+		QApplication::processEvents();
+	}
 
 	GetSetScriptEdit::GetSetScriptEdit(QWidget *parent)
 		: QMainWindow(parent)
@@ -24,12 +43,30 @@ namespace GetSetGui
 
 		resize(600,480);
 
+		parser.addOutputCallback((void*)this,GetSetScriptEdit::setOutputPane);
+		parser.addErrorCallback((void*)this,GetSetScriptEdit::setStatusPane);
+
+		QDockWidget *outputMsg = new QDockWidget(this);
+		outputMsg->setWindowFlags(Qt::WindowTitleHint | Qt::WindowMinimizeButtonHint);
+		outputMsg->setWindowTitle("Output");
+		m_outputMsg=new QTextEdit(this);
+		m_outputMsg->setReadOnly(true);
+		outputMsg->setWidget(m_outputMsg);
+		addDockWidget(Qt::BottomDockWidgetArea, outputMsg);
+		QDockWidget *statusMsg = new QDockWidget(this);
+		statusMsg->setWindowFlags(Qt::WindowTitleHint | Qt::WindowMinimizeButtonHint);
+		statusMsg->setWindowTitle("Info & Errors");
+		m_statusMsg=new QTextEdit(this);
+		m_statusMsg->setReadOnly(true);
+		statusMsg->setWidget(m_statusMsg);
+		addDockWidget(Qt::BottomDockWidgetArea, statusMsg);
+//		tabifyDockWidget(outputMsg, statusMsg);
+//		setDockNestingEnabled(true);
 	}
 
 	void GetSetScriptEdit::highlightCurrentLine()
 	{
-		QList<QTextEdit::ExtraSelection> extraSelections;
-
+		extraSelections.clear();
 		if (!editor->isReadOnly()) {
 			QTextEdit::ExtraSelection selection;
 
@@ -41,8 +78,13 @@ namespace GetSetGui
 			selection.cursor.clearSelection();
 			extraSelections.append(selection);
 		}
+		// This is reidiculously slow. whatever: scripts are not supoosed to be very long...
+		std::istringstream file(editor->toPlainText().toStdString());
+		file.seekg(editor->textCursor().position());
+		std::string location=GetSetScriptParser::location(file);
 
 		editor->setExtraSelections(extraSelections);
+		statusBar()->showMessage(location.c_str());
 	}
 
 	void GetSetScriptEdit::setupEditor()
@@ -54,6 +96,7 @@ namespace GetSetGui
 
 		editor = new QTextEdit;
 		editor->setFont(font);
+		editor->setLineWrapMode(QTextEdit::NoWrap);
 
 		highlighter = new GetSetScriptSyntaxHighlighter(editor->document());
 
@@ -124,29 +167,34 @@ namespace GetSetGui
 
 	void GetSetScriptEdit::closeEvent(QCloseEvent *event)
 	{
+		// FIXME if (anything_has_changes)
 		if(QMessageBox::question(NULL, "Save Changes?", "Any changes will be discarded. Would you like to save before closing?", QMessageBox::Yes|QMessageBox::No) == QMessageBox::Yes)
 			saveFile();
 	}
 
 	void GetSetScriptEdit::help()
 	{
-		std::cout << GetSetScriptParser::global().synopsis(editor->textCursor().selectedText().toStdString(),true) << std::endl;
+		m_statusMsg->setText(parser.synopsis(editor->textCursor().selectedText().toStdString(),true).c_str());
 	}
 
 	void GetSetScriptEdit::execute()
 	{
+		m_outputMsg->setText("");
+		m_statusMsg->setText("");
 		std::string script=editor->toPlainText().toStdString();
-		GetSetScriptParser::global().parse(script);
+		parser.parse(script);
 		editor->setExtraSelections(QList<QTextEdit::ExtraSelection>());
 	}
 
 	void GetSetScriptEdit::force_stop()
 	{
-		GetSetScriptParser::global().force_stop();
+		parser.force_stop();
 	}
 
 	void GetSetScriptEdit::executeSelected()
 	{
+		m_outputMsg->setText("");
+		m_statusMsg->setText("");
 		// Find out which part of the script to execute
 		auto tc=editor->textCursor();
 		bool execline=!tc.hasSelection();
@@ -190,24 +238,21 @@ namespace GetSetGui
 		std::string selection=all.substr(from,to-from);
 
 		// Execute script block
-		bool sucess=GetSetScriptParser::global().parse(selection);
+		bool sucess=parser.parse(selection,"selection");
 
 		// Highlight executed code
-		QList<QTextEdit::ExtraSelection> extraSelections;
 		QTextEdit::ExtraSelection highlight_executed;
 		highlight_executed.format.setBackground(QColor(sucess?Qt::green:Qt::red).lighter(175));
 		highlight_executed.cursor=tc;
 		highlight_executed.format.setProperty(QTextFormat::FullWidthSelection, true);
-		extraSelections.append(highlight_executed);
-		editor->setExtraSelections(extraSelections);
-
 		// If we evecute things line-byline, move cursor
 		if (execline)
 		{
 			tc.setPosition(highlight_executed.cursor.selectionEnd()+1);
 			editor->setTextCursor(tc);
 		}
-
+		extraSelections.append(highlight_executed);
+		editor->setExtraSelections(extraSelections);
 	}
 
 	

@@ -29,7 +29,7 @@
 class GetSetScriptParser
 {
 public:
-	GetSetScriptParser(GetSetDictionary& _subject);
+	GetSetScriptParser(GetSetDictionary& _subject=GetSetDictionary::global());
 
 	/// Global instance
 	static GetSetScriptParser& global();
@@ -46,29 +46,43 @@ public:
 	/// Force stop execution
 	void force_stop();
 
+	/// Add (or remove) a callback function for script output.
+	void addOutputCallback(void *identifier,  void (*callback)(const std::string& text, void* identifier)=0x0);
+
+	/// Add (or remove) a callback function for parse errors and other information
+	void addErrorCallback(void *identifier,  void (*callback)(const std::string& text, void* identifier)=0x0);
+
 	/// Get help for script language
 	static std::string synopsis(const std::string& command="", bool with_example=false);
 
 	/// Creates a script which stores all current variables
 	std::string state();
 
-	/// Callback for user input (optional)
-	std::string (*user_input)();
-
-	/// Callback for output (optional)
-	void (*user_output)(const std::string&);
-
 	/// Access everything from current location to line starting with end_block
 	std::string get_block(std::istream& script, const std::string& end_block);
 
+	/// Figure out current location within a stringstream
+	static std::string location(std::istream& script);
+
+	/// Callback for user input
+	std::string (*user_input)();
+
 protected:
 
+	/// Callback for output (optional)
+	std::map<void*, void (*)(const std::string&, void*)> user_out;
+
+	/// Callback for output (optional)
+	std::map<void*, void (*)(const std::string&, void*)> user_err;
 
 	/// Get user input
 	std::string input();
 
 	/// Write user output
-	void output(const std::string& text);
+	void printOut(const std::string& text);
+
+	/// Write user output
+	void printErr(const std::string& text);
 
 	/// Only this dictionary will be affectd by this parser
 	GetSetDictionary& subject;
@@ -88,8 +102,6 @@ protected:
 	/// Report a parse error
 	void parse_error(const std::string& where, const std::string& why);
 
-	/// Figure out current location within a stringstream
-	static std::string location(std::istream& script);
 
 	//
 	// Tokens: <string> <varname> <value> <key> <section>

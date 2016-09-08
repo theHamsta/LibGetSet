@@ -38,7 +38,7 @@ namespace GetSetGui
 {
 	class GetSetScriptEdit;
 
-	class GetSetTabWidget : public QWidget, public GetSetInternal::Access
+	class GetSetTabWidget : public QWidget, public GetSetDictionary::Observer
 	{
 		Q_OBJECT
 
@@ -53,20 +53,21 @@ namespace GetSetGui
 
 
 	protected:
-		std::map<std::string,QMenu*> m_menus;
-		std::map<std::string,QPushButton*> m_push_buttons;
+		std::string							m_path;
+		std::vector<std::string>			m_tabs;
+		std::map<std::string,QMenu*>		m_menus;
+		std::map<std::string,QPushButton*>	m_push_buttons;
 
 		void (*callback)(const std::string& sender, const std::string& action);
 
 	protected:
-		QMenuBar	*m_menuBar;
-		QTabWidget	*m_tabWidget;
-		QVBoxLayout	*m_mainLayout;
-		GetSetGui::GetSetScriptEdit	*m_script_editor;
+		QVBoxLayout					*m_mainLayout;
+		QMenuBar					*m_menuBar;
+		QTabWidget					*m_tabWidget;
 		GetSetScriptRecorder		*m_script_recorder;
+
 		/// (Re-)Create the tabs and GetSetWidgets
 		void create(GetSetDictionary& dict, const std::string& path, const std::vector<std::string>& tabs);
-
 	public:
 	
 		/// Settings dialog with a selection of sections from a dictionary
@@ -84,6 +85,11 @@ namespace GetSetGui
 		void addDefaultFileMenu();
 
 		virtual ~GetSetTabWidget();
+
+		// GetSetDictionary::Observer
+		virtual void notifyCreate(const std::string& list, const std::string& key);
+		virtual void notifyDestroy(const std::string& list, const std::string& key);
+		virtual void notifyChange(const std::string &,const std::string &);
 	};
 
 } // namespace GetSetGui

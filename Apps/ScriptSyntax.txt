@@ -80,11 +80,11 @@ eval i as var i plus value 1
 # syntax highlighting:
 ##############################
 commands:
-	help|call|concat|define|discard|echo|eval|exit|file|for|if|input|set|while|who|with|enddefine|endfor|endif|endwhile
+	help call concat define discard echo eval exit file for if input set while who with enddefine endfor endif endwhile
 types:
 	key var value
 other keywords:
-	each|in|from|to|than|step|and|ini|load|save|get|remove|run|trigger
+	each in from to than step and ini load save get remove run trigger
 operators:
 	not strequal numequal gequal lequal greater less plus minus times
 	

@@ -25,13 +25,13 @@ target_link_libraries(config GetSet)
 # GetSet script Tool 
 ###
 
-add_executable(script
+add_executable(GetSetScript
 	getsetscript.cpp
 )
-qt5_use_modules(script Core Gui Widgets)
-target_link_libraries(script GetSet GetSetGui Qt5::Widgets)
-install(TARGETS script DESTINATION examples/script)
-install(FILES ../Apps/script.getset DESTINATION examples/script)
+qt5_use_modules(GetSetScript Core Gui Widgets)
+target_link_libraries(GetSetScript GetSet GetSetGui Qt5::Widgets)
+install(TARGETS GetSetScript DESTINATION bin)
+install(FILES ../Apps/GetSetScript.getset DESTINATION bin)
 ###
 # AutoGUI
 ###

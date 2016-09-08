@@ -191,6 +191,8 @@ namespace GetSetGui {
 	{
 		if (section!=m_section) return; // wrong section.
 
+		if (m_owned.find(key)!=m_owned.end()) return; // already exists
+
 		QObject* anything = m_layout->findChild<QObject*>(key.c_str());
 		if (anything) return;
 
