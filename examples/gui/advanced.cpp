@@ -10,10 +10,52 @@
 
 #include <GetSetGui/GetSetScriptEdit.h>
 
+#include <GetSetGui/GetSetMouseKeyboardInteraction.h>
+
+
 GetSetGui::GetSetApplication g_app("ExampleAdvanced");
 
-/// Predeclaration of a callback function to handle events
-void gui(const std::string& section, const std::string& key);
+/// Handle all kinds of input
+void gui(const std::string& section, const std::string& key)
+{
+	// Window title indicates either a button or a menu item
+	if (section=="ExampleAdvanced")
+	{
+		if (key=="Do Something")
+			GetSetGui::Button("More","Do Something").trigger();
+		return;
+	}
+
+	std::string path=section+"/"+key;
+	std::cout << "Key \"" << key << "\" in section \"" << section << "\" has chaged to " << GetSet<>(path).getString() << std::endl;
+
+	// Make sure your value really is between 0 and 1
+	if (section=="Setup"&&key=="A Value between 0 and 1")
+	{
+		// But be careful with recursion!
+		if (GetSet<double>(section,key)<0.0) GetSet<double>(section,key)=0.0;
+		if (GetSet<double>(section,key)>1.0) GetSet<double>(section,key)=1.0;
+	}
+
+	// This is how to handle a button. Note you can change it's caption (eg. "Start" to "Stop" and such)
+	if (key=="Do Something")
+	{
+		if (GetSet<>("Setup","Some Text").getString()=="Bla")
+			GetSet<>("Setup","Some Text")="Blubb";
+		else
+			GetSet<>("Setup","Some Text")="Bla";
+	}
+
+	g_app.saveSettings();
+}
+
+// Handle Events from the GetSetMouseKeyboardInteraction window
+GetSetDictionary g_interactionWindowState;
+void user_interaction(const std::string& section, const std::string& key)
+{
+	std::string path=section+"/"+key;
+	std::cout << "User interaction: " << path <<  " ->" << GetSet<>(path,g_interactionWindowState).getString() << std::endl;
+}
 
 /// A typical main function using GetSet
 int main(int argc, char** argv)
@@ -55,39 +97,9 @@ int main(int argc, char** argv)
 
 	g_app.window().addMenuItem("Edit/Functions","Do Something","Ctrl+D");
 
+	GetSetGui::GetSetMouseKeyboardInteraction *text= new GetSetGui::GetSetMouseKeyboardInteraction("Interaction Window",user_interaction,g_interactionWindowState);
+	text->resize(300,300);
+	text->show();
+
 	return g_app.exec();
-}
-
-/// Handle all kinds of input
-void gui(const std::string& section, const std::string& key)
-{
-	std::cout << "Key \"" << key << "\" in section \"" << section << std::endl; // << "\" has chaged to " << GetSet<>(section,key).getString() << std::endl;
-	// Window title indicates either a button or a menu item
-	if (section=="ExampleAdvanced")
-	{
-		if (key=="Do Something")
-			GetSetGui::Button("More","Do Something").trigger();
-		return;
-	}
-
-
-	// Make sure your value really is between 0 and 1
-	if (section=="Setup"&&key=="A Value between 0 and 1")
-	{
-		// But be careful with recursion!
-		if (GetSet<double>(section,key)<0.0) GetSet<double>(section,key)=0.0;
-		if (GetSet<double>(section,key)>1.0) GetSet<double>(section,key)=1.0;
-	}
-
-	// This is how to handle a button. Note you can change it's caption (eg. "Start" to "Stop" and such)
-	if (key=="Do Something")
-	{
-		if (GetSet<>("Setup","Some Text").getString()=="Bla")
-			GetSet<>("Setup","Some Text")="Blubb";
-		else
-			GetSet<>("Setup","Some Text")="Bla";
-	}
-
-
-	g_app.saveSettings();
 }

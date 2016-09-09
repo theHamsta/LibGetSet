@@ -315,8 +315,6 @@ bool GetSetScriptParser::expect_token_value(std::istream& script, const std::str
 	return !parse_error_occured;
 }
 
-
-
 //
 // Commands: call concat define discard echo eval exit file for if input set while who with
 //
