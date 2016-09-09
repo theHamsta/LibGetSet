@@ -58,7 +58,7 @@ GetSetHandler::GetSetHandler(void (*change)(const std::string& section, const st
 	, ignore_notify(false)
 {}
 
-void GetSetHandler::setIgnoreNotifications(bool ignore)
+void GetSetHandler::ignoreNotifications(bool ignore)
 {
 	ignore_notify=ignore;
 }

@@ -61,16 +61,15 @@ int main(int argc, char** argv)
 /// Handle all kinds of input
 void gui(const std::string& section, const std::string& key)
 {
+	std::cout << "Key \"" << key << "\" in section \"" << section << std::endl; // << "\" has chaged to " << GetSet<>(section,key).getString() << std::endl;
 	// Window title indicates either a button or a menu item
 	if (section=="ExampleAdvanced")
 	{
 		if (key=="Do Something")
 			GetSetGui::Button("More","Do Something").trigger();
 		return;
-
 	}
 
-	std::cout << "Key \"" << key << "\" in section \"" << section << "\" has chaged to " << GetSet<>(section,key).getString() << std::endl;
 
 	// Make sure your value really is between 0 and 1
 	if (section=="Setup"&&key=="A Value between 0 and 1")

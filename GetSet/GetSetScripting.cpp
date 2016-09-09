@@ -154,10 +154,10 @@ std::string GetSetScriptParser::synopsis(const std::string& command, bool with_e
 		help    ["file"]    +="   file ini remove key <key> from <value:filename>\n";
 		help    ["file"]    +="   file ini set key <key> in <value:filename> to <value>\n";
 		help    ["file"]    +="   file ini get var <varname> from key <key> in <value:filename>\n";
-		help    ["file"]    +="   file run <filename>\n";
-		examples["file"]    +="   file ini save  \"./file.ini\"\n";
+		help    ["file"]    +="   file run <value:filename>\n";
+		examples["file"]    +="   file ini save value \"./file.ini\"\n";
 		examples["file"]    +="   file run script.getset\n";
-		help    ["input"]   +="   input <varname>\n";
+		help    ["input"]   +="   input var <varname>\n";
 		examples["input"]   +="   echo value \"What's your name?\"\n";
 		examples["input"]   +="   input user_name\n";
 		help    ["echo"]    +="   echo <value> [and <value>]*\n";
@@ -633,6 +633,7 @@ void GetSetScriptParser::parse_for(std::istream& script)
 void GetSetScriptParser::parse_input(std::istream& script)
 {
 	auto line=rest_of_line(script);
+	if (expect_keyword(line,"input","var")<0) return;
 	std::string varname;
 	if (!expect_token_string(line,"input",varname)) return;
 	if (!expect_end_of_line(line,"input")) return;

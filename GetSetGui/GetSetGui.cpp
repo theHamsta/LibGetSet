@@ -78,7 +78,7 @@ namespace GetSetGui
 				else if (ext=="getset")
 				{
 					callback=new GetSetHandler(gui);
-					callback->setIgnoreNotifications(true);
+					callback->ignoreNotifications(true);
 					std::string script=fileReadString(argv[1]);
 					if (script.empty())
 					{
@@ -115,14 +115,14 @@ namespace GetSetGui
 		}
 
 		callback=new GetSetHandler(gui);
-		callback->setIgnoreNotifications(true);
+		callback->ignoreNotifications(true);
 		window().setCallBack(gui);
 		return true;
 	}
 
-	void GetSetApplication::setIgnoreNotifications(bool ignore)
+	void GetSetApplication::ignoreNotifications(bool ignore)
 	{
-		if (callback) callback->setIgnoreNotifications(ignore);
+		if (callback) callback->ignoreNotifications(ignore);
 	}
 		
 	GetSetTabWidget& GetSetApplication::window()
@@ -213,7 +213,7 @@ namespace GetSetGui
 	int GetSetApplication::exec()
 	{
 		window().show();
-		callback->setIgnoreNotifications(false);
+		callback->ignoreNotifications(false);
 		return qt_app->exec();			
 	}
 

@@ -50,7 +50,7 @@ namespace GetSetGui
 		bool init(int &argc, char **argv, void (*gui)(const std::string&, const std::string&));
 
 		/// Ignores notifications temporarily
-		void setIgnoreNotifications(bool ignore);
+		void ignoreNotifications(bool ignore);
 		
 		/// Access to main window
 		GetSetTabWidget& window();
