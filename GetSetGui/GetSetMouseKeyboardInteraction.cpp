@@ -64,6 +64,7 @@ namespace GetSetGui {
 	void GetSetMouseKeyboardInteraction::closeEvent(QCloseEvent *event)
 	{
 		specialActive=false;
+		QLabel::closeEvent(event);
 	}
 
 	void GetSetMouseKeyboardInteraction::timer_fires()
@@ -86,6 +87,7 @@ namespace GetSetGui {
 	void GetSetMouseKeyboardInteraction::enterEvent(QEvent * event)
 	{
 		m_firstMouse=true;
+		QLabel::enterEvent(event);
 	}
 
 
@@ -93,17 +95,20 @@ namespace GetSetGui {
 	{
 		setMousePos(event->x(), event->y());
 		setMouseButton(event->button(),true);
+		QLabel::mousePressEvent(event);
 	}
 
 	void GetSetMouseKeyboardInteraction::mouseReleaseEvent(QMouseEvent *event)
 	{
 		setMousePos(event->x(), event->y());
 		setMouseButton(event->button(),false);
+		QLabel::mouseReleaseEvent(event);
 	}
 
 	void GetSetMouseKeyboardInteraction::mouseMoveEvent(QMouseEvent *event)
 	{
 		setMousePos(event->x(), event->y());
+		QLabel::mouseMoveEvent(event);
 	}
 
 	void GetSetMouseKeyboardInteraction::keyPressEvent(QKeyEvent *event)
@@ -116,6 +121,7 @@ namespace GetSetGui {
 			key=(unsigned char)tolower(key);
 			setPrintableKey(key,true);
 		}
+		QLabel::keyPressEvent(event);
 	}
 
 	void GetSetMouseKeyboardInteraction::keyReleaseEvent(QKeyEvent *event)
@@ -128,18 +134,21 @@ namespace GetSetGui {
 			key=(unsigned char)tolower(key);
 			setPrintableKey(key,false);
 		}
+		QLabel::keyReleaseEvent(event);
 	}
 
 	void GetSetMouseKeyboardInteraction::wheelEvent(QWheelEvent *event)
 	{
 		mouseWheelRotateX=event->angleDelta().x()/8.0;
 		mouseWheelRotateY=event->angleDelta().y()/8.0;
+		QLabel::wheelEvent(event);
 	}
 
 	void GetSetMouseKeyboardInteraction::resizeEvent(QResizeEvent* event)
 	{
 		specialWindowSizeX=width();
 		specialWindowSizeY=height();
+		QLabel::resizeEvent(event);
 	}
 
 	QPainter* GetSetMouseKeyboardInteraction::getPainter()
@@ -156,6 +165,7 @@ namespace GetSetGui {
 		specialPaint=true;
 		m_painter=0x0;
 		painter.end();
+		QLabel::paintEvent(event);
 	}
 
 	void GetSetMouseKeyboardInteraction::setMousePos(int x, int y)
