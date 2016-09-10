@@ -8,55 +8,57 @@
 
 namespace GetSetGui {
 
-	GetSetMouseKeyboardInteraction::GetSetMouseKeyboardInteraction(const std::string& name, void (*user_interaction)(const std::string&, const std::string&), GetSetDictionary& dict, QWidget *parent)
+	GetSetMouseKeyboardInteraction::GetSetMouseKeyboardInteraction(QWidget *parent)
 		: QLabel(parent)
-		, dictionary(dict)
-		, callback(user_interaction,dictionary)
-		, mouseMoveX				(name+"/Mouse/Move/X",dictionary)
-		, mouseMoveY				(name+"/Mouse/Move/Y",dictionary)
-		, mouseDragX				(name+"/Mouse/Drag/X",dictionary)
-		, mouseDragY				(name+"/Mouse/Drag/Y",dictionary)
-		, mousePositionX			(name+"/Mouse/Position X",dictionary)
-		, mousePositionY			(name+"/Mouse/Position Y",dictionary)
-		, mouseWheelRotateX			(name+"/Mouse/Wheel/Rotate X",dictionary)
-		, mouseWheelRotateY			(name+"/Mouse/Wheel/Rotate Y",dictionary)
-		, mouseButtonLeft			(name+"/Mouse/Button Left",dictionary)
-		, mouseButtonMiddle			(name+"/Mouse/Button Middle",dictionary)	
-		, mouseButtonRight			(name+"/Mouse/Button Right",dictionary)
-		, keyboardKeysPressed		(name+"/Keyboard/Keys Pressed",dictionary)
-		, keyboardFKeysPressed		(name+"/Keyboard/F-Keys Pressed",dictionary)
-		, keyboardModifiersShift	(name+"/Keyboard/Modifiers/Shift",dictionary)
-		, keyboardModifiersCapsLock	(name+"/Keyboard/Modifiers/Caps Lock",dictionary)
-		, keyboardModifiersControl	(name+"/Keyboard/Modifiers/Control",dictionary)
-		, keyboardModifiersAlt		(name+"/Keyboard/Modifiers/Alt",dictionary)
-		, keyboardSpecialPrint		(name+"/Keyboard/Special/Print",dictionary)
-		, keyboardSpecialInsert		(name+"/Keyboard/Special/Insert",dictionary)
-		, keyboardSpecialClear		(name+"/Keyboard/Special/Clear",dictionary)
-		, keyboardSpecialHome		(name+"/Keyboard/Special/Home",dictionary)
-		, keyboardSpecialEnd		(name+"/Keyboard/Special/End",dictionary)
-		, keyboardSpecialSpace		(name+"/Keyboard/Special/Space",dictionary)
-		, keyboardSpecialReturn		(name+"/Keyboard/Special/Return",dictionary)
-		, keyboardSpecialEnter		(name+"/Keyboard/Special/Enter",dictionary)
-		, keyboardSpecialEscape		(name+"/Keyboard/Special/Escape",dictionary)
-		, keyboardSpecialTab		(name+"/Keyboard/Special/Tab",dictionary)
-		, keyboardSpecialBackspace	(name+"/Keyboard/Special/Backspace",dictionary)
-		, keyboardSpecialPause		(name+"/Keyboard/Special/Pause",dictionary)
-		, keyboardArrowLeft			(name+"/Keyboard/Arrow/Left",dictionary)
-		, keyboardArrowUp			(name+"/Keyboard/Arrow/Up",dictionary)
-		, keyboardArrowRight		(name+"/Keyboard/Arrow/Right",dictionary)
-		, keyboardArrowDown			(name+"/Keyboard/Arrow/Down",dictionary)
-		, keyboardArrowPageUp		(name+"/Keyboard/Arrow/Page Up",dictionary)
-		, keyboardArrowPageDown		(name+"/Keyboard/Arrow/Page Down",dictionary)
-		, specialTimerFire			(name+"/Special/TimerFire",dictionary)
-		, specialActive				(name+"/Special/Active",dictionary)
-		, specialPaint				(name+"/Special/Paint",dictionary)
-		, specialWindowSizeX		(name+"/Special/Window Size X",dictionary)
-		, specialWindowSizeY		(name+"/Special/Window Size Y",dictionary)
+		, mouseMoveX				("Mouse/Move X",dictionary)
+		, mouseMoveY				("Mouse/Move Y",dictionary)
+		, mouseDragX				("Mouse/Drag X",dictionary)
+		, mouseDragY				("Mouse/Drag Y",dictionary)
+		, mousePositionX			("Mouse/Position X",dictionary)
+		, mousePositionY			("Mouse/Position Y",dictionary)
+		, mouseWheelRotateX			("Mouse/Wheel X",dictionary)
+		, mouseWheelRotateY			("Mouse/Wheel Y",dictionary)
+		, mouseButtonLeft			("Mouse/Button Left",dictionary)
+		, mouseButtonMiddle			("Mouse/Button Middle",dictionary)	
+		, mouseButtonRight			("Mouse/Button Right",dictionary)
+		, keyboardKeysPressed		("Keyboard/Keys Pressed",dictionary)
+		, keyboardFKeysPressed		("Keyboard/F-Keys Pressed",dictionary)
+		, keyboardModifiersShift	("Keyboard Modifiers/Shift",dictionary)
+		, keyboardModifiersCapsLock	("Keyboard Modifiers/Caps Lock",dictionary)
+		, keyboardModifiersControl	("Keyboard Modifiers/Control",dictionary)
+		, keyboardModifiersAlt		("Keyboard Modifiers/Alt",dictionary)
+		, keyboardSpecialPrint		("Keyboard Special/Print",dictionary)
+		, keyboardSpecialInsert		("Keyboard Special/Insert",dictionary)
+		, keyboardSpecialClear		("Keyboard Special/Clear",dictionary)
+		, keyboardSpecialHome		("Keyboard Special/Home",dictionary)
+		, keyboardSpecialEnd		("Keyboard Special/End",dictionary)
+		, keyboardSpecialSpace		("Keyboard Special/Space",dictionary)
+		, keyboardSpecialReturn		("Keyboard Special/Return",dictionary)
+		, keyboardSpecialEnter		("Keyboard Special/Enter",dictionary)
+		, keyboardSpecialEscape		("Keyboard Special/Escape",dictionary)
+		, keyboardSpecialTab		("Keyboard Special/Tab",dictionary)
+		, keyboardSpecialBackspace	("Keyboard Special/Backspace",dictionary)
+		, keyboardSpecialPause		("Keyboard Special/Pause",dictionary)
+		, keyboardArrowLeft			("Keyboard Arrow/Left",dictionary)
+		, keyboardArrowUp			("Keyboard Arrow/Up",dictionary)
+		, keyboardArrowRight		("Keyboard Arrow/Right",dictionary)
+		, keyboardArrowDown			("Keyboard Arrow/Down",dictionary)
+		, keyboardArrowPageUp		("Keyboard Arrow/Page Up",dictionary)
+		, keyboardArrowPageDown		("Keyboard Arrow/Page Down",dictionary)
+		, specialTimerFire			("Special/TimerFire",dictionary)
+		, specialActive				("Special/Active",dictionary)
+		, specialPaint				("Special/Paint",dictionary)
+		, specialWindowSizeX		("Special/Window Size X",dictionary)
+		, specialWindowSizeY		("Special/Window Size Y",dictionary)
 	{
 		connect( &m_timer, SIGNAL( timeout() ), this, SLOT( timer_fires() ) );
-		setWindowTitle(name.c_str());
 		specialActive=true;
-		setMouseTracking(true);
+		// setMouseTracking(true);
+	}
+	
+	GetSetDictionary& GetSetMouseKeyboardInteraction::getState()
+	{
+		return dictionary;
 	}
 
 	void GetSetMouseKeyboardInteraction::closeEvent(QCloseEvent *event)
@@ -106,18 +108,24 @@ namespace GetSetGui {
 
 	void GetSetMouseKeyboardInteraction::keyPressEvent(QKeyEvent *event)
 	{
+		if (event->isAutoRepeat()) return;
+
 		if (!setKey(event->key(),true))
 		{
 			unsigned char key=(unsigned char) event->text()[0].toLatin1();
+			key=(unsigned char)tolower(key);
 			setPrintableKey(key,true);
 		}
 	}
 
 	void GetSetMouseKeyboardInteraction::keyReleaseEvent(QKeyEvent *event)
 	{
+		if (event->isAutoRepeat()) return;
+
 		if (!setKey(event->key(),false))
 		{
 			unsigned char key=(unsigned char) event->text()[0].toLatin1();
+			key=(unsigned char)tolower(key);
 			setPrintableKey(key,false);
 		}
 	}

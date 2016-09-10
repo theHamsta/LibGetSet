@@ -12,7 +12,6 @@
 
 #include <GetSetGui/GetSetMouseKeyboardInteraction.h>
 
-
 GetSetGui::GetSetApplication g_app("ExampleAdvanced");
 
 /// Handle all kinds of input
@@ -50,11 +49,12 @@ void gui(const std::string& section, const std::string& key)
 }
 
 // Handle Events from the GetSetMouseKeyboardInteraction window
-GetSetDictionary g_interactionWindowState;
+GetSetGui::GetSetMouseKeyboardInteraction *user_interaction_window=0x0;
 void user_interaction(const std::string& section, const std::string& key)
 {
-	std::string path=section+"/"+key;
-	std::cout << "User interaction: " << path <<  " ->" << GetSet<>(path,g_interactionWindowState).getString() << std::endl;
+	if (!user_interaction_window) return;
+	GetSet<> state(section+"/"+key,user_interaction_window->getState());
+	std::cout << "User " << section << " interaction: " << key <<  " ->" << state.getString() << std::endl;
 }
 
 /// A typical main function using GetSet
@@ -97,9 +97,11 @@ int main(int argc, char** argv)
 
 	g_app.window().addMenuItem("Edit/Functions","Do Something","Ctrl+D");
 
-	GetSetGui::GetSetMouseKeyboardInteraction *text= new GetSetGui::GetSetMouseKeyboardInteraction("Interaction Window",user_interaction,g_interactionWindowState);
-	text->resize(300,300);
-	text->show();
+	user_interaction_window=new GetSetGui::GetSetMouseKeyboardInteraction();
+	GetSetHandler callback(user_interaction,user_interaction_window->getState());
+	user_interaction_window->setWindowTitle("User Intercation via GetSet");
+	user_interaction_window->resize(300,300);
+	user_interaction_window->show();
 
 	return g_app.exec();
 }

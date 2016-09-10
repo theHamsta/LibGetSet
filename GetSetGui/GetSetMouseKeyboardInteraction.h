@@ -18,7 +18,7 @@
 //
 
 #ifndef __GetSetMouseKeyboardInteraction_h
-#define __GGetSetMouseKeyboardInteraction_h
+#define __GetSetMouseKeyboardInteraction_h
 
 #include "../GetSet/GetSet.hxx"
 
@@ -34,14 +34,18 @@ namespace GetSetGui {
 		Q_OBJECT
 
 	public:
-		GetSetMouseKeyboardInteraction(const std::string& name, void (*user_interaction)(const std::string&, const std::string&), GetSetDictionary& dict=GetSetDictionary::global(), QWidget *parent=0x0);
+		GetSetMouseKeyboardInteraction(QWidget  *parent=0x0);
+
+		// Access to current state of the window
+		GetSetDictionary& getState();
+
+		// Extra drawing only accessible when specialPaint is set
+		QPainter* getPainter(); 
 
 		void startTimer(int milliseconds, bool repeat);
 		void stopTimer();
 
-		QPainter* getPainter(); // only accessible when specialPaint is set
-
-		// Events for call-back mechanism
+		// Events for call-back mechanism (	etMouseTracking(true); to receive move events )
 		virtual void closeEvent(QCloseEvent *event);
 		virtual void enterEvent(QEvent * event);
 		virtual void mousePressEvent(QMouseEvent *event);
@@ -56,8 +60,8 @@ namespace GetSetGui {
 		void timer_fires();
 
 	protected:
-		GetSetDictionary&	dictionary;
-		GetSetHandler		callback;
+		GetSetDictionary	dictionary;
+
 		QTimer				m_timer;
 		bool				m_firstMouse;
 		QPainter			*m_painter;
@@ -118,4 +122,4 @@ namespace GetSetGui {
 
 } // namespace GetSetGui
 
-#endif // __GetSetWidget_h
+#endif // __GetSetMouseKeyboardInteraction_h
