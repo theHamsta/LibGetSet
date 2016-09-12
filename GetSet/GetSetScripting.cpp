@@ -125,7 +125,7 @@ std::string GetSetScriptParser::synopsis(const std::string& command, bool with_e
 		examples["discard"] +="   discard key \"Personal/Last Name\"";
 		help    ["define"]  +="   define {var|function} <varname:function> ... endfunction\n";
 		examples["define"]  +="   define function greetings\n";
-		examples["define"]  +="      echo value Hallo!\n";
+		examples["define"]  +="      print output value Hallo!\n";
 		examples["define"]  +="   enddefine\n";
 		help    ["call"]    +="   call function <varname:function>\n";
 		examples["call"]    +="   call function greetings\n";
@@ -138,7 +138,7 @@ std::string GetSetScriptParser::synopsis(const std::string& command, bool with_e
 		help    ["if"]      +="   if  [not] <op> <value> than <value>\n";
 		help    ["if"]      +="   <op>:=gequal lequal greater less (compare two numeric values)\n";
 		examples["if"]      +="   if not strequal key \"Personal/Last Name\" to value \"John\"\n";
-		examples["if"]      +="      echo value \"Name is not John\"\n";
+		examples["if"]      +="      print output value \"Name is not John\"\n";
 		examples["if"]      +="   endif\n";
 		help    ["while"]   +="   while <varname> ... endwhile\n";
 		examples["while"]   +="   while active\n";
@@ -148,7 +148,7 @@ std::string GetSetScriptParser::synopsis(const std::string& command, bool with_e
 		help    ["for"]     +="   <value:list> is a semicolon separated list of strings\n";
 		help    ["for"]     +="   for each var <varname> from <value> to <value> step <value> ... endfor\n";
 		examples["for"]     +="   for each var i from value 5 to value 9\n";
-		examples["for"]     +="      echo var i\n";
+		examples["for"]     +="      print output var i\n";
 		examples["for"]     +="   endfor\n";
 		help    ["file"]    +="   file ini {load|save} <filename>\n";
 		help    ["file"]    +="   file ini remove key <key> from <value:filename>\n";
@@ -158,17 +158,18 @@ std::string GetSetScriptParser::synopsis(const std::string& command, bool with_e
 		examples["file"]    +="   file ini save value \"./file.ini\"\n";
 		examples["file"]    +="   file run script.getset\n";
 		help    ["input"]   +="   input var <varname>\n";
-		examples["input"]   +="   echo value \"What's your name?\"\n";
+		examples["input"]   +="   print output value \"What's your name?\"\n";
 		examples["input"]   +="   input user_name\n";
-		help    ["echo"]    +="   echo <value> [and <value>]*\n";
-		examples["echo"]    +="   echo key \"Personal/First Name\"\n";
-		examples["echo"]    +="   echo value \"Hello \" and var user_name and value \"!\"\n";
-		examples["echo"]    +="   echo var \"Personal/Last Name\"\n";
-		help    ["eval"]    +="   eval var <varname> from <value> [{plus|minus|times|over} <value>]+\n";
-		examples["eval"]    +="   eval var i from var i times value \"2\" plus value 1 times value 0.5\n";
-		examples["eval"]    +="   (careful: left-to-right evaluation ((i*2)+1)*0.5 )\n";
+		help    ["print"]   +="   print output <value> [and <value>]*\n";
+		help    ["print"]   +="   print file <value:filename> {replace|append} <value> [and <value>]*\n";
+		examples["print"]   +="   print output key \"Personal/First Name\"\n";
+		examples["print"]   +="   print file value \"greeting.txt\" append value \"Hello \" and var user_name and value \"!\"\n";
+		examples["print"]   +="   print output var \"Personal/Last Name\"\n";
 		help    ["concat"]  +="   concat var <varname> from <value> [and <value>]+\n";
 		examples["concat"]  +="   concat var c from var a and var b\n";
+		help    ["eval"]    +="   eval var <varname> from <value> [{plus|minus|times|over} <value>]+\n";
+		examples["eval"]    +="   (careful: left-to-right evaluation.\n";
+		examples["eval"]    +="   Use sparingly.\n";
 	}
 	std::string help_message;
 	if (command.empty() || help.find(command)==help.end())
@@ -225,7 +226,7 @@ void GetSetScriptParser::parse_commands(const std::string& commands, const std::
 		else if (command == "concat") parse_concat(script);
 		else if (command == "define") parse_define(script);
 		else if (command == "discard") parse_discard(script);
-		else if (command == "echo") parse_echo(script);
+		else if (command == "print") parse_print(script);
 		else if (command == "eval") parse_eval(script);
 		else if (command == "exit") parse_exit(script);
 		else if (command == "file") parse_file(script);
@@ -316,7 +317,7 @@ bool GetSetScriptParser::expect_token_value(std::istream& script, const std::str
 }
 
 //
-// Commands: call concat define discard echo eval exit file for if input set while who with
+// Commands: call concat define discard print eval exit file for if input set while who with
 //
 
 void GetSetScriptParser::parse_help(std::istream& script)
@@ -397,11 +398,21 @@ void GetSetScriptParser::parse_discard(std::istream& script)
 	}
 }
 
-void GetSetScriptParser::parse_echo(std::istream& script)
+void GetSetScriptParser::parse_print(std::istream& script)
 {
 	auto line=rest_of_line(script);
+	std::string filename;
+	int what=expect_keyword(line,"print","output;file");
+	if (what<0) return;
+	if (what==1)
+	{
+		if (!expect_token_value(line,"print",filename)) return;
+		int append=expect_keyword(line,"print","replace;append");
+		if (append<0) return;
+		else what+=append; // 0: output 1: file replace 2: file append
+	}
 	std::string value;
-	if (!expect_token_value(line,"echo",value)) return;
+	if (!expect_token_value(line,"print",value)) return;
 	while (line && !line.eof())
 	{
 		std::string and;
@@ -409,14 +420,23 @@ void GetSetScriptParser::parse_echo(std::istream& script)
 		if (and=="and")
 		{
 			std::string next_value;
-			if (!expect_token_value(line,"echo",value)) return;
+			if (!expect_token_value(line,"print",next_value)) return;
 			value=value+next_value;
 		}
 		else if (!and.empty())
-			parse_error("echo",std::string("Expected \"and\" but found " + and));
+			parse_error("print",std::string("Expected \"and\" but found " + and));
 	}
-	if (!expect_end_of_line(line,"echo")) return;
-	printOut(value);
+	if (!expect_end_of_line(line,"print")) return;
+	if (what == 0)
+		printOut(value);
+	else
+	{
+		std::ofstream file;
+		if (what == 1) file.open(filename);
+		else file.open(filename, std::ofstream::app);
+		if (!file) parse_error("print",std::string("File could not be opened ") + filename + "!");
+		file << value << std::endl;
+	}
 }
 
 void GetSetScriptParser::parse_eval(std::istream& script)

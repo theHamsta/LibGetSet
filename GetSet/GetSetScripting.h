@@ -119,7 +119,7 @@ protected:
 	bool expect_token_value(std::istream& script, const std::string& fn_name, double& token);
 
 	//
-	// Commands: call concat define discard echo eval exit file for if input set while who with
+	// Commands: call concat define discard print eval exit file for if input set while who with
 	//
 
 	/// help [<command>]
@@ -132,8 +132,9 @@ protected:
 	void parse_define(std::istream& script);
 	/// discard [key <key>|var <varname>|function <varname:function>]
 	void parse_discard(std::istream& script);
-	/// echo
-	void parse_echo(std::istream& script);
+	/// print output <value> [and <value>]*
+	/// print file <value> [append|replace] <value> [and <value>]*
+	void parse_print(std::istream& script);
 	/// eval var <varname> from <value> <op> <value> (avoid double calculations: GetSet works with strings internally)
 	void parse_eval(std::istream& script);
 	/// exit [<string>], where string is converted to int and used as exit code.

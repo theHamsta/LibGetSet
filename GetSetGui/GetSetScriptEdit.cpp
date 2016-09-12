@@ -274,8 +274,8 @@ namespace GetSetGui
 	GetSetScriptSyntaxHighlighter::GetSetScriptSyntaxHighlighter(QTextDocument *parent)
 		: QSyntaxHighlighter(parent)
 	{
-		std::string keywords="\\b(?:help|call|concat|define|discard|echo|eval|exit|file|for|if|input|set|while|who|with|enddefine|endfor|endif|endwhile)\\b";
-		std::string keywords_cosub="\\b(?:each|in|from|to|than|step|and|ini\\s+(?:|load|save|get\\s+var|set\\s+key|remove\\s+key)|run|trigger)\\b";
+		std::string keywords="\\b(?:help|call|concat|define|discard|print|eval|exit|file|for|if|input|set|while|who|with|enddefine|endfor|endif|endwhile)\\b";
+		std::string keywords_cosub="\\b(?:each|in|from|to|than|step|output|replace|append|and|ini\\s+(?:|load|save|get\\s+var|set\\s+key|remove\\s+key)|run|trigger)\\b";
 		std::string keywords_cmpar="\\b(?:not|strequal|numequal|gequal|lequal|greater|less)\\b";
 		std::string keywords_cmpop="\\b(?:plus|minus|times|over)\\b";
 
@@ -287,15 +287,13 @@ namespace GetSetGui
 		addHighlightingRule("\\bvalue\\s+(?:\"[^\"]*\"|\\S+\\b)",128,0,0,false,false,false); 
 		addHighlightingRule("\\b(:?var|function)\\s+(?:\"[^\"]*\"|\\S+\\b)",128,0,0,false,false,true); 
 		addHighlightingRule("\\b(?:key|trigger|section)\\s+(?:\"[^\"]*\"|\\S+\\b)",200,128,0,false,false,true); 
-//		addHighlightingRule("\\b(?:key|value|var)\\s+(?:\"[^\"]*\"|\\S+\\b)",128,128,0,false); 
-		
+
 		addHighlightingRule("#[^\n]*",0,128,0,false);
 
 		QTextCharFormat format;
 		format.setFontWeight(QFont::Bold);
 		format.setForeground(QColor(0,0,0));
 
-	//	overridingRules.push_back(std::pair<std::string,QTextCharFormat >("\\bkey\\b)",format));
 		overridingRules.push_back(std::pair<std::string,QTextCharFormat >("\\b(key|value|var|trigger|section|function)\\s+",format));
 	}
 

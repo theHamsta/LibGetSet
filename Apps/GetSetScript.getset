@@ -1,40 +1,40 @@
 #Test "define" and "call"
 define function define_function_ok
-	echo value "call: ok"
+	print output value "call: ok"
 enddefine
-echo var define_function_ok
+print output var define_function_ok
 call function define_function_ok
 
 # Test "concat"
 concat var concat_ok from value "concat" and value ": ok"
-echo var concat_ok
+print output var concat_ok
 
 # Test "set key"
 set key Test to value "set key: ok"
-echo key Test
+print output key Test
 
 # Test "if [not] strequal" and "discard"
 discard key Test
 if strequal key Test to value ""
-	echo value "if strequal: ok"
-	echo value "discard: ok"
+	print output value "if strequal: ok"
+	print output value "discard: ok"
 endif
 if not strequal key Test to value 0
-	echo value "if not strequal: ok"
+	print output value "if not strequal: ok"
 endif
 
 #Test "if" with numeric comparisons
 if greater key Test than value -1.234
-	echo value "if numequal: ok"
+	print output value "if numequal: ok"
 endif
 if not less key Test than value "-4"
-	echo value "if numequal: ok"
+	print output value "if numequal: ok"
 endif
 
 # Test "eval"
 eval var i from value 1 plus value 2 over value 6
 if numequal var i to value .5
-	echo value "eval: ok"
+	print output value "eval: ok"
 endif 
 
 
@@ -46,7 +46,7 @@ for each var i from value 0 to value 3 step value 1
 	eval var sum_1 from var sum_1 plus var i
 endfor
 if numequal var sum_1 to value 6
-	echo value "for each ... in: ok"
+	print output value "for each ... in: ok"
 endif
 # Test "for each ... in"
 discard var sum_2
@@ -54,21 +54,21 @@ for each var i in var vec
 	eval var sum_2 from var sum_2 plus var i
 endfor
 if numequal var sum_1 to var sum_2
-	echo value "for each ... from ... to: ok"
+	print output value "for each ... from ... to: ok"
 endif
 
 # Test "while" and encapsulated blocks
 set var active to value true
 set var i to value 3
 while var active
-	echo var i
+	print output var i
 	eval var i from var i minus value 1
 	if lequal var i than value 0
 		set var active to value false
 	endif
 endwhile
-echo value "while: ok"
+print output value "while: ok"
 
-echo value "if you can see this message then most likely GetSet scripting is functional."
+print output value "if you can see this message then most likely GetSet scripting is functional."
 
 
