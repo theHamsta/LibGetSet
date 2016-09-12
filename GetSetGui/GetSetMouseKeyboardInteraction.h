@@ -42,8 +42,9 @@ namespace GetSetGui {
 		// Extra drawing only accessible when specialPaint is set
 		QPainter* getPainter(); 
 
-		void startTimer(int milliseconds, bool repeat);
-		void stopTimer();
+		bool timerActive();
+		void timerStart(int milliseconds, bool repeat);
+		void timerStop();
 
 		// Events for call-back mechanism (	etMouseTracking(true); to receive move events )
 		virtual void closeEvent(QCloseEvent *event);
@@ -89,6 +90,7 @@ namespace GetSetGui {
 		GetSet<bool>							keyboardModifiersAlt;
 		GetSet<bool>							keyboardSpecialPrint;
 		GetSet<bool>							keyboardSpecialInsert;
+		GetSet<bool>							keyboardSpecialDelete;
 		GetSet<bool>							keyboardSpecialClear;
 		GetSet<bool>							keyboardSpecialHome;
 		GetSet<bool>							keyboardSpecialEnd;
@@ -99,6 +101,7 @@ namespace GetSetGui {
 		GetSet<bool>							keyboardSpecialTab;
 		GetSet<bool>							keyboardSpecialBackspace;
 		GetSet<bool>							keyboardSpecialPause;
+		GetSet<bool>							keyboardSpecialSemicolon;
 		GetSet<bool>							keyboardArrowLeft;
 		GetSet<bool>							keyboardArrowUp;
 		GetSet<bool>							keyboardArrowRight;

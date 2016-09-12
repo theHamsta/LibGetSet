@@ -29,6 +29,7 @@ namespace GetSetGui {
 		, keyboardModifiersAlt		("Keyboard Modifiers/Alt",dictionary)
 		, keyboardSpecialPrint		("Keyboard Special/Print",dictionary)
 		, keyboardSpecialInsert		("Keyboard Special/Insert",dictionary)
+		, keyboardSpecialDelete		("Keyboard Special/Delete",dictionary)
 		, keyboardSpecialClear		("Keyboard Special/Clear",dictionary)
 		, keyboardSpecialHome		("Keyboard Special/Home",dictionary)
 		, keyboardSpecialEnd		("Keyboard Special/End",dictionary)
@@ -39,13 +40,14 @@ namespace GetSetGui {
 		, keyboardSpecialTab		("Keyboard Special/Tab",dictionary)
 		, keyboardSpecialBackspace	("Keyboard Special/Backspace",dictionary)
 		, keyboardSpecialPause		("Keyboard Special/Pause",dictionary)
+		, keyboardSpecialSemicolon	("Keyboard Special/Semicolon",dictionary)
 		, keyboardArrowLeft			("Keyboard Arrow/Left",dictionary)
 		, keyboardArrowUp			("Keyboard Arrow/Up",dictionary)
 		, keyboardArrowRight		("Keyboard Arrow/Right",dictionary)
 		, keyboardArrowDown			("Keyboard Arrow/Down",dictionary)
 		, keyboardArrowPageUp		("Keyboard Arrow/Page Up",dictionary)
 		, keyboardArrowPageDown		("Keyboard Arrow/Page Down",dictionary)
-		, specialTimerFire			("Special/TimerFire",dictionary)
+		, specialTimerFire			("Special/Timer Fire",dictionary)
 		, specialActive				("Special/Active",dictionary)
 		, specialPaint				("Special/Paint",dictionary)
 		, specialWindowSizeX		("Special/Window Size X",dictionary)
@@ -72,13 +74,18 @@ namespace GetSetGui {
 		specialTimerFire=true;
 	}
 
-	void GetSetMouseKeyboardInteraction::startTimer(int milliseconds, bool repeat)
+	bool GetSetMouseKeyboardInteraction::timerActive()
+	{
+		return m_timer.isActive();
+	}
+
+	void GetSetMouseKeyboardInteraction::timerStart(int milliseconds, bool repeat)
 	{
 		m_timer.setSingleShot(!repeat);
 		m_timer.start(milliseconds);
 	}
 
-	void GetSetMouseKeyboardInteraction::stopTimer()
+	void GetSetMouseKeyboardInteraction::timerStop()
 	{
 		m_timer.stop();
 		specialTimerFire=false;
@@ -89,7 +96,6 @@ namespace GetSetGui {
 		m_firstMouse=true;
 		QLabel::enterEvent(event);
 	}
-
 
 	void GetSetMouseKeyboardInteraction::mousePressEvent(QMouseEvent *event)
 	{
@@ -208,6 +214,7 @@ namespace GetSetGui {
 		else if (qkey==Qt::Key_Alt)			keyboardModifiersAlt=state;
 		else if (qkey==Qt::Key_Print)		keyboardSpecialPrint=state;
 		else if (qkey==Qt::Key_Insert)		keyboardSpecialInsert=state;
+		else if (qkey==Qt::Key_Delete)		keyboardSpecialDelete=state;
 		else if (qkey==Qt::Key_Clear)		keyboardSpecialClear=state;
 		else if (qkey==Qt::Key_Home)		keyboardSpecialHome=state;
 		else if (qkey==Qt::Key_End)			keyboardSpecialEnd=state;
@@ -218,6 +225,7 @@ namespace GetSetGui {
 		else if (qkey==Qt::Key_Tab)			keyboardSpecialTab=state;
 		else if (qkey==Qt::Key_Backspace)	keyboardSpecialBackspace=state;
 		else if (qkey==Qt::Key_Pause)		keyboardSpecialPause=state;
+		else if (qkey==Qt::Key_Semicolon)	keyboardSpecialSemicolon=state;
 		else if (qkey==Qt::Key_Left)		keyboardArrowLeft=state;
 		else if (qkey==Qt::Key_Up)			keyboardArrowUp=state;
 		else if (qkey==Qt::Key_Right)		keyboardArrowRight=state;
