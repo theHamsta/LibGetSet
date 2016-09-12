@@ -168,7 +168,7 @@ namespace GetSetGui
 		// Then create menu item
 		if (action=="-")
 			m_menus[menu]->addSeparator();
-		if (!action.empty())
+		else if (!action.empty())
 		{
 			QAction* item=m_menus[menu]->addAction(action.c_str(), this, SLOT(handle_action()), QKeySequence(shortcut.c_str()));
 			item->setObjectName(action.c_str());
