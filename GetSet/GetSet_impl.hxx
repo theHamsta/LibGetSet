@@ -63,10 +63,11 @@ const std::string GetSet<BasicType>::getType() const
 }
 
 template <typename BasicType>
-void GetSet<BasicType>::setString(const std::string& value)
+GetSet<BasicType>& GetSet<BasicType>::setString(const std::string& value)
 {
 	property->setString(value);
 	signalChange(section,key);
+	return *this;
 }
 
 template <typename BasicType>
@@ -135,7 +136,7 @@ std::string GetSet<BasicType>::getAttribute(const std::string& attrib) const
 				property=&declare<GetSetInternal::GetSetKey##SPECIAL_TYPE>(path,true);						\
 				typedProperty=dynamic_cast<GetSetInternal::GetSetKey##SPECIAL_TYPE*>(property);				\
 			}																								\
-			void operator=(const BASE_TYPE& v) { setValue(v); }												\
+			GetSet<BASE_TYPE>& operator=(const BASE_TYPE& v) { return setValue(v); }						\
 			operator BASE_TYPE() const { return getValue(); }												\
 			CLASS_BODY																						\
 		};																									\
@@ -150,7 +151,7 @@ std::string GetSet<BasicType>::getAttribute(const std::string& attrib) const
 #define GETSET_ENUM_CLASS_BODY																				\
 	GETSET_TAG(Enum,std::vector<std::string>,Choices)														\
 	Enum& setChoices(const std::string& c) {property->attributes["Choices"]=c;return *this;}				\
-	inline void operator=(const std::string& v) { setString(v); }											\
+	inline GetSet<int>& operator=(const std::string& v) { return setString(v); }							\
 	inline operator std::string() const { return getString(); }
 
 #define GETSET_ENUM_KEY_BODY																				\
@@ -167,6 +168,44 @@ std::string GetSet<BasicType>::getAttribute(const std::string& attrib) const
 		for (int i=0;i<(int)c.size();i++)																	\
 			if (c[i]==in) { value=i; return; }																\
 		value=stringTo<int>(in);																			\
+}
+
+#define GETSET_BUTTON_KEY_BODY																				\
+	void (*callback)(const std::string& info, void* user_data);												\
+	std::string	caller_info;																				\
+	void*		caller_data;																				\
+
+#define GETSET_BUTTON_CLASS_BODY																			\
+	virtual GetSet<std::string>& setString(const std::string& in)											\
+	{																										\
+		GetSet<std::string>::setString(in);																	\
+		trigger();																							\
+		return *this;																						\
+	}																										\
+	virtual GetSet<std::string>& setValue(const std::string& in)											\
+	{																										\
+		GetSet<std::string>::setValue(in);																	\
+		trigger();																							\
+		return *this;																						\
+	}																										\
+	Button& setCallback(void (*c)(const std::string&, void*), const std::string& info, void* data)			\
+	{																										\
+		auto *exactlyTypedProperty=dynamic_cast<GetSetInternal::GetSetKeyButton*>(property);				\
+		if (!exactlyTypedProperty) { std::cerr << "GetSetGui::Button Wrong key type.\n"; return *this;}		\
+		exactlyTypedProperty->caller_info=info;																\
+		exactlyTypedProperty->caller_data=data;																\
+		exactlyTypedProperty->callback=exactlyTypedProperty->caller_info.empty()?0x0:c;											\
+		return *this;																						\
+	}																										\
+	void trigger()																							\
+	{																										\
+		auto *exactlyTypedProperty=dynamic_cast<GetSetInternal::GetSetKeyButton*>(property);				\
+		if (!exactlyTypedProperty) { std::cerr << "GetSetGui::Button Wrong key type.\n"; return;}			\
+		if (!exactlyTypedProperty->caller_info.empty())														\
+			exactlyTypedProperty->callback(																	\
+				exactlyTypedProperty->caller_info,															\
+				exactlyTypedProperty->caller_data);															\
+		signalChange(section,key);																			\
 	}
 
 /// A pulldown menu with a number of choices.
@@ -176,7 +215,7 @@ GETSET_SPECIALIZATION(Enum,int,GETSET_ENUM_CLASS_BODY, GETSET_ENUM_KEY_BODY)
 GETSET_SPECIALIZATION(Slider,double, GETSET_TAG(Slider,double,Min) GETSET_TAG(Slider,double,Max), )
 
 /// A button that creates a GetSet change event when pressed.
-GETSET_SPECIALIZATION(Button,std::string, void trigger() {signalChange(section,key);}, )
+GETSET_SPECIALIZATION(Button,std::string,GETSET_BUTTON_CLASS_BODY, GETSET_BUTTON_KEY_BODY)
 
 /// A static text with some information. StaticTexts are not included in ini-Files (user-info in GUI)
 GETSET_SPECIALIZATION(StaticText,std::string, , )

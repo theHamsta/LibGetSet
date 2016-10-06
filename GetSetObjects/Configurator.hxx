@@ -56,6 +56,15 @@ namespace GetSetObjects {
 			return value;
 		}
 
+		GetSetGui::Button declareFunction(const std::string& param, void *user_data, void (*callback)(const std::string&, void* ) )
+		{
+			std::string path=section+param;
+			GetSetGui::Button button(path,dict);
+			button.setString(param);
+			button.setCallback(callback, param, user_data);
+			return button;
+		}
+
 		template <typename T>
 		GetSet<T> param(const std::string& param_name)
 		{

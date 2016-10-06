@@ -1,4 +1,5 @@
 #include <iostream>
+#include <functional>
 
 #include <GetSetGui/GetSetGui.h>
 #include <GetSetGui/GetSetTabWidget.h>
@@ -18,10 +19,18 @@ public:
 
 };
 
+void select_member_function(const std::string& function, void *instance_ptr)
+{
+	std::cout << "callback: " << function << "\n";
+	if (function == "State Name")
+		((Name*)instance_ptr)->stateName();
+}
+
 Name::Name(GetSetObjects::Configurator& config)
 {
 	first=config.declare<std::string>("First Name","Hans");
 	last =config.declare<std::string>("Last Name","Mustermann");
+	config.declareFunction("State Name", this, select_member_function);
 }
 
 GETSET_REGISTER_CLASS(Name);

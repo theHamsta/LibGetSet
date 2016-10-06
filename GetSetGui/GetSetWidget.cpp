@@ -42,7 +42,7 @@ namespace GetSetGui {
 	void GetSetWidget::trigger()
 	{
 		std::string key=sender()->objectName().toLatin1().data();
-		signalChange(m_section,key);
+		GetSetGui::Button(m_section,key,dictionary).trigger(); // signalChange(m_section,key);
 	}
 
 	void GetSetWidget::selectFile()

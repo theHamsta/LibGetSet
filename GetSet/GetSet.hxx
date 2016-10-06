@@ -48,7 +48,7 @@ public:
 	const std::string GetSet<BasicType>::getType() const;
 
 	/// Set the value of this property from a string
-	virtual void setString(const std::string& value);
+	virtual GetSet<BasicType>& setString(const std::string& value);
 	/// Get the value of the property as string
 	virtual std::string getString() const;
 

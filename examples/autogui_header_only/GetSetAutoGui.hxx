@@ -212,9 +212,9 @@ public:
 	inline std::string getString() const { return dict[key]["Value"]; }
 
 	/// Set the value of a GetSet property directly via assignment operator
-	void operator=(const BasicType& v) { setValue(v); }
+	inline GetSet<BasicType>& operator=(const BasicType& v) { setValue(v); return *this;}
 	/// Cast operator directly to BasicType (behaves almost like a c++ variable of BasicType)
-	operator BasicType() const { return getValue(); }
+	inline operator BasicType() const { return getValue(); }
 
 	/// Set a brief description for this property. Same as setAttribute("Description",...).
 	inline GetSet<BasicType>& setDescription(const std::string& desc) {setAttribute("Description",desc); return *this;}
