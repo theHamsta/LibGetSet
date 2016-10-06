@@ -53,7 +53,7 @@ public:
 	virtual std::string getString() const;
 
 	/// Set the value of a GetSet property directly via assignment operator
-	inline void operator=(const BasicType& v) { setValue(v); }
+	inline GetSet<BasicType>& operator=(const BasicType& v) { setValue(v); return *this; }
 	/// Cast operator directly to BasicType (behaves almost like a c++ variable of BasicType)
 	inline operator BasicType() const { return getValue(); }
 

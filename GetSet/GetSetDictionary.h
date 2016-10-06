@@ -37,17 +37,20 @@ public:
 	/// Load from file
 	void load(GetSetInternal::GetSetInOut& file);
 
-	/// Returns true if this dictoinary contains nothing
-	bool empty()
-	{
-		return properties.empty();
-	}
+	/// Returns true if this dictionary contains nothing
+	bool empty();
+
+	/// Delete all properties
+	void clear();
 
 	/// Remove a property from the tree
-	void remove(const std::string& path)
-	{
-		dictionary.setProperty(stringToVector<std::string>(path,'/'),0x0,0);
-	}
+	void remove(const std::string& path);
+
+	/// Tests if a property exists under path
+	bool exists(const std::string path);
+
+	/// Tests if a property is a section or any other Node not associated with a parameter (e.g. Button or StaticText)
+	bool isValue(const std::string path);
 
 	/// Access to the global GetSetDictionary, which is used whenever no Dictionary is explicitly specified.
 	static GetSetDictionary& global();

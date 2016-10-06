@@ -1,5 +1,7 @@
 #include "GetSetDictionary.h"
 
+#include "GetSet.hxx"
+
 //
 // GetSetDictionary
 //
@@ -30,6 +32,40 @@ GetSetDictionary& GetSetDictionary::global()
 {
 	if (!_instance) _instance=new GetSetDictionary;
 	return *_instance;
+}
+
+bool GetSetDictionary::empty()
+{
+	return properties.empty();
+}
+
+void GetSetDictionary::clear()
+{
+	while (!properties.empty())
+		remove(properties.begin()->first);
+}
+
+void GetSetDictionary::remove(const std::string& path)
+{
+	if (path.empty())
+		clear();
+	else
+	dictionary.setProperty(stringToVector<std::string>(path,'/'),0x0,0);
+}
+
+bool GetSetDictionary::exists(const std::string path)
+{
+	return GetSetInternal::Access::getProperty(path)!=0x0;
+}
+
+/// Tests if a property is a section or any other Node not associated with a parameter (e.g. Button or StaticText)
+bool GetSetDictionary::isValue(const std::string path)
+{
+	auto p=GetSetInternal::Access::getProperty(path);
+	if (dynamic_cast<GetSetInternal::GetSetSection*>(p)!=0x0) return false;
+	if (dynamic_cast<GetSetInternal::GetSetKeyButton*>(p)!=0x0) return false;
+	if (dynamic_cast<GetSetInternal::GetSetKeyStaticText*>(p)!=0x0) return false;
+	return true;
 }
 
 

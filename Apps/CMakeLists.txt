@@ -7,7 +7,7 @@ include_directories("${PROJECT_SOURCE_DIR}")
 add_executable(GetSetTest
 	test.cpp
 )
-target_link_libraries(GetSetTest GetSet GetSetGui Qt5::Widgets)
+target_link_libraries(GetSetTest GetSet GetSetGui GetSetObjects)
 qt5_use_modules(GetSetTest Widgets)
 
 ###
@@ -58,7 +58,7 @@ target_link_libraries(AutoGUI GetSet GetSetGui Qt5::Widgets)
 add_executable(ExampleAutoGUI
 	../examples/autogui/main.cpp
 )
-target_link_libraries(ExampleAutoGUI GetSet)
+target_link_libraries(ExampleAutoGUI GetSet GetSetObjects)
 
 # Example Client using header-only version of GetSet
 add_executable(ExampleAutoGUI_header_only

@@ -174,7 +174,7 @@ namespace GetSetGui
 			item->setObjectName(action.c_str());
 			return item;
 		}
-		else return 0x0;
+		return 0x0;
 	}
 
 	QPushButton* GetSetTabWidget::addButton(const std::string& action)

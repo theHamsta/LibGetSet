@@ -73,7 +73,6 @@ namespace GetSetInternal {
 	/// This function is defined in GetSet.hxx, because there are local types defined that have to be available internally.
 	GetSetNode* createSpecial(const std::string& type);
 
-
 	/// Way to expose select privates in GetSetDictionary. Definitions can only occur in GetSetDictionary.hxx!
 	/// The idea is, that instead of having a member of GetSetDictionary, a class derives from GetSetInternal::Access.
 	class Access
@@ -102,16 +101,14 @@ namespace GetSetInternal {
             return *node;
         }
 
+		/// Allow access to getProperty
+		GetSetNode* getProperty(const std::string& path);
+
 	protected:
+
 		GetSetDictionary& dictionary;
 		Access(GetSetDictionary& d);
 
-		/// Allow access to getProperty
-		GetSetNode* getProperty(const std::string& path);
-		
-		/// Allow access to the property tree.
-		GetSetSection* getRoot();
-		
 		/// Allow access to setProperty
 		void setProperty(const std::string& path, GetSetNode* p);
 

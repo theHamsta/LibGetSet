@@ -1,50 +1,90 @@
 #include <iostream>
 
-#include "GetSet/GetSet.hxx"
-#include "GetSet/GetSetIO.h"
-#include "GetSet/GetSetCmdLine.hxx"
+#include <GetSetGui/GetSetGui.h>
+#include <GetSetGui/GetSetTabWidget.h>
+#include <GetSetObjects/ObjectFactory.h>
 
-#include "GetSetGui/GetSetTabWidget.h"
+/// Name
+class Name : public GetSetObjects::Object {
+	GETSET_DECLARE_CLASS(Name,Object)
+public:
+	std::string first;
+	std::string last;
 
-#include <QApplication>
+	void stateName()
+	{
+		std::cout << "My name is" << first << " " << last << std::endl;
+	}
+
+};
+
+Name::Name(GetSetObjects::Configurator& config)
+{
+	first=config.declare<std::string>("First Name","Hans");
+	last =config.declare<std::string>("Last Name","Mustermann");
+}
+
+GETSET_REGISTER_CLASS(Name);
+
+/// Person
+class Person : public GetSetObjects::Object {
+	GETSET_DECLARE_CLASS(Person,Object)
+public:
+	Name *name;
+	std::string occupation;
+};
+
+Person::Person(GetSetObjects::Configurator& config)
+{
+	name=GetSetObjects::CreateAndConfigure<Name>("Name",config);
+	occupation=config.declare<std::string>("Occupation","Unemployed");
+}
+
+GETSET_REGISTER_CLASS(Person);
+
+/// Child
+class Child : public Person {
+	GETSET_DECLARE_CLASS(Child,Person)
+public:
+	Name *father;
+	Name *mother;
+};
+
+Child::Child(GetSetObjects::Configurator& config)
+	: Person(config)
+{
+	father=GetSetObjects::CreateAndConfigure<Name>("Mother",config);
+	mother=GetSetObjects::CreateAndConfigure<Name>("Father",config);
+}
+
+GETSET_REGISTER_CLASS(Child);
+
+
+/// Application
+GetSetGui::GetSetApplication g_app("Test");
 
 void gui(const std::string& section, const std::string& key)
 {
-	GetSetIO::save<GetSetIO::IniFile>("config.ini");
+	g_app.saveSettings();
 }
 
 int main(int argc, char **argv)
 {
-	QApplication app(argc,argv);
+	auto interfaces=GetSetObjects::KnownInterafces();
+	for (auto it=interfaces.begin(); it!=interfaces.end(); ++it)
+	{
+		std::cout << "Interface: " << *it << "\n";
+		auto types=GetSetObjects::KnownTypes(*it);
+		for (auto it=types.begin(); it!=types.end(); ++it)
+			std::cout << "   " << *it << std::endl;
+	}
 
-	std::cout << "Command Line Args:\n";
-	for (int i=0;i<argc;i++)
-		std::cout << i << ":\t" << argv[i] << std::endl;
-	std::cout << std::endl;
-	//GetSetGui::File("Run/Binary File").setExtensions("Executable File (*.exe)").setDescription("This is a tooltip");
+	GetSetObjects::Configurator config;
 
-	GetSet<>("Algorithm/Number of Iterations");
-	GetSet<>("Algorithm/Epsilon");
-	GetSet<>("File/Output");
-	GetSet<>("File/Input");
+	Child *self=GetSetObjects::CreateAndConfigure<Child>("Self",config);
 
-//	GetSetIO::load<GetSetIO::IniFile>("config.ini");
-	
-	GetSetIO::CmdLineParser cmdl;
-	cmdl.index("File/Input",1);
-	cmdl.index("File/Output",2);
-	cmdl.declare("Algorithm/Number of Iterations");
-	std::cout << cmdl.getSynopsis() << std::endl;
-
-	if (!cmdl.parse(argc,argv))
-		std::cout << "Unrecocgnizd Commad Line Args!\n";
-
-	GetSetIO::TxtFileKeyValue out(std::cin,std::cout);
-	GetSetDictionary::global().save(out);
-
-	GetSetHandler callback(gui);
-
-	return 0;
-//	return app.exec();
-
+	g_app.init(argc,argv,gui);
+	g_app.window().addDefaultFileMenu();
+	return g_app.exec();
 }
+

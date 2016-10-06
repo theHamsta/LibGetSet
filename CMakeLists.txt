@@ -43,6 +43,7 @@ set(CMAKE_AUTOMOC ON)
 ### SOURCE CODE
 add_subdirectory(GetSet)
 add_subdirectory(GetSetGui)
+add_subdirectory(GetSetObjects)
 
 # Utilities and tests
 add_subdirectory(Apps)

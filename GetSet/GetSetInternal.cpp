@@ -21,8 +21,6 @@ void Access::setProperty(const std::string& path, GetSetNode* p)
 	return dictionary.setProperty(stringToVector<std::string>(path,'/'),p,0);
 }
 
-GetSetSection* Access::getRoot() {return &dictionary;}
-
 void Access::signalChange(const std::string& section, const std::string& key)
 {
 	typedef std::set<GetSetDictionary::Observer*>::const_iterator ObserverIterator;
@@ -114,9 +112,9 @@ std::string GetSetSection::getString() const
 {
 	if (properties.empty()) return "<null>";
 	PropertyByName::const_iterator it=properties.begin();
-	std::string ret=it->second->getType();
+	std::string ret=it->first; // it->second->getType()
 	for (++it;it!=properties.end();++it)
-		ret+=";"+it->second->getType();
+		ret+=";"+it->first; // it->second->getType()
 	return ret;
 }
 

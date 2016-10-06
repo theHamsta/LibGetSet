@@ -20,43 +20,63 @@
 #ifndef __Configurator_h
 #define __Configurator_h
 
-#include "GetSet.hxx"
+#include "../GetSet/GetSet.hxx"
 
-namespace Factory {
+namespace GetSetObjects {
 	/// Configurator for the object factory
 	class Configurator {
 	protected:
-		GetSetPath path;
+		GetSetDictionary&	dict;		//< Dictionary where configuration will be stored
+		std::string			section;	//< Prefix for this instance, non-empty and ending in '/'
 
 	public:
-		Configurator(GetSetDictionary& dict=GetSetDictionary::global(), const std::string& section="") : path(section,dict) {}
+		Configurator(const std::string& _section="", GetSetDictionary& _dict=GetSetDictionary::global())
+			: dict(_dict)
+			, section(_section)
+		{
+			if (!section.empty() && section.back()!='/')
+				section.push_back('/');
+		}
+
+		template <typename T=std::string>
+		void declare(const std::string& param, const T& default_value) {
+			std::string path=section+param;
+			if (dict.exists(path))
+				GetSet<T>(path,dict);
+			else
+				GetSet<T>(path,dict)=value;
+		}
+
+		template <typename T=std::string>
+		GetSet<T> declare(const std::string& param, const std::string& default_value) {
+			std::string path=section+param;
+			bool set_default=dict.exists(path);
+			GetSet<T> value(path,dict);
+			if (set_default) value=default_value;
+			return value;
+		}
 
 		template <typename T>
-		void declare(const std::string& param, T& value) {
-			if (path.hasKey(param))
-				value=path.key<T>(param);
-			else
-				path.key<T>(param)=value;
+		GetSet<T> param(const std::string& param_name)
+		{
+			std::string path=section+param;
+			return GetSet<T>(path,dict);
 		}
 
-		Configurator subsection(const std::string& section) {
-			return Configurator(path.getDictionary(),path.getPath(section));
+		Configurator operator()(const std::string& subsection)
+		{
+			std::string path=section+subsection;
+			return Configurator(path,dict);
 		}
 
-		template <class Type>
-		void create(
-		config.create("Additional Ve
-		hicle 1",m_additionalVehicle1,"Plane");
 	};
 	
-	template <class Interface>
-	Interface* CreateAndConfigure(const std::string& type, Configurator& config) {
-		Interface* obj=Create<Interface>(type);
-		if (!obj) return obj;
-		obj->configure(config.subsection(type));
-		return obj;
+	template <class FactoryClass>
+	FactoryClass* CreateAndConfigure(const std::string& instanceName, Configurator& config=Configurator())
+	{
+		return Factory(config).Create<FactoryClass>(instanceName);
 	}
 
-} // namespace Factory
+} // namespace GetSetObjects
 
 #endif // __Configurator_h
