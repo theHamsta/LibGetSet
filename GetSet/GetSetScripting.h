@@ -67,6 +67,9 @@ public:
 	/// Callback for user input
 	std::string (*user_input)();
 
+	/// Map of temporary variables and command functions (i.e. subroutines)
+	std::map<std::string,std::string> variables;
+
 protected:
 
 	/// Callback for output (optional)
@@ -86,9 +89,7 @@ protected:
 
 	/// Only this dictionary will be affectd by this parser
 	GetSetDictionary& subject;
-	
-	/// Map of temporary variables and command functions (i.e. subroutines)
-	std::map<std::string,std::string> variables;
+
 
 	/// A section used as prefix for all keys ("with" command)
 	std::string section_prefix;

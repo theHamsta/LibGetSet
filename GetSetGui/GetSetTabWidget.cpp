@@ -106,7 +106,7 @@ namespace GetSetGui
 		m_tabWidget->setContextMenuPolicy(Qt::CustomContextMenu);
 		connect(m_tabWidget, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(ctxMenu(const QPoint &)));
 
-		m_mainLayout->addWidget(m_tabWidget);
+		m_mainLayout->insertWidget(0,m_tabWidget);
 
 		setWindowIcon(style()->standardIcon(QStyle::SP_TitleBarMenuButton));
 	}
@@ -143,8 +143,11 @@ namespace GetSetGui
 
 	QAction* GetSetTabWidget::addMenuItem(const std::string& menu, const std::string& action, const std::string& shortcut)
 	{
-		// Make sure a menu bar exists
-		addDefaultFileMenu();
+		if (!m_menuBar)
+		{
+			m_menuBar=new QMenuBar();
+			m_mainLayout->setMenuBar(m_menuBar);
+		}
 		// First create menu structure
 		if (m_menus.find(menu)==m_menus.end())
 		{
@@ -191,9 +194,6 @@ namespace GetSetGui
 
 	void GetSetTabWidget::addDefaultFileMenu()
 	{
-		if (m_menuBar) return;
-		m_menuBar=new QMenuBar();
-		m_mainLayout->setMenuBar(m_menuBar);
 		// File menu
 		addMenuItem("File","");
 		m_menus["File"]->addAction(tr("&About"), this, SLOT(about()));

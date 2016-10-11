@@ -196,9 +196,9 @@ std::string GetSetScriptParser::state()
 	{
 		if (it->second.find_first_of('\n')!=std::string::npos) // FIXME multiline ??
 		{
-			ret=ret+"function "+it->first+"\n";
-			ret=ret+it->second+"\n";
-			ret=ret+"endfunction\n";
+			ret=ret+"define function "+it->first+"\n";
+			ret=ret+it->second;
+			ret=ret+"enddefine\n";
 		}
 		else ret=ret+ "set var " + it->first + " value \"" + it->second + "\"\n";
 	}

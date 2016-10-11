@@ -23,6 +23,8 @@ namespace GetSetGui
 	public:
 		GetSetProgressWindow(void (*handler)(const std::string&, const std::string&)=0x0);
 
+		void start(const std::string& title, const std::string& text="", int max=0, bool *_cancel_clicked=0x0);
+
 		QLayout*			layout;
 		QLabel*				info;
 		QProgressBar*		progress_bar;

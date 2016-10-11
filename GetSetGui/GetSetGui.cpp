@@ -62,40 +62,34 @@ namespace GetSetGui
 		// Default is to try and load ini-file or run a script
 		else if (argc<=2)
 		{
-			if (argc==1)
-				loadSettings();
-			else
+			std::string arg=argc>1?argv[1]:"";
+			std::string ext=splitRight(arg,".");
+			std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+			if (ext=="ini")
+				GetSet<>("ini-File")=argv[1];
+			loadSettings();
+			callback=new GetSetHandler(gui);
+			// Run script
+			if (ext=="getset")
 			{
-				std::string arg=argv[1];
-				std::string ext=splitRight(arg,".");
-				std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
-				if (ext=="ini")
+				std::string script=fileReadString(argv[1]);
+				if (script.empty())
 				{
-					GetSet<>("ini-File")=argv[1];
-					loadSettings();
+					std::cerr <<
+						"Failed to parse command line arguments!\n"
+						"Try:\n"
+						"   " << appname << " --help\n";
+					return false;
 				}
-				else if (ext=="getset")
-				{
-					callback=new GetSetHandler(gui);
-					callback->ignoreNotifications(true);
-					std::string script=fileReadString(argv[1]);
-					if (script.empty())
-					{
-						std::cerr <<
-							"Failed to parse command line arguments!\n"
-							"Try:\n"
-							"   " << appname << " --help\n";
-						return false;
-					}
-					else return parseScript(script);
-				}
-				else single_unhandled_arg=true;
-
+				else return parseScript(script);
 			}
+			else
+				single_unhandled_arg=true;
 		}
+
 		// We have multiple command line args or we did not understand the first one.
 		if (argc>2 || single_unhandled_arg)
-		{
+		{  
 			if (!cmd.parse(argc,argv))
 			{
 				std::cerr <<
@@ -113,8 +107,6 @@ namespace GetSetGui
 			}
 		}
 
-		callback=new GetSetHandler(gui);
-		callback->ignoreNotifications(true);
 		window().setCallBack(gui);
 		return true;
 	}
@@ -148,22 +140,7 @@ namespace GetSetGui
 	void GetSetApplication::progressStart(const std::string& name, const std::string& info, int maximum, bool *cancel_clicked)
 	{
 		window().hide();
-		auto &p=progress();
-		p.setWindowTitle(name.c_str());
-		p.info->setText(info.c_str());
-		p.info->show();
-		p.progress_bar->setMaximum(maximum);
-		p.progress_bar->setValue(0);
-		p.progress_bar->show();
-		if (cancel_clicked)
-		{
-			*cancel_clicked=false;
-			p.button->show();
-			p.cancel_clicked=cancel_clicked;
-		}
-		else
-			p.button->hide();
-		progress().show();
+		progress().start(name,info,maximum,cancel_clicked);
 	}
 
 	void GetSetApplication::progressUpdate(int i)
@@ -212,7 +189,6 @@ namespace GetSetGui
 	int GetSetApplication::exec()
 	{
 		window().show();
-		callback->ignoreNotifications(false);
 		return qt_app->exec();			
 	}
 

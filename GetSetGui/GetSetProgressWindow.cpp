@@ -44,5 +44,32 @@ namespace GetSetGui {
 		info->hide();
 	}
 
+	void GetSetProgressWindow::start(const std::string& title, const std::string& text, int max, bool *_cancel_clicked)
+	{
+		setWindowTitle(title.c_str());
+		cancel_clicked=_cancel_clicked;
+		if (text.empty())
+			info->hide();
+		else
+		{
+			info->setText(text.c_str());
+			info->show();
+		}
+		progress_bar->show();
+		if (max<0)
+			progress_bar->setRange(0,0);
+		else
+			progress_bar->setRange(0,max);
+		if (_cancel_clicked)
+		{
+			button->show();
+			button->setEnabled(true);
+		}
+		else
+			button->hide();
+		progress_bar->setValue(0);
+		show();
+	}
+
 } // namespace GetSetGui
 
