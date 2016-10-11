@@ -22,8 +22,8 @@
 
 #include "../GetSet/GetSetCmdLine.hxx"
 
-#include <QApplication>
-#include <QWidget>
+class QApplication;
+
 
 namespace GetSetGui
 {

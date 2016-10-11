@@ -19,33 +19,9 @@
 
 #include <GetSetObjects/ObjectFactory.h>
 
-/// Name
-class Name : public GetSetObjects::Object {
-	GETSET_DECLARE_CLASS(Name,Object)
-public:
-	std::string first;
-	std::string last;
-
-	void stateName()
-	{
-		std::cout << "My name is" << first << " " << last << std::endl;
-	}
-
-};
-
-Name::Name(GetSetObjects::Configurator& config)
-{
-	first=config.declare<std::string>("First Name","Hans");
-	last =config.declare<std::string>("Last Name","Mustermann");
-	config.declareButton("State Name",stateName);
-}
-
-GETSET_REGISTER_CLASS(Name);
-
 /// Command Line Application
 int main(int argc, char **argv)
 {
-	GetSetObjects::
 
 	return 0;
 }

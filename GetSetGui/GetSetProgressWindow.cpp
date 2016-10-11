@@ -11,10 +11,13 @@ namespace GetSetGui {
 
 	void GetSetProgressWindow::trigger()
 	{
+		progress_bar->setRange(0,0);
+		button->setEnabled(false);
 		std::string window=windowTitle().toStdString();
-		std::string button=sender()->objectName().toStdString();
-		if (callback) callback(window,button);
+		std::string text_on_button=sender()->objectName().toStdString();
+		if (callback) callback(window,text_on_button);
 		if (cancel_clicked) *cancel_clicked=true;
+		
 	}
 
 	GetSetProgressWindow::GetSetProgressWindow(void (*handler)(const std::string&, const std::string&))

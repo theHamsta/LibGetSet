@@ -9,8 +9,7 @@
 #include <QLabel>
 #include <QProgressBar>
 #include <QPushButton>
-
-#include <QApplication>
+#include <QWidget>
 
 void gui_update(const std::string&, void*)
 {
