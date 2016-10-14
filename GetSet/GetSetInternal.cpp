@@ -188,6 +188,7 @@ void GetSetSection::setProperty(const std::vector<std::string>& path, GetSetNode
 
 GetSetNode* GetSetSection::getProperty(const std::vector<std::string>& path, int i) const
 {
+	if (path.size()==i) return const_cast<GetSetNode*>((const GetSetNode*)this);
 	if ((int)path.size()<=i) return 0x0;
 	// Find the property at the current level of the path
 	std::string key=path[i++];
