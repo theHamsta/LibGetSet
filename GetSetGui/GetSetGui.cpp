@@ -1,6 +1,7 @@
 #include "GetSetGui.h"
 #include "GetSetTabWidget.h"
 #include "GetSetProgressWindow.h"
+#include "../GetSet/GetSetLog.hxx"
 #include "../GetSet/GetSetIO.h"
 #include "../GetSet/GetSetScripting.h"
 
@@ -24,6 +25,7 @@ namespace GetSetGui
 		, callback(0x0)
 		, main_window(0x0)
 		, progress_window(0x0)
+		, log(new GetSetLog(_appname+".log"))
 	{
 		GetSet<>("Application")=_appname;
 		GetSet<>("ini-File")=_appname+".ini";
@@ -32,8 +34,9 @@ namespace GetSetGui
 
 	GetSetApplication::~GetSetApplication()
 	{
-//		if (main_window) delete main_window;
-//		if (callback) delete callback;
+		delete log;
+		if (main_window) delete main_window;
+		if (callback) delete callback;
 //		if (qt_app) delete qt_app; // Crashed on delete on windows (why?)
 	}
 

@@ -23,7 +23,7 @@
 #include "../GetSet/GetSetCmdLine.hxx"
 
 class QApplication;
-
+class GetSetLog;
 
 namespace GetSetGui
 {
@@ -38,6 +38,7 @@ namespace GetSetGui
 		GetSetHandler			*callback;
 		GetSetTabWidget			*main_window;
 		GetSetProgressWindow	*progress_window;
+		GetSetLog				*log;
 
 	public:
 		GetSetApplication(std::string _appname);
