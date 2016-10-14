@@ -540,7 +540,7 @@ void GetSetScriptParser::parse_file(std::istream& script)
 			if (action==0) GetSetIO::load<GetSetIO::IniFile>(file);		
 			else           GetSetIO::save<GetSetIO::IniFile>(file);	
 		}
-		if (action==2) // get
+		else if (action==2) // get
 		{
 			//  file ini get var <varname> from key <key> in <value:filename>\n";
 			if (expect_keyword(line,"file","var")<0) return;

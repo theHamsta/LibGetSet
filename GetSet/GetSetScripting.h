@@ -139,7 +139,7 @@ protected:
 	/// eval var <varname> from <value> <op> <value> (avoid double calculations: GetSet works with strings internally)
 	void parse_eval(std::istream& script);
 	/// exit [<string>], where string is converted to int and used as exit code.
-	void GetSetScriptParser::parse_exit(std::istream& script);
+	void parse_exit(std::istream& script);
 	/// file {run|save ini|load ini} <file>, where file is a string
 	void parse_file(std::istream& script);
 	/// EITHER for each <varname> in <';' delimited strings> ... endfor
