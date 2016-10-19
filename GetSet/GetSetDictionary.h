@@ -72,6 +72,10 @@ protected:
 
 	/// This is where the observers reside
 	std::set<Observer*> registered_observers;
+
+	/// Not copy-able
+	GetSetDictionary(const GetSetDictionary&);
+
 };
 
 
