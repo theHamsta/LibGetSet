@@ -194,7 +194,7 @@ std::string GetSet<BasicType>::getAttribute(const std::string& attrib) const
 		if (!exactlyTypedProperty) { std::cerr << "GetSetGui::Button Wrong key type.\n"; return *this;}		\
 		exactlyTypedProperty->caller_info=info;																\
 		exactlyTypedProperty->caller_data=data;																\
-		exactlyTypedProperty->callback=exactlyTypedProperty->caller_info.empty()?0x0:c;											\
+		exactlyTypedProperty->callback=exactlyTypedProperty->caller_info.empty()?0x0:c;						\
 		return *this;																						\
 	}																										\
 	void trigger()																							\
@@ -214,6 +214,9 @@ GETSET_SPECIALIZATION(Enum,int,GETSET_ENUM_CLASS_BODY, GETSET_ENUM_KEY_BODY)
 /// A GetSet&lt;double&gt; with additional range information, so that it could be represented as a slider
 GETSET_SPECIALIZATION(Slider,double, GETSET_TAG(Slider,double,Min) GETSET_TAG(Slider,double,Max), )
 
+/// A GetSet&lt;double&gt; with additional range information, so that it could be represented as a SpinBox
+GETSET_SPECIALIZATION(SpinBox,double, GETSET_TAG(SpinBox,double,Min) GETSET_TAG(SpinBox,double,Step) GETSET_TAG(SpinBox,double,Max) GETSET_TAG(SpinBox,bool,Periodic) , )
+
 /// A button that creates a GetSet change event when pressed.
 GETSET_SPECIALIZATION(Button,std::string,GETSET_BUTTON_CLASS_BODY, GETSET_BUTTON_KEY_BODY)
 
@@ -228,6 +231,55 @@ GETSET_SPECIALIZATION(Directory,std::string, , )
 
 /// A file (or multiple semicolon seperated files). Extensions is a string such as "Images (*.png *.xpm *.jpg);;All files (*)"
 GETSET_SPECIALIZATION(File,std::string, GETSET_TAG(File,std::string,Extensions) GETSET_TAG(File,bool, CreateNew) GETSET_TAG(File,bool, Multiple), )
+
+/// Access to sections and its parameters
+namespace GetSetGui {
+	class Section : public GetSetInternal::Access
+	{
+		GetSetInternal::GetSetSection	*section;
+		std::string						pathToSection;
+	public:
+		Section(const std::string& _pathToSection, GetSetDictionary& d=GetSetDictionary::global())
+			: GetSetInternal::Access(d)
+			, pathToSection(_pathToSection)
+		{
+			section=dynamic_cast<GetSetInternal::GetSetSection*>(GetSetInternal::Access::getProperty(pathToSection));
+		}
+	
+		// Please make sure that section exists before using it.
+		bool exists() const 
+		{
+			return section!=0x0;
+		}
+
+		std::string getAttribute(const std::string& attrib)  const
+		{
+			if (section)
+			{
+				auto it=section->attributes.find(attrib);
+				if (it!=section->attributes.end()) return it->second;
+			}
+			return "";
+		}
+
+		Section& setAttribute(const std::string& attrib, const std::string& value)
+		{
+			if (section) section->attributes[attrib]=value;
+			signalChange(pathToSection,"");
+			return *this;
+		}
+
+		Section& setDescription(const std::string& description) { return setAttribute("Description", description); }
+		Section& setDisabled   (bool disabled)                  { return setAttribute("Disabled",    toString(disabled)); }
+		Section& setGrouped    (bool grouped)                   { return setAttribute("Grouped",     toString(grouped)); }
+		Section& setHidden     (bool hidden)                    { return setAttribute("Hidden",      toString(hidden)); }
+		
+		bool isDisabled() const { return stringTo<bool>(getAttribute("Disabled")); }
+		bool isGrouped()  const { return stringTo<bool>(getAttribute("Grouped") ); }
+		bool isHidden()   const { return stringTo<bool>(getAttribute("Hidden")  ); }
+
+	};
+}
 
 namespace GetSetInternal {
 	/// Create a special property by string

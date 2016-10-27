@@ -28,22 +28,27 @@ GetSetGui::GetSetApplication g_app("Test");
 
 void gui(const std::string& section, const std::string& key)
 {
+	std::cout << key << std::endl;
+	if (key=="Can Change Color")
+	{
+		GetSetGui::Section("Bla/Color").setDisabled(!GetSet<bool>("Bla/Can Change Color"));
+	}
 	g_app.saveSettings();
 }
 
 int main(int argc, char **argv)
 {
-	std::cout << "Yoopidoo\n";
-	std::cerr << "baaam\n";
-	std::cout << "Lalala\n";
+	GetSetGui::SpinBox("Bla/Test").setPeriodic(true);
+	GetSetGui::Slider("Bla/Test 3");
+	GetSet<>("Bla/Test 2")="Blubb";
 
-	std::cout << "2 Yoopidoo\n";
-	std::cerr << "2 baaam\n";
-	std::cout << "2 Lalala\n";
+	GetSet<double>("Bla/Color/Red");
+	GetSet<double>("Bla/Color/Green");
+	GetSet<double>("Bla/Color/Blue");
+	GetSetGui::Section("Bla/Color").setGrouped(true);
 
-	std::cout << "3 Yoopidoo\n";
-	std::cerr << "3 baaam\n";
-	std::cout << "3 Lalala\n";
+	GetSet<bool>("Bla/Can Change Color");
+	gui("Bla","Can Change Color");
 
 	g_app.init(argc,argv,gui);
 	g_app.window().addDefaultFileMenu();

@@ -35,8 +35,8 @@ namespace GetSetGui
 	GetSetApplication::~GetSetApplication()
 	{
 		delete log;
-		if (main_window) delete main_window;
-		if (callback) delete callback;
+//		if (main_window) delete main_window;
+//		if (callback) delete callback;
 //		if (qt_app) delete qt_app; // Crashed on delete on windows (why?)
 	}
 
@@ -87,7 +87,7 @@ namespace GetSetGui
 				else return parseScript(script);
 			}
 			else
-				single_unhandled_arg=true;
+				single_unhandled_arg=ext=="ini";
 		}
 
 		// We have multiple command line args or we did not understand the first one.

@@ -66,6 +66,7 @@ namespace GetSetGui {
 		void editingFinished();
 		void sliderMoved(int value);
 		void setValue(int value);
+		void setRangeValue(double value);
 		void setValue(const QString&);
 
 	public:

@@ -31,6 +31,7 @@
 #include <QFileDialog>
 #include <QHBoxLayout>
 #include <QKeyEvent>
+#include <QGroupBox>
 
 #include "../GetSet/GetSet.hxx"
 
@@ -129,6 +130,24 @@ namespace GetSetGui {
 		GetSet<std::string>(m_section,key,dictionary)=toString(value);
 	}
 
+	void GetSetWidget::setRangeValue(double value)
+	{
+		std::string key=sender()->objectName().toLatin1().data();
+		GetSetGui::SpinBox item(m_section,key,dictionary);
+		double minv=item.getMin();
+		double maxv=item.getMax();
+		double step=item.getStep();
+		if (step<=0) step=0.01;
+		if (item.getPeriodic())
+		{
+			if (value>=maxv)
+				value=minv;
+			if (value<minv)
+				value=maxv-step;
+		}
+		item.setValue(value);
+	}
+
 	void GetSetWidget::setValue(const QString& value)
 	{
 		std::string key=sender()->objectName().toLatin1().data();
@@ -202,26 +221,49 @@ namespace GetSetGui {
 
 		if (dynamic_cast<GetSetSection*>(p)!=0x0)
 		{
-			QWidget *item = new QWidget(this);
-			QLineEdit	*editfield=new QLineEdit(p->getString().c_str(),item);
-			editfield->setEnabled(false);
-			QPushButton *button=new QPushButton("...",item);
-			button->setFixedWidth(50);
-			QHBoxLayout *hlayout = new QHBoxLayout();
-			hlayout->setContentsMargins(0,0,0,0);
-			hlayout->addWidget(editfield);
-			hlayout->addWidget(button);
-			item->setLayout(hlayout);
-			editfield->setObjectName(key.c_str());
-			button->setObjectName(key.c_str());
-			item->setObjectName(key.c_str());
-			m_owned[key]=item;
-			item->setObjectName(key.c_str());
-			connect(editfield, SIGNAL(editingFinished()), this, SLOT(editingFinished()));
-			connect(button, SIGNAL(clicked()), this, SLOT(openSubSection()));
-			m_layout->addRow(key.c_str(),item);
-			if (p->attributes.end()!=p->attributes.find("Description"))
-				item->setToolTip(p->attributes["Description"].c_str());
+			bool is_disabled=stringTo<bool>(p->attributes["Disabled"]);
+			bool is_grouped =stringTo<bool>(p->attributes["Grouped" ]);
+			bool is_hidden  =stringTo<bool>(p->attributes["Hidden"  ]);
+			if (is_hidden) return;
+			if (is_grouped)
+			{
+				std::string section=m_section.empty()?key:m_section+"/"+key;
+				QGroupBox *item=new QGroupBox(this);
+				item->setObjectName(key.c_str());
+				GetSetWidget *widget=new GetSetWidget(dictionary, section, this);
+				widget->setEnabled(!is_disabled);
+				QVBoxLayout *layout = new QVBoxLayout();
+				layout->addWidget(widget);
+				item->setLayout(layout);
+				item->setTitle(key.c_str());
+				m_layout->addRow(item);
+				if (p->attributes.end()!=p->attributes.find("Description"))
+					item->setToolTip(p->attributes["Description"].c_str());
+			}
+			else
+			{
+				QWidget *item = new QWidget(this);
+				QLineEdit	*editfield=new QLineEdit(p->getString().c_str(),item);
+				editfield->setEnabled(false);
+				QPushButton *button=new QPushButton("...",item);
+				button->setFixedWidth(50);
+				button->setEnabled(!is_disabled);
+				QHBoxLayout *hlayout = new QHBoxLayout();
+				hlayout->setContentsMargins(0,0,0,0);
+				hlayout->addWidget(editfield);
+				hlayout->addWidget(button);
+				item->setLayout(hlayout);
+				editfield->setObjectName(key.c_str());
+				button->setObjectName(key.c_str());
+				item->setObjectName(key.c_str());
+				m_owned[key]=item;
+				item->setObjectName(key.c_str());
+				connect(editfield, SIGNAL(editingFinished()), this, SLOT(editingFinished()));
+				connect(button, SIGNAL(clicked()), this, SLOT(openSubSection()));
+				m_layout->addRow(key.c_str(),item);
+				if (p->attributes.end()!=p->attributes.find("Description"))
+					item->setToolTip(p->attributes["Description"].c_str());
+			}
 		}
 		else if (dynamic_cast<GetSetKeyButton*>(p)!=0x0)
 		{
@@ -268,8 +310,10 @@ namespace GetSetGui {
 		else if (dynamic_cast<GetSetKey<int>*>(p)!=0x0)
 		{
 			QSpinBox* item = new QSpinBox(this);
-			item->setMinimum(-32768);
-			item->setMaximum(32767);
+			if (p->attributes["Min"]=="") p->attributes["Min"]="–2147483648";
+			if (p->attributes["Max"]=="") p->attributes["Max"]="2147483647";
+			item->setMinimum(stringTo<int>(p->attributes["Min"]));
+			item->setMaximum(stringTo<int>(p->attributes["Max"]));
 			m_owned[key]=item;
 			item->setObjectName(key.c_str());
 			connect(item, SIGNAL(valueChanged(int)), this, SLOT(setValue(int)));
@@ -287,6 +331,24 @@ namespace GetSetGui {
 			m_owned[key]=item;
 			item->setObjectName(key.c_str());
 			connect(item, SIGNAL(valueChanged(int)), this, SLOT(sliderMoved(int)));
+			m_layout->addRow(key.c_str(),item);
+			if (p->attributes.end()!=p->attributes.find("Description"))
+				item->setToolTip(p->attributes["Description"].c_str());
+		}
+		else if (dynamic_cast<GetSetKeySpinBox*>(p)!=0x0)
+		{
+			QDoubleSpinBox* item = new QDoubleSpinBox(this);
+			if (p->attributes["Min"]=="") p->attributes["Min"]="0";
+			if (p->attributes["Max"]=="") p->attributes["Max"]="1";
+			if (p->attributes["Step"]=="") p->attributes["Step"]="0.05";
+			SpinBox spinbox(section,key,dictionary);
+			item->setMaximum(spinbox.getMax());
+			if (!spinbox.getPeriodic()) item->setMinimum(spinbox.getMin());
+			else item->setMinimum(spinbox.getMin()-spinbox.getStep());
+			item->setSingleStep(spinbox.getStep());
+			m_owned[key]=item;
+			item->setObjectName(key.c_str());
+			connect(item, SIGNAL(valueChanged(double)), this, SLOT(setRangeValue(double)));
 			m_layout->addRow(key.c_str(),item);
 			if (p->attributes.end()!=p->attributes.find("Description"))
 				item->setToolTip(p->attributes["Description"].c_str());
@@ -349,6 +411,13 @@ namespace GetSetGui {
 	void GetSetWidget::notifyChange(const std::string& section, const std::string& key)
 	{
 		if (section!=m_section) return; // wrong section.
+		if (key=="") // This concerns myself!
+		{
+			Section myself(section,dictionary);
+			if (!myself.exists() || myself.isHidden()) close();
+			setEnabled(!myself.isDisabled());
+			return;
+		}
 		if (m_owned.find(key)==m_owned.end()) return; // doesn't exist anyway
 		QWidget* w=m_owned[key];
 
@@ -358,6 +427,13 @@ namespace GetSetGui {
 			QSlider* item=dynamic_cast<QSlider*>(w);
 			item->blockSignals(true);
 			item->setValue((int)(1000.*GetSet<double>(section,key,dictionary)));
+			item->blockSignals(false);
+		}
+		if (dynamic_cast<QDoubleSpinBox*>(w))
+		{
+			QDoubleSpinBox* item=dynamic_cast<QDoubleSpinBox*>(w);
+			item->blockSignals(true);
+			item->setValue(GetSet<double>(section,key,dictionary));
 			item->blockSignals(false);
 		}
 		else if (dynamic_cast<QPushButton*>(w))

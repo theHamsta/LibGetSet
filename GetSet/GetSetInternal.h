@@ -159,11 +159,10 @@ namespace GetSetInternal {
 
 	};
 
-
 	/// This is a (sub-)Section that can hold other Keys. It is an inner node of the property tree.
 	class GetSetSection : public GetSetNode, public Access
 	{
-		/// GetSetInternal::Access classes should have access, so they can declare(...) Sections
+		/// GetSetInternal::Access and GetSetGui::Section classes should have access, so they can declare(...) Sections
 		friend class GetSetInternal::Access;
 
 	public:
