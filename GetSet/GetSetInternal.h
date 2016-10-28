@@ -122,6 +122,8 @@ namespace GetSetInternal {
 		void signalCreate(const std::string& section, const std::string& key);
 		/// Notify all observers of a destruction event
 		void signalDestroy(const std::string& section, const std::string& key);
+		/// Notify all observers of a change in attributes
+		void signalUpdateAttrib(const std::string& section, const std::string& key);
     };
 
 

@@ -41,6 +41,12 @@ void Access::signalDestroy(const std::string& section, const std::string& key)
 	for (ObserverIterator it=dictionary.registered_observers.begin();it!=dictionary.registered_observers.end();++it)
 		(*it)->notifyDestroy(section,key);
 }
+void Access::signalUpdateAttrib(const std::string& section, const std::string& key)
+{
+	typedef std::set<GetSetDictionary::Observer*>::const_iterator ObserverIterator;
+	for (ObserverIterator it=dictionary.registered_observers.begin();it!=dictionary.registered_observers.end();++it)
+		(*it)->notifyUpdateAttrib(section,key);
+}
 
 //
 // GetSetInOut

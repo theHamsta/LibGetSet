@@ -133,7 +133,7 @@ namespace GetSetGui {
 	void GetSetWidget::setRangeValue(double value)
 	{
 		std::string key=sender()->objectName().toLatin1().data();
-		GetSetGui::SpinBox item(m_section,key,dictionary);
+		GetSetGui::RangedDouble item(m_section,key,dictionary);
 		double minv=item.getMin();
 		double maxv=item.getMax();
 		double step=item.getStep();
@@ -144,6 +144,25 @@ namespace GetSetGui {
 				value=minv;
 			if (value<minv)
 				value=maxv-step;
+		}
+		item.setValue(value);
+	}
+
+	void GetSetWidget::setRangeValue(int value)
+	{
+		std::string key=sender()->objectName().toLatin1().data();
+		RangedInt item(m_section,key,dictionary);
+		int minv=item.getMin();
+		int maxv=item.getMax();
+		if (item.getPeriodic())
+		{
+			if (value>maxv) value=minv;
+			if (value<minv) value=maxv;
+		}
+		else
+		{
+			if (value>maxv) value=maxv;
+			if (value<minv) value=minv;
 		}
 		item.setValue(value);
 	}
@@ -237,8 +256,6 @@ namespace GetSetGui {
 				item->setLayout(layout);
 				item->setTitle(key.c_str());
 				m_layout->addRow(item);
-				if (p->attributes.end()!=p->attributes.find("Description"))
-					item->setToolTip(p->attributes["Description"].c_str());
 			}
 			else
 			{
@@ -261,8 +278,6 @@ namespace GetSetGui {
 				connect(editfield, SIGNAL(editingFinished()), this, SLOT(editingFinished()));
 				connect(button, SIGNAL(clicked()), this, SLOT(openSubSection()));
 				m_layout->addRow(key.c_str(),item);
-				if (p->attributes.end()!=p->attributes.find("Description"))
-					item->setToolTip(p->attributes["Description"].c_str());
 			}
 		}
 		else if (dynamic_cast<GetSetKeyButton*>(p)!=0x0)
@@ -272,8 +287,6 @@ namespace GetSetGui {
 			item->setObjectName(key.c_str());
 			connect(item, SIGNAL(clicked()), this, SLOT(trigger()) );
 			m_layout->addRow(key.c_str(),item);
-			if (p->attributes.end()!=p->attributes.find("Description"))
-				item->setToolTip(p->attributes["Description"].c_str());
 		}
 		else if (dynamic_cast<GetSetKey<bool>*>(p)!=0x0)
 		{
@@ -282,8 +295,6 @@ namespace GetSetGui {
 			item->setObjectName(key.c_str());
 			connect(item, SIGNAL(stateChanged(int)), this, SLOT(setValue(int)));
 			m_layout->addRow(key.c_str(),item);
-			if (p->attributes.end()!=p->attributes.find("Description"))
-				item->setToolTip(p->attributes["Description"].c_str());
 		}
 		else if (dynamic_cast<GetSetKeyEnum*>(p)!=0x0)
 		{
@@ -295,8 +306,6 @@ namespace GetSetGui {
 			item->setObjectName(key.c_str());
 			connect(item, SIGNAL(currentIndexChanged(int)), this, SLOT(setValue(int)));		
 			m_layout->addRow(key.c_str(),item);
-			if (p->attributes.end()!=p->attributes.find("Description"))
-				item->setToolTip(p->attributes["Description"].c_str());
 		}
 		else if (dynamic_cast<GetSetKeyStaticText*>(p)!=0x0) // 2do implement differently
 		{
@@ -304,54 +313,30 @@ namespace GetSetGui {
 			m_owned[key]=item;
 			item->setObjectName(key.c_str());
 			m_layout->addRow(item);
-			if (p->attributes.end()!=p->attributes.find("Description"))
-				item->setToolTip(p->attributes["Description"].c_str());
 		}
 		else if (dynamic_cast<GetSetKey<int>*>(p)!=0x0)
 		{
 			QSpinBox* item = new QSpinBox(this);
-			if (p->attributes["Min"]=="") p->attributes["Min"]="-2147483648";
-			if (p->attributes["Max"]=="") p->attributes["Max"]="2147483647";
-			item->setMinimum((int)stringTo<double>(p->attributes["Min"]));
-			item->setMaximum((int)stringTo<double>(p->attributes["Max"]));
 			m_owned[key]=item;
 			item->setObjectName(key.c_str());
-			connect(item, SIGNAL(valueChanged(int)), this, SLOT(setValue(int)));
+			connect(item, SIGNAL(valueChanged(int)), this, SLOT(setRangeValue(int)));
 			m_layout->addRow(key.c_str(),item);
-			if (p->attributes.end()!=p->attributes.find("Description"))
-				item->setToolTip(p->attributes["Description"].c_str());
 		}
 		else if (dynamic_cast<GetSetKeySlider*>(p)!=0x0)
 		{
 			QSlider* item = new QSlider(Qt::Horizontal,this);
-			if (p->attributes["Min"]=="") p->attributes["Min"]="0";
-			if (p->attributes["Max"]=="") p->attributes["Max"]="1";
-			item->setMaximum(Slider(section,key,dictionary).getMax()*1000);
-			item->setMinimum(Slider(section,key,dictionary).getMin()*1000);
 			m_owned[key]=item;
 			item->setObjectName(key.c_str());
 			connect(item, SIGNAL(valueChanged(int)), this, SLOT(sliderMoved(int)));
 			m_layout->addRow(key.c_str(),item);
-			if (p->attributes.end()!=p->attributes.find("Description"))
-				item->setToolTip(p->attributes["Description"].c_str());
 		}
-		else if (dynamic_cast<GetSetKeySpinBox*>(p)!=0x0)
+		else if (dynamic_cast<GetSetKeyRangedDouble*>(p)!=0x0)
 		{
 			QDoubleSpinBox* item = new QDoubleSpinBox(this);
-			if (p->attributes["Min"]=="") p->attributes["Min"]="0";
-			if (p->attributes["Max"]=="") p->attributes["Max"]="1";
-			if (p->attributes["Step"]=="") p->attributes["Step"]="0.05";
-			SpinBox spinbox(section,key,dictionary);
-			item->setMaximum(spinbox.getMax());
-			if (!spinbox.getPeriodic()) item->setMinimum(spinbox.getMin());
-			else item->setMinimum(spinbox.getMin()-spinbox.getStep());
-			item->setSingleStep(spinbox.getStep());
 			m_owned[key]=item;
 			item->setObjectName(key.c_str());
 			connect(item, SIGNAL(valueChanged(double)), this, SLOT(setRangeValue(double)));
 			m_layout->addRow(key.c_str(),item);
-			if (p->attributes.end()!=p->attributes.find("Description"))
-				item->setToolTip(p->attributes["Description"].c_str());
 		}
 		else if (dynamic_cast<GetSetKeyDirectory*>(p)!=0x0 || dynamic_cast<GetSetKeyFile*>(p)!=0x0)
 		{
@@ -375,8 +360,6 @@ namespace GetSetGui {
 			else
 				connect(button, SIGNAL(clicked()), this, SLOT(selectFolder()));
 			m_layout->addRow(key.c_str(),item);
-			if (p->attributes.end()!=p->attributes.find("Description"))
-				item->setToolTip(p->attributes["Description"].c_str());
 		}
 		else if (dynamic_cast<GetSetKeyReadOnlyText*>(p)!=0x0)
 		{
@@ -385,8 +368,6 @@ namespace GetSetGui {
 			item->setObjectName(key.c_str());
 			item->setEnabled(false);
 			m_layout->addRow(key.c_str(),item);
-			if (p->attributes.end()!=p->attributes.find("Description"))
-				item->setToolTip(p->attributes["Description"].c_str());
 		}
 		else if (p)
 		{
@@ -395,29 +376,17 @@ namespace GetSetGui {
 			item->setObjectName(key.c_str());
 			connect(item, SIGNAL(editingFinished()), this, SLOT(editingFinished()));
 			m_layout->addRow(key.c_str(),item);
-			if (p->attributes.end()!=p->attributes.find("Description"))
-				item->setToolTip(p->attributes["Description"].c_str());
 		}
 		else
 		{
 			QLabel* item=new QLabel(key.c_str(),this);
 			m_layout->addWidget(item);
-			if (p->attributes.end()!=p->attributes.find("Description"))
-				item->setToolTip(p->attributes["Description"].c_str());
 		}
-		
+		notifyUpdateAttrib(section,key);
 	}
 
 	void GetSetWidget::notifyChange(const std::string& section, const std::string& key)
 	{
-		if (section!=m_section) return; // wrong section.
-		if (key=="") // This concerns myself!
-		{
-			Section myself(section,dictionary);
-			if (!myself.exists() || myself.isHidden()) close();
-			setEnabled(!myself.isDisabled());
-			return;
-		}
 		if (m_owned.find(key)==m_owned.end()) return; // doesn't exist anyway
 		QWidget* w=m_owned[key];
 
@@ -493,5 +462,89 @@ namespace GetSetGui {
 		destroy();
 		init();
 	}
+	
+	void GetSetWidget::notifyUpdateAttrib(const std::string& section, const std::string& key)
+	{
+		if (section!=m_section) return; // wrong section.
+		if (section!=m_section) return; // wrong section.
+		if (key=="") // This concerns myself!
+		{
+			Section myself(section,dictionary);
+			if (!myself.exists() || myself.isHidden()) close();
+			setEnabled(!myself.isDisabled());
+			return;
+		}
+		// Get widget
+		if (m_owned.find(key)==m_owned.end()) return; // doesn't exist anyway
+		QWidget* w=m_owned[key];
+		// Get attribs
+		using namespace GetSetGui;
+		using namespace GetSetInternal;
+		GetSetNode*	p=getProperty(section.empty() ? key : section+"/"+key);
+		if (!p) return;
+		auto& attrib=p->attributes;
+
+		// Set tool tip
+		if (attrib.end()!=attrib.find("Description"))
+			w->setToolTip(attrib["Description"].c_str());
+
+		if (dynamic_cast<QSlider*>(w))
+		{
+			QSlider* item=dynamic_cast<QSlider*>(w);
+			if (attrib["Min"]=="") attrib["Min"]="0";
+			if (attrib["Max"]=="") attrib["Max"]="1";
+			item->setMaximum(Slider(section,key,dictionary).getMax()*1000);
+			item->setMinimum(Slider(section,key,dictionary).getMin()*1000);
+		}
+		if (dynamic_cast<QDoubleSpinBox*>(w))
+		{
+			QDoubleSpinBox* item=dynamic_cast<QDoubleSpinBox*>(w);
+			if (attrib["Min"]=="") attrib["Min"]="0";
+			if (attrib["Max"]=="") attrib["Max"]="1";
+			if (attrib["Step"]=="") attrib["Step"]="0.05";
+			double minv=stringTo<double>(attrib["Min"] );
+			double maxv=stringTo<double>(attrib["Max"] );
+			double step=stringTo<double>(attrib["Step"]);
+			bool is_periodic=stringTo<bool>(attrib["Periodic"]);
+			item->setMaximum(maxv);
+			if (is_periodic) item->setMinimum(minv);
+			else item->setMinimum(minv-step);
+			item->setSingleStep(step);
+		}
+		else if (dynamic_cast<QPushButton*>(w))
+		{
+			dynamic_cast<QPushButton*>(w)->setText(GetSet<std::string>(section,key,dictionary).getString().c_str());
+		}
+		else if (dynamic_cast<QCheckBox*>(w))
+		{
+			QCheckBox* item=dynamic_cast<QCheckBox*>(w);
+		}
+		else if (dynamic_cast<QComboBox*>(w))
+		{
+			QComboBox* item=dynamic_cast<QComboBox*>(w);
+		}
+		else if (dynamic_cast<QSpinBox*>(w))
+		{
+			QSpinBox* item=dynamic_cast<QSpinBox*>(w);
+			if (attrib["Min"]=="") attrib["Min"]="-2147483648";
+			if (attrib["Max"]=="") attrib["Max"]="2147483647";
+			double minv=stringTo<double>(attrib["Min"] );
+			double maxv=stringTo<double>(attrib["Max"] );
+			double step=stringTo<double>(attrib["Step"]);
+			bool is_periodic=stringTo<bool>(attrib["Periodic"]);
+			item->setMinimum(is_periodic?minv-1:minv);
+			item->setMaximum(is_periodic?maxv+1:maxv);
+		}
+		else if (dynamic_cast<QLabel*>(w))
+		{
+			QLabel* item=dynamic_cast<QLabel*>(w);
+		}
+		else if (dynamic_cast<QLineEdit*>(w))
+		{
+			QLineEdit* item=dynamic_cast<QLineEdit*>(w);
+		}
+
+	}
+
 
 } // namespace GetSetGui

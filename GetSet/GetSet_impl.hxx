@@ -89,6 +89,7 @@ template <typename BasicType>
 GetSet<BasicType>& GetSet<BasicType>::setAttribute(const std::string& attrib, const std::string& value)
 {
 	property->attributes[attrib]=value;
+	signalUpdateAttrib(section,key);
 	return *this;
 }
 
@@ -101,7 +102,7 @@ std::string GetSet<BasicType>::getAttribute(const std::string& attrib) const
 }
 
 //
-// DEFNIITION OF SPECIAL TYPES Enum, Button, File, ect.
+// DEFINITION OF SPECIAL TYPES Enum, Button, File, ect.
 //
 
 /// Specializations for GUI representations
@@ -144,13 +145,13 @@ std::string GetSet<BasicType>::getAttribute(const std::string& attrib) const
 // end of GETSET_SPECIALIZATION
 
 #define GETSET_TAG(SPECIAL_TYPE,TYPE,TAG)																	\
-	SPECIAL_TYPE& set##TAG(const TYPE& value) {property->attributes[#TAG]=toString(value);return *this;}	\
+	SPECIAL_TYPE& set##TAG(const TYPE& value) {setAttribute(#TAG,toString(value));return *this;}			\
 	TYPE get##TAG() const {return stringTo<TYPE>(property->attributes[#TAG]);}
 
 // The Enum class is more complex, because it has features of both GetSet<std::string> and GetSet<int>
 #define GETSET_ENUM_CLASS_BODY																				\
 	GETSET_TAG(Enum,std::vector<std::string>,Choices)														\
-	Enum& setChoices(const std::string& c) {property->attributes["Choices"]=c;return *this;}				\
+	Enum& setChoices(const std::string& c) {setAttribute("Choices",c);return *this;}						\
 	inline GetSet<int>& operator=(const std::string& v) { return setString(v); }							\
 	inline operator std::string() const { return getString(); }
 
@@ -215,7 +216,7 @@ GETSET_SPECIALIZATION(Enum,int,GETSET_ENUM_CLASS_BODY, GETSET_ENUM_KEY_BODY)
 GETSET_SPECIALIZATION(Slider,double, GETSET_TAG(Slider,double,Min) GETSET_TAG(Slider,double,Max), )
 
 /// A GetSet&lt;double&gt; with additional range information, so that it could be represented as a SpinBox
-GETSET_SPECIALIZATION(SpinBox,double, GETSET_TAG(SpinBox,double,Min) GETSET_TAG(SpinBox,double,Step) GETSET_TAG(SpinBox,double,Max) GETSET_TAG(SpinBox,bool,Periodic) , )
+GETSET_SPECIALIZATION(RangedDouble,double, GETSET_TAG(RangedDouble,double,Min) GETSET_TAG(RangedDouble,double,Step) GETSET_TAG(RangedDouble,double,Max) GETSET_TAG(RangedDouble,bool,Periodic) , )
 
 /// A button that creates a GetSet change event when pressed.
 GETSET_SPECIALIZATION(Button,std::string,GETSET_BUTTON_CLASS_BODY, GETSET_BUTTON_KEY_BODY)
@@ -231,6 +232,17 @@ GETSET_SPECIALIZATION(Directory,std::string, , )
 
 /// A file (or multiple semicolon seperated files). Extensions is a string such as "Images (*.png *.xpm *.jpg);;All files (*)"
 GETSET_SPECIALIZATION(File,std::string, GETSET_TAG(File,std::string,Extensions) GETSET_TAG(File,bool, CreateNew) GETSET_TAG(File,bool, Multiple), )
+
+namespace GetSetGui {
+	struct RangedInt : public GetSet<int> {
+		RangedInt(const std::string& pathToKey, GetSetDictionary& d=GetSetDictionary::global()) : GetSet<int>(pathToKey,d) {}
+		RangedInt(const std::string& pathToSection, const std::string& k, GetSetDictionary& d=GetSetDictionary::global()) : GetSet<int>(pathToSection,k,d) {}
+
+		GETSET_TAG(RangedInt,double,Min) 
+		GETSET_TAG(RangedInt,double,Max)
+		GETSET_TAG(RangedInt,bool,Periodic)
+	};
+} // namespace GetSetGui
 
 /// Access to sections and its parameters
 namespace GetSetGui {
@@ -265,7 +277,7 @@ namespace GetSetGui {
 		Section& setAttribute(const std::string& attrib, const std::string& value)
 		{
 			if (section) section->attributes[attrib]=value;
-			signalChange(pathToSection,"");
+			signalUpdateAttrib(pathToSection,"");
 			return *this;
 		}
 

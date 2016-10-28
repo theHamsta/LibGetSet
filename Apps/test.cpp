@@ -38,9 +38,12 @@ void gui(const std::string& section, const std::string& key)
 
 int main(int argc, char **argv)
 {
-	GetSetGui::SpinBox("Bla/Test").setPeriodic(true);
+	GetSetGui::RangedInt("Bla/Test Int").setMin(-7).setMax(17).setPeriodic(true).setDescription("An int from -7 to 17");
+	GetSetGui::RangedDouble("Bla/Test").setPeriodic(true);
 	GetSetGui::Slider("Bla/Test 3");
 	GetSet<>("Bla/Test 2")="Blubb";
+
+	GetSet<int>("Bla/Test 123");
 
 	GetSet<double>("Bla/Color/Red");
 	GetSet<double>("Bla/Color/Green");

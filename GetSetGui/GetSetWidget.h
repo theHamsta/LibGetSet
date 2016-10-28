@@ -66,8 +66,9 @@ namespace GetSetGui {
 		void editingFinished();
 		void sliderMoved(int value);
 		void setValue(int value);
-		void setRangeValue(double value);
 		void setValue(const QString&);
+		void setRangeValue(int value);
+		void setRangeValue(double value);
 
 	public:
 		GetSetWidget(GetSetDictionary& dict, const std::string& list, QWidget *parent=0x0);
@@ -83,6 +84,7 @@ namespace GetSetGui {
 		virtual void notifyCreate(const std::string& list, const std::string& key);
 		virtual void notifyChange(const std::string& list, const std::string& key);
 		virtual void notifyDestroy(const std::string& list, const std::string& key);
+		virtual void notifyUpdateAttrib(const std::string& list, const std::string& key);
 	};
 
 } // namespace GetSetGui

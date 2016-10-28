@@ -63,6 +63,7 @@ public:
         virtual void notifyChange(const std::string& section, const std::string& key)=0;
 		virtual void notifyCreate(const std::string& section, const std::string& key) {};
 		virtual void notifyDestroy(const std::string& section, const std::string& key) {};
+		virtual void notifyUpdateAttrib(const std::string& section, const std::string& key) {};
 	};
 	friend class GetSetInternal::Access;
 
