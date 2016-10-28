@@ -310,10 +310,10 @@ namespace GetSetGui {
 		else if (dynamic_cast<GetSetKey<int>*>(p)!=0x0)
 		{
 			QSpinBox* item = new QSpinBox(this);
-			if (p->attributes["Min"]=="") p->attributes["Min"]="–2147483648";
+			if (p->attributes["Min"]=="") p->attributes["Min"]="-2147483648";
 			if (p->attributes["Max"]=="") p->attributes["Max"]="2147483647";
-			item->setMinimum(stringTo<int>(p->attributes["Min"]));
-			item->setMaximum(stringTo<int>(p->attributes["Max"]));
+			item->setMinimum((int)stringTo<double>(p->attributes["Min"]));
+			item->setMaximum((int)stringTo<double>(p->attributes["Max"]));
 			m_owned[key]=item;
 			item->setObjectName(key.c_str());
 			connect(item, SIGNAL(valueChanged(int)), this, SLOT(setValue(int)));
