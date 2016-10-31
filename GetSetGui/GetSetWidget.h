@@ -63,6 +63,7 @@ namespace GetSetGui {
 		void selectFile();
 		void selectFolder();
 		void openSubSection();
+		void collapseGroupedSection();
 		void editingFinished();
 		void sliderMoved(int value);
 		void setValue(int value);

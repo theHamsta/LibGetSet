@@ -32,6 +32,7 @@
 #include <QHBoxLayout>
 #include <QKeyEvent>
 #include <QGroupBox>
+#include <QStyle>
 
 #include "../GetSet/GetSet.hxx"
 
@@ -92,6 +93,24 @@ namespace GetSetGui {
 		if ( path.isNull())
 			return;
 		folder=path.toLatin1().data();
+	}
+
+	void GetSetWidget::collapseGroupedSection()
+	{
+		std::string key=sender()->objectName().toLatin1().data();
+		if (m_owned.find(key)==m_owned.end()) return;
+		QPushButton* l=dynamic_cast<QPushButton*>(sender());
+		bool is_visible=!m_owned[key]->isVisible();
+		if (is_visible)
+		{
+			m_owned[key]->setVisible(true);
+			l->setText((std::string("- ")+key).c_str());
+		}
+		else
+		{
+			m_owned[key]->setVisible(false);
+			l->setText((std::string("+ ")+key).c_str());
+		}
 	}
 
 	void GetSetWidget::openSubSection()
@@ -227,6 +246,7 @@ namespace GetSetGui {
 
 	void GetSetWidget::notifyCreate(const std::string& section, const std::string& key)
 	{
+		std::string path_to_key=section.empty() ? key : section+"/"+key;
 		if (section!=m_section) return; // wrong section.
 
 		if (m_owned.find(key)!=m_owned.end()) return; // already exists
@@ -236,30 +256,42 @@ namespace GetSetGui {
 
 		using namespace GetSetGui;
 		using namespace GetSetInternal;
-		GetSetNode*	p=getProperty(section.empty() ? key : section+"/"+key);
+		GetSetNode*	p=getProperty(path_to_key);
+
+		auto& attribs(p->attributes);
 
 		if (dynamic_cast<GetSetSection*>(p)!=0x0)
 		{
-			bool is_disabled=stringTo<bool>(p->attributes["Disabled"]);
-			bool is_grouped =stringTo<bool>(p->attributes["Grouped" ]);
-			bool is_hidden  =stringTo<bool>(p->attributes["Hidden"  ]);
+			// Section is not shown in GUI at all
+			bool is_hidden      =attribs.end()==attribs.find("Hidden"  )?false:stringTo<bool>(attribs["Hidden"  ]);
+			// Key in this section are gayed-out in GUI
+			bool is_disabled    =attribs.end()==attribs.find("Disabled")?false:stringTo<bool>(attribs["Disabled"]);
+			// This section is shown in a group box, rather than an independent widget
+			bool is_grouped     =attribs.end()==attribs.find("Grouped" )?false:stringTo<bool>(attribs["Grouped" ]);
 			if (is_hidden) return;
 			if (is_grouped)
 			{
 				std::string section=m_section.empty()?key:m_section+"/"+key;
-				QGroupBox *item=new QGroupBox(this);
-				item->setObjectName(key.c_str());
 				GetSetWidget *widget=new GetSetWidget(dictionary, section, this);
-				widget->setEnabled(!is_disabled);
-				QVBoxLayout *layout = new QVBoxLayout();
-				layout->addWidget(widget);
-				item->setLayout(layout);
-				item->setTitle(key.c_str());
-				m_layout->addRow(item);
+				widget->setObjectName("Collapsable");
+				widget->setVisible(false);
+				widget->setFixedHeight( widget->sizeHint().height()+2); 
+				widget->setStyleSheet("#Collapsable {border: 1px solid gray}");
+
+				QPushButton *label=new QPushButton((std::string("+ ")+key).c_str(),this);
+				label->setFlat(true);
+				label->setObjectName(key.c_str());
+				label->setStyleSheet(
+					"QPushButton{text-align:left;}"
+					"QPushButton:hover:!pressed{color: blue;}"
+					);
+				m_owned[key]=widget;
+				connect(label, SIGNAL(clicked()), this, SLOT(collapseGroupedSection()));
+				m_layout->addRow(label,widget);
 			}
 			else
 			{
-				QWidget *item = new QWidget(this);
+				QWidget		*item = new QWidget(this);
 				QLineEdit	*editfield=new QLineEdit(p->getString().c_str(),item);
 				editfield->setEnabled(false);
 				QPushButton *button=new QPushButton("...",item);
@@ -270,12 +302,10 @@ namespace GetSetGui {
 				hlayout->addWidget(editfield);
 				hlayout->addWidget(button);
 				item->setLayout(hlayout);
-				editfield->setObjectName(key.c_str());
 				button->setObjectName(key.c_str());
 				item->setObjectName(key.c_str());
 				m_owned[key]=item;
 				item->setObjectName(key.c_str());
-				connect(editfield, SIGNAL(editingFinished()), this, SLOT(editingFinished()));
 				connect(button, SIGNAL(clicked()), this, SLOT(openSubSection()));
 				m_layout->addRow(key.c_str(),item);
 			}
@@ -465,22 +495,24 @@ namespace GetSetGui {
 	
 	void GetSetWidget::notifyUpdateAttrib(const std::string& section, const std::string& key)
 	{
-		if (section!=m_section) return; // wrong section.
-		if (section!=m_section) return; // wrong section.
-		if (key=="") // This concerns myself!
+		
+		std::string path_to_key=section.empty() ? key : section+"/"+key;
+		if (path_to_key==m_section) // This concerns myself!
 		{
-			Section myself(section,dictionary);
+			Section myself(path_to_key,dictionary);
 			if (!myself.exists() || myself.isHidden()) close();
 			setEnabled(!myself.isDisabled());
 			return;
 		}
+		else if (section!=m_section) return; // wrong section.
+
 		// Get widget
 		if (m_owned.find(key)==m_owned.end()) return; // doesn't exist anyway
 		QWidget* w=m_owned[key];
 		// Get attribs
 		using namespace GetSetGui;
 		using namespace GetSetInternal;
-		GetSetNode*	p=getProperty(section.empty() ? key : section+"/"+key);
+		GetSetNode*	p=getProperty(path_to_key);
 		if (!p) return;
 		auto& attrib=p->attributes;
 
@@ -507,8 +539,8 @@ namespace GetSetGui {
 			double step=stringTo<double>(attrib["Step"]);
 			bool is_periodic=stringTo<bool>(attrib["Periodic"]);
 			item->setMaximum(maxv);
-			if (is_periodic) item->setMinimum(minv);
-			else item->setMinimum(minv-step);
+			if (is_periodic) item->setMinimum(minv-step);
+			else item->setMinimum(minv);
 			item->setSingleStep(step);
 		}
 		else if (dynamic_cast<QPushButton*>(w))

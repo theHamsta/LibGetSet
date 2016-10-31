@@ -1,4 +1,4 @@
-#include <iostream>
+﻿#include <iostream>
 #include <functional>
 
 #include <GetSet/GetSet.hxx>
@@ -48,11 +48,10 @@ int main(int argc, char **argv)
 	GetSet<double>("Bla/Color/Red");
 	GetSet<double>("Bla/Color/Green");
 	GetSet<double>("Bla/Color/Blue");
-	GetSetGui::Section("Bla/Color").setGrouped(true);
+	GetSetGui::Section("Bla/Color").setGrouped();
 
 	GetSet<bool>("Bla/Can Change Color");
 	gui("Bla","Can Change Color");
-
 	g_app.init(argc,argv,gui);
 	g_app.window().addDefaultFileMenu();
 	return g_app.exec();

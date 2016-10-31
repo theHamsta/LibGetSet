@@ -250,14 +250,27 @@ namespace GetSetGui {
 	{
 		GetSetInternal::GetSetSection	*section;
 		std::string						pathToSection;
+		std::string						superSection;
+		std::string						thisKey;
 	public:
 		Section(const std::string& _pathToSection, GetSetDictionary& d=GetSetDictionary::global())
 			: GetSetInternal::Access(d)
 			, pathToSection(_pathToSection)
 		{
 			section=dynamic_cast<GetSetInternal::GetSetSection*>(GetSetInternal::Access::getProperty(pathToSection));
+			superSection=_pathToSection;
+			thisKey=splitRight(superSection,"/");
 		}
-	
+
+		Section(const std::string& _superSection, const std::string& _thisKey, GetSetDictionary& d=GetSetDictionary::global())
+			: GetSetInternal::Access(d)
+			, pathToSection(_superSection.empty()?_thisKey:_superSection+"/"+_thisKey)
+			, superSection(_superSection)
+			, thisKey(_thisKey)
+		{
+			section=dynamic_cast<GetSetInternal::GetSetSection*>(GetSetInternal::Access::getProperty(pathToSection));
+		}
+
 		// Please make sure that section exists before using it.
 		bool exists() const 
 		{
@@ -277,18 +290,18 @@ namespace GetSetGui {
 		Section& setAttribute(const std::string& attrib, const std::string& value)
 		{
 			if (section) section->attributes[attrib]=value;
-			signalUpdateAttrib(pathToSection,"");
+			signalUpdateAttrib(superSection,thisKey);
 			return *this;
 		}
 
-		Section& setDescription(const std::string& description) { return setAttribute("Description", description); }
-		Section& setDisabled   (bool disabled)                  { return setAttribute("Disabled",    toString(disabled)); }
-		Section& setGrouped    (bool grouped)                   { return setAttribute("Grouped",     toString(grouped)); }
-		Section& setHidden     (bool hidden)                    { return setAttribute("Hidden",      toString(hidden)); }
+		Section& setDescription(const std::string& description) { return setAttribute("Description", description);         }
+		Section& setDisabled   (bool disabled=true)             { return setAttribute("Disabled",    toString(disabled));  }
+		Section& setGrouped    (bool grouped=true)              { return setAttribute("Grouped",     toString(grouped));   }
+		Section& setHidden     (bool hidden=true)               { return setAttribute("Hidden",      toString(hidden));    }
 		
-		bool isDisabled() const { return stringTo<bool>(getAttribute("Disabled")); }
-		bool isGrouped()  const { return stringTo<bool>(getAttribute("Grouped") ); }
-		bool isHidden()   const { return stringTo<bool>(getAttribute("Hidden")  ); }
+		bool isDisabled()  const { return stringTo<bool>(getAttribute("Disabled") ); }
+		bool isGrouped()   const { return stringTo<bool>(getAttribute("Grouped")  ); }
+		bool isHidden()    const { return stringTo<bool>(getAttribute("Hidden")   ); }
 
 	};
 }
