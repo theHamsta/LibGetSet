@@ -211,6 +211,8 @@ namespace GetSetGui {
 
 		setWidget(m_content);
 		setWidgetResizable(true);
+		setMinimumHeight(sizeHint().height());
+		setMinimumWidth(sizeHint().width()+100);
 	}
 
 	void GetSetWidget::destroy()
@@ -274,10 +276,10 @@ namespace GetSetGui {
 				std::string section=m_section.empty()?key:m_section+"/"+key;
 				GetSetWidget *widget=new GetSetWidget(dictionary, section, this);
 				widget->setObjectName("Collapsable");
-				widget->setVisible(false);
 				widget->setFixedHeight( widget->sizeHint().height()+2); 
+				widget->setMinimumWidth( widget->sizeHint().width()+2); 
 				widget->setStyleSheet("#Collapsable {border: 1px solid gray}");
-
+				widget->setVisible(false);
 				QPushButton *label=new QPushButton((std::string("+ ")+key).c_str(),this);
 				label->setFlat(true);
 				label->setObjectName(key.c_str());
@@ -520,6 +522,7 @@ namespace GetSetGui {
 		if (attrib.end()!=attrib.find("Description"))
 			w->setToolTip(attrib["Description"].c_str());
 
+		w->blockSignals(true);
 		if (dynamic_cast<QSlider*>(w))
 		{
 			QSlider* item=dynamic_cast<QSlider*>(w);
@@ -575,6 +578,7 @@ namespace GetSetGui {
 		{
 			QLineEdit* item=dynamic_cast<QLineEdit*>(w);
 		}
+		w->blockSignals(false);
 
 	}
 
