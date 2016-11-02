@@ -24,7 +24,7 @@
 #define __GetSetDictionary_h
 
 /// The root of a propetry tree. This class privately holds all properties. Access only via GetSet&lt;BasicType&gt;.
-class GetSetDictionary : public GetSetInternal::GetSetSection
+class GetSetDictionary : public GetSetInternal::Section
 {
 public:
 	/// Allow instantiation of GetSetDictionaries (not copyable)
@@ -32,10 +32,10 @@ public:
 	virtual ~GetSetDictionary();
 	
 	/// Save to file
-	void save(GetSetInternal::GetSetInOut& file) const;
+	void save(GetSetInternal::InputOutput& file) const;
 
 	/// Load from file
-	void load(GetSetInternal::GetSetInOut& file);
+	void load(GetSetInternal::InputOutput& file);
 
 	/// Returns true if this dictionary contains nothing
 	bool empty();

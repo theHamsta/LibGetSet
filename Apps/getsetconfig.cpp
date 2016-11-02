@@ -18,12 +18,12 @@ void kill_child()
 #endif
 
 // Helper function for the "copy" verb
-void copy(const std::string& prefix, const GetSetInternal::GetSetSection::PropertyByName& sin, GetSetDictionary& dout)
+void copy(const std::string& prefix, const GetSetInternal::Section::PropertyByName& sin, GetSetDictionary& dout)
 {
 	for (auto it=sin.begin();it!=sin.end();++it)
 	{
-		using GetSetInternal::GetSetSection;
-		GetSetSection *s=dynamic_cast<GetSetSection*>(it->second);
+		using GetSetInternal::Section;
+		Section *s=dynamic_cast<Section*>(it->second);
 		std::string p=prefix.empty()?it->first:prefix+"/"+it->first;
 		if (s)
 		{
@@ -177,8 +177,8 @@ int main(int argc, char ** argv)
 			auto it=sin->find(p[i]);
 			if (it!=sin->end())
 			{
-				using GetSetInternal::GetSetSection;
-				GetSetSection *s=dynamic_cast<GetSetSection*>(it->second);
+				using GetSetInternal::Section;
+				Section *s=dynamic_cast<Section*>(it->second);
 				if (!s) sin=0x0;
 				else sin=&(s->getSection());
 			}

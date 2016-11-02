@@ -64,11 +64,11 @@ namespace GetSetGui
 		if (tabs.empty())
 		{
 			std::vector<std::string> all;
-			GetSetInternal::GetSetSection * section=dynamic_cast<GetSetInternal::GetSetSection *>(Access::getProperty(path));
+			GetSetInternal::Section * section=dynamic_cast<GetSetInternal::Section *>(Access::getProperty(path));
 			if (section)
 			{
-				for (GetSetInternal::GetSetSection::PropertyByName::const_iterator it=section->getSection().begin();it!=section->getSection().end();++it)
-					if (dynamic_cast<GetSetInternal::GetSetSection *>(it->second))
+				for (GetSetInternal::Section::PropertyByName::const_iterator it=section->getSection().begin();it!=section->getSection().end();++it)
+					if (dynamic_cast<GetSetInternal::Section *>(it->second))
 						all.push_back(it->first);
 				if (!all.empty())
 				{

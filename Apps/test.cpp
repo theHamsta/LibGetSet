@@ -31,7 +31,7 @@ void gui(const std::string& section, const std::string& key)
 	std::cout << key << std::endl;
 	if (key=="Can Change Color")
 	{
-		GetSetGui::Section("Bla/Color").setDisabled(!GetSet<bool>("Bla/Can Change Color"));
+		GetSetSection("Bla/Color").setDisabled(!GetSet<bool>("Bla/Can Change Color"));
 	}
 	g_app.saveSettings();
 }
@@ -48,7 +48,7 @@ int main(int argc, char **argv)
 	GetSet<double>("Bla/Color/Red");
 	GetSet<double>("Bla/Color/Green");
 	GetSet<double>("Bla/Color/Blue");
-	GetSetGui::Section("Bla/Color").setGrouped();
+	GetSetSection("Bla/Color").setGrouped();
 
 	GetSet<bool>("Bla/Can Change Color");
 	gui("Bla","Can Change Color");

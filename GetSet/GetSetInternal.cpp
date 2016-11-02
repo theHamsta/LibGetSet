@@ -10,13 +10,13 @@ namespace GetSetInternal {
 
 Access::Access(GetSetDictionary& d) : dictionary(d) {}
 
-GetSetNode* Access::getProperty(const std::string& path)
+Node* Access::getProperty(const std::string& path)
 {
 	if (path.empty()) return &dictionary;
 	return dictionary.getProperty(stringToVector<std::string>(path,'/'),0);
 }
 
-void Access::setProperty(const std::string& path, GetSetNode* p)
+void Access::setProperty(const std::string& path, Node* p)
 {
 	return dictionary.setProperty(stringToVector<std::string>(path,'/'),p,0);
 }
@@ -49,21 +49,21 @@ void Access::signalUpdateAttrib(const std::string& section, const std::string& k
 }
 
 //
-// GetSetInOut
+// InputOutput
 //
 
-GetSetInOut::GetSetInOut(std::istream& input, std::ostream& output) : istr(input), ostr(output) {}
+InputOutput::InputOutput(std::istream& input, std::ostream& output) : istr(input), ostr(output) {}
 
-void GetSetInOut::store(const std::string& section, const std::string& key, GetSetInternal::GetSetNode* value)
+void InputOutput::store(const std::string& section, const std::string& key, GetSetInternal::Node* value)
 {
-	if (dynamic_cast<GetSetInternal::GetSetSection*>(value)) return;
+	if (dynamic_cast<GetSetInternal::Section*>(value)) return;
 	std::string path=section.empty()?key:section+"/"+key;
 	contents[path]=value->attributes;
 	contents[path]["Value"]=value->getString();
 	contents[path]["Type"]=value->getType();
 }
 
-void GetSetInOut::retreiveAll(GetSetDictionary& dictionary)
+void InputOutput::retreiveAll(GetSetDictionary& dictionary)
 {
 	for (MapStrMapStrStr::iterator it=contents.begin();it!=contents.end();++it)
 	{
@@ -72,7 +72,7 @@ void GetSetInOut::retreiveAll(GetSetDictionary& dictionary)
 			GetSet<>(it->first,dictionary)=it->second["Value"];
 		else
 		{
-			GetSetInternal::GetSetNode& p=GetSetInternal::Access::createProperty(dictionary,it->first,type);
+			GetSetInternal::Node& p=GetSetInternal::Access::createProperty(dictionary,it->first,type);
 			p.attributes=it->second;
 			p.setString(p.attributes["Value"]);
 			// These two are handled internally and should not be present in the attributes.
@@ -84,37 +84,37 @@ void GetSetInOut::retreiveAll(GetSetDictionary& dictionary)
 
 
 //
-// GetSetSection
+// Section
 //
 
-const GetSetSection::PropertyByName& GetSetSection::getSection() const
+const Section::PropertyByName& Section::getSection() const
 {
 	return properties;
 }
 
-GetSetSection::GetSetSection(const std::string& path, GetSetDictionary& dict)
+Section::Section(const std::string& path, GetSetDictionary& dict)
 	: Access(dict)
 	, absolutePath(path)
 {}
 
-void GetSetSection::store(GetSetInOut& file) const
+void Section::store(InputOutput& file) const
 {
 	for (PropertyByName::const_iterator it=properties.begin();it!=properties.end();++it)
 	{
-		GetSetSection* subsection=dynamic_cast<GetSetSection*>(it->second);
+		Section* subsection=dynamic_cast<Section*>(it->second);
 		if (subsection) subsection->store(file);
 		else file.store(absolutePath,it->first,it->second);
 	}
 }
 
-GetSetSection::~GetSetSection()
+Section::~Section()
 {
 	for (PropertyByName::iterator it=properties.begin();it!=properties.end();++it)
 		delete it->second;
 	properties.clear();
 }
 
-std::string GetSetSection::getString() const
+std::string Section::getString() const
 {
 	if (properties.empty()) return "<null>";
 	PropertyByName::const_iterator it=properties.begin();
@@ -124,7 +124,7 @@ std::string GetSetSection::getString() const
 	return ret;
 }
 
-void GetSetSection::setProperty(const std::vector<std::string>& path, GetSetNode* prop, int i)
+void Section::setProperty(const std::vector<std::string>& path, Node* prop, int i)
 {
 	// Path up to current level HAS TO BE valid
 	std::string key=path[i++];
@@ -133,11 +133,11 @@ void GetSetSection::setProperty(const std::vector<std::string>& path, GetSetNode
 	// The path goes on after this property
 	if (i!=path.size())
 	{
-		GetSetNode* p=0x0;
+		Node* p=0x0;
 		if (it!=properties.end())
 			p=it->second;
 		// If the property was found it HAS TO BE a section
-		GetSetSection* s=dynamic_cast<GetSetSection*>(p);
+		Section* s=dynamic_cast<Section*>(p);
 		// The property exists but has a different type => quietly erase it
 		if (!s && p)
 		{
@@ -155,9 +155,9 @@ void GetSetSection::setProperty(const std::vector<std::string>& path, GetSetNode
 			}
 			// The property does not exist (anymore)
 			if (absolutePath.empty())
-				s=new GetSetSection(key,dictionary);
+				s=new Section(key,dictionary);
 			else
-				s=new GetSetSection(absolutePath+"/"+key,dictionary);
+				s=new Section(absolutePath+"/"+key,dictionary);
 			properties[key]=s;
 			signalCreate(s->absolutePath,"");
 		}
@@ -171,7 +171,7 @@ void GetSetSection::setProperty(const std::vector<std::string>& path, GetSetNode
 		if (item!=properties.end())
 		{
 			// Handle sub-sections individually (DFS)
-			GetSetSection* section=dynamic_cast<GetSetSection*>(item->second);
+			Section* section=dynamic_cast<Section*>(item->second);
 			if (section)
 			{
 				while (!section->properties.empty())
@@ -192,9 +192,9 @@ void GetSetSection::setProperty(const std::vector<std::string>& path, GetSetNode
 	signalCreate(absolutePath,key);
 }
 
-GetSetNode* GetSetSection::getProperty(const std::vector<std::string>& path, int i) const
+Node* Section::getProperty(const std::vector<std::string>& path, int i) const
 {
-	if (path.size()==i) return const_cast<GetSetNode*>((const GetSetNode*)this);
+	if (path.size()==i) return const_cast<Node*>((const Node*)this);
 	if ((int)path.size()<=i) return 0x0;
 	// Find the property at the current level of the path
 	std::string key=path[i++];
@@ -206,7 +206,7 @@ GetSetNode* GetSetSection::getProperty(const std::vector<std::string>& path, int
 	if (i!=path.size())
 	{
 		// So this property has to be a section itself
-		GetSetSection* s=dynamic_cast<GetSetSection*>(it->second);
+		Section* s=dynamic_cast<Section*>(it->second);
 		// if it isn't, the path is invalid
 		if (!s) return 0x0;
 		// else follow down the rest of the path in Section s

@@ -7,7 +7,7 @@ namespace GetSetIO {
 	// IniFile
 	//
 
-	IniFile::IniFile(std::istream& input, std::ostream& output) : GetSetInternal::GetSetInOut(input, output) {}
+	IniFile::IniFile(std::istream& input, std::ostream& output) : GetSetInternal::InputOutput(input, output) {}
 
 	void IniFile::write() const
 	{
@@ -67,7 +67,7 @@ namespace GetSetIO {
 	// TxtFileKeyValue
 	//
 
-	TxtFileKeyValue::TxtFileKeyValue(std::istream& input, std::ostream& output) : GetSetInternal::GetSetInOut(input, output) {}
+	TxtFileKeyValue::TxtFileKeyValue(std::istream& input, std::ostream& output) : GetSetInternal::InputOutput(input, output) {}
 
 	void TxtFileKeyValue::write() const
 	{
@@ -109,7 +109,7 @@ namespace GetSetIO {
 	// TxtFileDescription
 	//
 
-	TxtFileDescription::TxtFileDescription(std::istream& input, std::ostream& output) : GetSetInternal::GetSetInOut(input, output) {}
+	TxtFileDescription::TxtFileDescription(std::istream& input, std::ostream& output) : GetSetInternal::InputOutput(input, output) {}
 
 	void TxtFileDescription::write() const
 	{

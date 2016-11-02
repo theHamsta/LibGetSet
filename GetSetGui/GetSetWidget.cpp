@@ -170,20 +170,25 @@ namespace GetSetGui {
 	void GetSetWidget::setRangeValue(int value)
 	{
 		std::string key=sender()->objectName().toLatin1().data();
-		RangedInt item(m_section,key,dictionary);
-		int minv=item.getMin();
-		int maxv=item.getMax();
-		if (item.getPeriodic())
+		std::string type=GetSetSection(m_section,dictionary).getTypeOfKey(key);
+		if (type=="RangedInt")
 		{
-			if (value>maxv) value=minv;
-			if (value<minv) value=maxv;
+			RangedInt item(m_section,key,dictionary);
+			int minv=item.getMin();
+			int maxv=item.getMax();
+			if (item.getPeriodic())
+			{
+				if (value>maxv) value=minv;
+				if (value<minv) value=maxv;
+			}
+			else
+			{
+				if (value>maxv) value=maxv;
+				if (value<minv) value=minv;
+			}
+			item.setValue(value);
 		}
-		else
-		{
-			if (value>maxv) value=maxv;
-			if (value<minv) value=minv;
-		}
-		item.setValue(value);
+		else GetSet<int>(m_section,key,dictionary)=value;
 	}
 
 	void GetSetWidget::setValue(const QString& value)
@@ -201,9 +206,9 @@ namespace GetSetGui {
 		m_layout = new QFormLayout();
 		m_content->setLayout(m_layout);
 
-		GetSetInternal::GetSetSection * section=(GetSetInternal::GetSetSection *)Access::getProperty(m_section);
+		GetSetInternal::Section * section=(GetSetInternal::Section *)Access::getProperty(m_section);
 
-		for (GetSetInternal::GetSetSection::PropertyByName::const_iterator it=section->getSection().begin();it!=section->getSection().end();++it)
+		for (GetSetInternal::Section::PropertyByName::const_iterator it=section->getSection().begin();it!=section->getSection().end();++it)
 		{
 			this->notifyCreate(m_section, it->first);
 			this->notifyChange(m_section, it->first);
@@ -258,11 +263,11 @@ namespace GetSetGui {
 
 		using namespace GetSetGui;
 		using namespace GetSetInternal;
-		GetSetNode*	p=getProperty(path_to_key);
+		Node*	p=getProperty(path_to_key);
 
 		auto& attribs(p->attributes);
 
-		if (dynamic_cast<GetSetSection*>(p)!=0x0)
+		if (dynamic_cast<Section*>(p)!=0x0)
 		{
 			// Section is not shown in GUI at all
 			bool is_hidden      =attribs.end()==attribs.find("Hidden"  )?false:stringTo<bool>(attribs["Hidden"  ]);
@@ -501,7 +506,7 @@ namespace GetSetGui {
 		std::string path_to_key=section.empty() ? key : section+"/"+key;
 		if (path_to_key==m_section) // This concerns myself!
 		{
-			Section myself(path_to_key,dictionary);
+			GetSetSection myself(path_to_key,dictionary);
 			if (!myself.exists() || myself.isHidden()) close();
 			setEnabled(!myself.isDisabled());
 			return;
@@ -514,7 +519,7 @@ namespace GetSetGui {
 		// Get attribs
 		using namespace GetSetGui;
 		using namespace GetSetInternal;
-		GetSetNode*	p=getProperty(path_to_key);
+		Node*	p=getProperty(path_to_key);
 		if (!p) return;
 		auto& attrib=p->attributes;
 

@@ -47,7 +47,7 @@ namespace GetSetIO {
 	}
 
 	/// An ini-File in "[Section.Subsection] Key=Value" format
-	class IniFile : public GetSetInternal::GetSetInOut
+	class IniFile : public GetSetInternal::InputOutput
 	{
 	public:
 		IniFile(std::istream&, std::ostream&);
@@ -57,7 +57,7 @@ namespace GetSetIO {
 	};
 
 	/// A simple text file with one property per line in "section/key=value" format
-	class TxtFileKeyValue : public GetSetInternal::GetSetInOut
+	class TxtFileKeyValue : public GetSetInternal::InputOutput
 	{
 	public:
 		TxtFileKeyValue(std::istream&, std::ostream&);
@@ -67,7 +67,7 @@ namespace GetSetIO {
 	};
 
 	/// A text file with one property per line containing all information (Key, Value, Type and additional info) in attribute="value" format
-	class TxtFileDescription : public GetSetInternal::GetSetInOut
+	class TxtFileDescription : public GetSetInternal::InputOutput
 	{
 	public:
 		TxtFileDescription(std::istream&, std::ostream&);

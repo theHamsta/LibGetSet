@@ -25,7 +25,7 @@
 namespace GetSetIO {
 
 	/// GetSet full description in XML formtat
-	class XmlFile : public GetSetInternal::GetSetInOut
+	class XmlFile : public GetSetInternal::InputOutput
 	{
 	public:
 		XmlFile(std::istream&, std::ostream&);

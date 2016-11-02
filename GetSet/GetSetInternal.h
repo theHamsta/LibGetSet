@@ -36,21 +36,21 @@ class GetSetDictionary;
 
 namespace GetSetInternal {
 
-	class GetSetSection;
+	class Section;
 
 	/// Variant interface class. Super class of all nodes in the property tree.
-	class GetSetNode {
+	class Node {
 	public:
 		virtual std::string getType() const = 0;
 		virtual void setString(const std::string& new_value) = 0;
 		virtual std::string getString() const = 0;
-		virtual ~GetSetNode() {}
+		virtual ~Node() {}
 		std::map<std::string,std::string> attributes;
 	};
 
 	/// Templated Variant specialization. Leaves of the property tree.
 	template <typename T>
-	class GetSetKey : public GetSetNode
+	class GetSetKey : public Node
 	{
 	public:
 		T value;
@@ -71,7 +71,7 @@ namespace GetSetInternal {
 	};
 
 	/// This function is defined in GetSet.hxx, because there are local types defined that have to be available internally.
-	GetSetNode* createSpecial(const std::string& type);
+	Node* createSpecial(const std::string& type);
 
 	/// Way to expose select privates in GetSetDictionary. Definitions can only occur in GetSetDictionary.hxx!
 	/// The idea is, that instead of having a member of GetSetDictionary, a class derives from GetSetInternal::Access.
@@ -79,10 +79,10 @@ namespace GetSetInternal {
 	{
 	public:
 		/// Create a new property in dictionary at path with specified type provided as string.
-        static GetSetNode& createProperty(GetSetDictionary& dictionary, const std::string& path, const std::string& type)
+        static Node& createProperty(GetSetDictionary& dictionary, const std::string& path, const std::string& type)
         {
             // Special GetSet types first
-            GetSetInternal::GetSetNode * node=createSpecial(type);
+            GetSetInternal::Node * node=createSpecial(type);
             if (!node)
             {
                 // This (ugly) code craetes a GetSetKey from a string for c-types, std::string and std::vectors of these
@@ -102,7 +102,7 @@ namespace GetSetInternal {
         }
 
 		/// Allow access to getProperty
-		GetSetNode* getProperty(const std::string& path);
+		Node* getProperty(const std::string& path);
 
 	protected:
 
@@ -110,11 +110,11 @@ namespace GetSetInternal {
 		Access(GetSetDictionary& d);
 
 		/// Allow access to setProperty
-		void setProperty(const std::string& path, GetSetNode* p);
+		void setProperty(const std::string& path, Node* p);
 
-		/// GetSetKeyType must inherit from GetSetNode
+		/// GetSetKeyType must inherit from Node
 		template <typename GetSetKeyType>
-        GetSetNode& declare(const std::string& path, bool forceType) const;
+        Node& declare(const std::string& path, bool forceType) const;
 
 		/// Notify all observers of a change event
 		void signalChange(const std::string& section, const std::string& key);
@@ -128,22 +128,22 @@ namespace GetSetInternal {
 
 
 	/// An interface for file access. See Also: namespace GetSetIO
-	class GetSetInOut
+	class InputOutput
 	{
 	public:
 		/// Flexible c-tor for string streams, stdio, file streams etc.
-        GetSetInOut(std::istream&, std::ostream&);
+        InputOutput(std::istream&, std::ostream&);
 
     // protected: // FIXME gcc does not like this gui despite old friendship
 
         // In a way, this class extends the functionality of GetSetDictionary.
 		// Currently I use friendship to express this. But this is not a good design.
 		// Still, nothing inside this class should be accessible to the user.
-		friend class GetSetSection;
+		friend class Section;
 		friend class GetSetDictionary;
 		
 		/// Store value of a key
-		virtual void store(const std::string& section, const std::string& key, GetSetInternal::GetSetNode* value);
+		virtual void store(const std::string& section, const std::string& key, GetSetInternal::Node* value);
 		/// Retreive all values that are available and store them in dictionary
 		virtual void retreiveAll(GetSetDictionary& dictionary);
 
@@ -162,14 +162,14 @@ namespace GetSetInternal {
 	};
 
 	/// This is a (sub-)Section that can hold other Keys. It is an inner node of the property tree.
-	class GetSetSection : public GetSetNode, public Access
+	class Section : public Node, public Access
 	{
-		/// GetSetInternal::Access and GetSetGui::Section classes should have access, so they can declare(...) Sections
+		/// GetSetInternal::Access and GetSetSection classes should have access, so they can declare(...) Sections
 		friend class GetSetInternal::Access;
 
 	public:
 		/// A mapping from a string to a variant property data
-		typedef std::map<std::string,GetSetNode*> PropertyByName;
+		typedef std::map<std::string,Node*> PropertyByName;
 		/// Direct READ-ONLY access. Only needed to walk the tree (which is rarely neccessary).
 		const PropertyByName& getSection() const;
 
@@ -180,18 +180,18 @@ namespace GetSetInternal {
 		std::string absolutePath;
 
 		/// Not copyable
-		GetSetSection(const GetSetSection&);
+		Section(const Section&);
 
 		/// Not publicly constructible
-		GetSetSection(const std::string& path, GetSetDictionary& dict);
+		Section(const std::string& path, GetSetDictionary& dict);
 
-		/// Store values in a GetSetInOut object
-		void store(GetSetInOut& file) const;		
+		/// Store values in a InputOutput object
+		void store(InputOutput& file) const;		
 
 		/// Destroy all properties held by this object
-		virtual ~GetSetSection();
+		virtual ~Section();
 
-		// GetSetNode implementation
+		// Node implementation
 
 		// We are a "Section" holding more properties
 		virtual std::string getType() const {return "Section";}
@@ -201,10 +201,10 @@ namespace GetSetInternal {
 		virtual std::string getString() const;
 
 		/// Replace or create a property at path in the tree
-		void setProperty(const std::vector<std::string>& path, GetSetNode* prop, int i);
+		void setProperty(const std::vector<std::string>& path, Node* prop, int i);
 
 		/// Check if there is a property at path. If so, Return it eles return null.
-		GetSetNode* getProperty(const std::vector<std::string>& path, int i) const;
+		Node* getProperty(const std::vector<std::string>& path, int i) const;
 	};
 
 }// namespace GetSetInternal
@@ -221,11 +221,11 @@ namespace GetSetInternal {
 namespace GetSetInternal
 {
     template <typename GetSetKeyType>
-    GetSetNode& Access::declare(const std::string& path, bool forceType) const
+    Node& Access::declare(const std::string& path, bool forceType) const
     {
         std::vector<std::string> pv=stringToVector<std::string>(path,'/');
-        GetSetNode* d=dictionary.getProperty(pv,0);
-        // Check if GetSetKeyType at path exists or if another GetSetNode exsist and we don't forceType
+        Node* d=dictionary.getProperty(pv,0);
+        // Check if GetSetKeyType at path exists or if another Node exsist and we don't forceType
         if (d && (!forceType || dynamic_cast<GetSetKeyType*>(d)))
             return *d;
         std::string value="";

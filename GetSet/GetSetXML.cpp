@@ -33,7 +33,7 @@ namespace GetSetIO
 	//
 	// XmlFile
 	//
-	XmlFile::XmlFile(std::istream& input, std::ostream& output) : GetSetInternal::GetSetInOut(input, output) {}
+	XmlFile::XmlFile(std::istream& input, std::ostream& output) : GetSetInternal::InputOutput(input, output) {}
 
 
 	//

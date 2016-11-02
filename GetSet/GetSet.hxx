@@ -74,7 +74,7 @@ protected:
 	std::string key;
 
 	/// Keep track of the associated property (not actually owned by this class)
-	GetSetInternal::GetSetNode* property;
+	GetSetInternal::Node* property;
 
 	/// Same as property, if the type is an exact match. Else it is null.
 	GetSetInternal::GetSetKey<BasicType>* typedProperty;

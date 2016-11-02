@@ -10,19 +10,19 @@ GetSetDictionary* GetSetDictionary::_instance=0x0;
 
 GetSetDictionary::GetSetDictionary()
 	// "this" is the root of a tree and all nodes hold a reference to the root, including the root itself.
-	// This is correct as long as GetSetSection(...) only stores the reference for later use.
-	: GetSetSection("",*this)
+	// This is correct as long as Section(...) only stores the reference for later use.
+	: Section("",*this)
 {}
 
 GetSetDictionary::~GetSetDictionary() {}
 	
-void GetSetDictionary::save(GetSetInternal::GetSetInOut& file) const
+void GetSetDictionary::save(GetSetInternal::InputOutput& file) const
 {
-	GetSetSection::store(file);
+	Section::store(file);
 	file.write();
 }
 
-void GetSetDictionary::load(GetSetInternal::GetSetInOut& file)
+void GetSetDictionary::load(GetSetInternal::InputOutput& file)
 {
 	file.read();
 	file.retreiveAll(*this);
@@ -62,7 +62,7 @@ bool GetSetDictionary::exists(const std::string path)
 bool GetSetDictionary::isValue(const std::string path)
 {
 	auto p=GetSetInternal::Access::getProperty(path);
-	if (dynamic_cast<GetSetInternal::GetSetSection*>(p)!=0x0) return false;
+	if (dynamic_cast<GetSetInternal::Section*>(p)!=0x0) return false;
 	if (dynamic_cast<GetSetInternal::GetSetKeyButton*>(p)!=0x0) return false;
 	if (dynamic_cast<GetSetInternal::GetSetKeyStaticText*>(p)!=0x0) return false;
 	return true;

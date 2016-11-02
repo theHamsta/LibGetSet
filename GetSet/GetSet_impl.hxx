@@ -218,6 +218,9 @@ GETSET_SPECIALIZATION(Slider,double, GETSET_TAG(Slider,double,Min) GETSET_TAG(Sl
 /// A GetSet&lt;double&gt; with additional range information, so that it could be represented as a SpinBox
 GETSET_SPECIALIZATION(RangedDouble,double, GETSET_TAG(RangedDouble,double,Min) GETSET_TAG(RangedDouble,double,Step) GETSET_TAG(RangedDouble,double,Max) GETSET_TAG(RangedDouble,bool,Periodic) , )
 
+/// A GetSet&lt;int&gt; with additional range information, so that it could be represented as a SpinBox
+GETSET_SPECIALIZATION(RangedInt,int, GETSET_TAG(RangedInt,int,Min) GETSET_TAG(RangedInt,int,Step) GETSET_TAG(RangedInt,int,Max) GETSET_TAG(RangedInt,bool,Periodic) , )
+
 /// A button that creates a GetSet change event when pressed.
 GETSET_SPECIALIZATION(Button,std::string,GETSET_BUTTON_CLASS_BODY, GETSET_BUTTON_KEY_BODY)
 
@@ -233,87 +236,107 @@ GETSET_SPECIALIZATION(Directory,std::string, , )
 /// A file (or multiple semicolon seperated files). Extensions is a string such as "Images (*.png *.xpm *.jpg);;All files (*)"
 GETSET_SPECIALIZATION(File,std::string, GETSET_TAG(File,std::string,Extensions) GETSET_TAG(File,bool, CreateNew) GETSET_TAG(File,bool, Multiple), )
 
-namespace GetSetGui {
-	struct RangedInt : public GetSet<int> {
-		RangedInt(const std::string& pathToKey, GetSetDictionary& d=GetSetDictionary::global()) : GetSet<int>(pathToKey,d) {}
-		RangedInt(const std::string& pathToSection, const std::string& k, GetSetDictionary& d=GetSetDictionary::global()) : GetSet<int>(pathToSection,k,d) {}
-
-		GETSET_TAG(RangedInt,double,Min) 
-		GETSET_TAG(RangedInt,double,Max)
-		GETSET_TAG(RangedInt,bool,Periodic)
-	};
-} // namespace GetSetGui
 
 /// Access to sections and its parameters
-namespace GetSetGui {
-	class Section : public GetSetInternal::Access
+
+class GetSetSection : public GetSetInternal::Access
+{
+	GetSetInternal::Section		*section;
+	std::string					pathToSection;
+	std::string					superSection;
+	std::string					thisKey;
+public:
+	GetSetSection(const std::string& _pathToSection, GetSetDictionary& d=GetSetDictionary::global())
+		: GetSetInternal::Access(d)
+		, pathToSection(_pathToSection)
 	{
-		GetSetInternal::GetSetSection	*section;
-		std::string						pathToSection;
-		std::string						superSection;
-		std::string						thisKey;
-	public:
-		Section(const std::string& _pathToSection, GetSetDictionary& d=GetSetDictionary::global())
-			: GetSetInternal::Access(d)
-			, pathToSection(_pathToSection)
-		{
-			section=dynamic_cast<GetSetInternal::GetSetSection*>(GetSetInternal::Access::getProperty(pathToSection));
-			superSection=_pathToSection;
-			thisKey=splitRight(superSection,"/");
-		}
+		section=dynamic_cast<GetSetInternal::Section*>(GetSetInternal::Access::getProperty(pathToSection));
+		superSection=_pathToSection;
+		thisKey=splitRight(superSection,"/");
+	}
 
-		Section(const std::string& _superSection, const std::string& _thisKey, GetSetDictionary& d=GetSetDictionary::global())
-			: GetSetInternal::Access(d)
-			, pathToSection(_superSection.empty()?_thisKey:_superSection+"/"+_thisKey)
-			, superSection(_superSection)
-			, thisKey(_thisKey)
-		{
-			section=dynamic_cast<GetSetInternal::GetSetSection*>(GetSetInternal::Access::getProperty(pathToSection));
-		}
+	GetSetSection(const std::string& _superSection, const std::string& _thisKey, GetSetDictionary& d=GetSetDictionary::global())
+		: GetSetInternal::Access(d)
+		, pathToSection(_superSection.empty()?_thisKey:_superSection+"/"+_thisKey)
+		, superSection(_superSection)
+		, thisKey(_thisKey)
+	{
+		section=dynamic_cast<GetSetInternal::Section*>(GetSetInternal::Access::getProperty(pathToSection));
+	}
 
-		// Please make sure that section exists before using it.
-		bool exists() const 
-		{
-			return section!=0x0;
-		}
+	/// Check whether the section exists
+	bool exists() const 
+	{
+		return section!=0x0;
+	}
 
-		std::string getAttribute(const std::string& attrib)  const
-		{
-			if (section)
-			{
-				auto it=section->attributes.find(attrib);
-				if (it!=section->attributes.end()) return it->second;
-			}
-			return "";
-		}
+	/// Discard all keys in this section and the section itself
+	void discard() const 
+	{
+		dictionary.remove(pathToSection);
+	}
+	
+	// Get or set a key in this section
+	template <typename BasicType=std::string>
+	GetSet<BasicType> key(const std::string& key) const 
+	{
+		return GetSet<BasicType>(section,key,dictionary);
+	}
 
-		Section& setAttribute(const std::string& attrib, const std::string& value)
-		{
-			if (section) section->attributes[attrib]=value;
-			signalUpdateAttrib(superSection,thisKey);
-			return *this;
-		}
+	/// Get type of a key in this section. Returns empty string if key does not exist
+	std::string getTypeOfKey(const std::string& key)
+	{
+		if (section->getSection().find(key)!=section->getSection().end())
+			return section->getSection().find(key)->second->getType();
+		else return "";
+	}
 
-		Section& setDescription(const std::string& description) { return setAttribute("Description", description);         }
-		Section& setDisabled   (bool disabled=true)             { return setAttribute("Disabled",    toString(disabled));  }
-		Section& setGrouped    (bool grouped=true)              { return setAttribute("Grouped",     toString(grouped));   }
-		Section& setHidden     (bool hidden=true)               { return setAttribute("Hidden",      toString(hidden));    }
+	/// Get current value of an attribute
+	std::string getAttribute(const std::string& attrib)  const
+	{
+		if (section)
+		{
+			auto it=section->attributes.find(attrib);
+			if (it!=section->attributes.end()) return it->second;
+		}
+		return "";
+	}
+
+	/// Set value of an attribute
+	GetSetSection& setAttribute(const std::string& attrib, const std::string& value)
+	{
+		if (section) section->attributes[attrib]=value;
+		signalUpdateAttrib(superSection,thisKey);
+		return *this;
+	}
+
+	/// Set Description (e.g. shown as tool tip)
+	GetSetSection& setDescription(const std::string& description) { return setAttribute("Description", description);         }
+
+	///Contents of this section will not be modifiable in GUI
+	GetSetSection& setDisabled   (bool disabled=true)             { return setAttribute("Disabled",    toString(disabled));  }
+
+	/// Show contents of this section in a collapsable group box.
+	GetSetSection& setGrouped    (bool grouped=true)              { return setAttribute("Grouped",     toString(grouped));   }
+
+	/// This section will not be shown in GUI at all
+	GetSetSection& setHidden     (bool hidden=true)               { return setAttribute("Hidden",      toString(hidden));    }
 		
-		bool isDisabled()  const { return stringTo<bool>(getAttribute("Disabled") ); }
-		bool isGrouped()   const { return stringTo<bool>(getAttribute("Grouped")  ); }
-		bool isHidden()    const { return stringTo<bool>(getAttribute("Hidden")   ); }
+	bool isDisabled()  const { return stringTo<bool>(getAttribute("Disabled") ); }
+	bool isGrouped()   const { return stringTo<bool>(getAttribute("Grouped")  ); }
+	bool isHidden()    const { return stringTo<bool>(getAttribute("Hidden")   ); }
 
-	};
-}
+};
 
 namespace GetSetInternal {
 	/// Create a special property by string
-	inline GetSetNode* createSpecial(const std::string& type)
+	inline Node* createSpecial(const std::string& type)
 	{
-		GetSetNode* node=0x0;
+		Node* node=0x0;
 		#define GETSET_TYPE_STR(X) if (type==#X) node=new GetSetKey##X();
 		// special types
 		GETSET_TYPE_STR(Slider)
+		GETSET_TYPE_STR(RangedDouble)
 		GETSET_TYPE_STR(Enum)
 		GETSET_TYPE_STR(Button)
 		GETSET_TYPE_STR(StaticText)
@@ -321,6 +344,8 @@ namespace GetSetInternal {
 		GETSET_TYPE_STR(Directory)
 		GETSET_TYPE_STR(File)
 		#undef GETSET_TYPE_STR
+		// Not actually that special at all
+		if (type=="RangedInt") node=new GetSetKey<int>();
 		return node;
 	}
 }

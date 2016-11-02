@@ -135,7 +135,7 @@ namespace GetSetIO {
 
 	CmdLineParser& CmdLineParser::declare(const std::string& path, const std::string& flag)
 	{
-		GetSetInternal::GetSetNode *p=getProperty(path);
+		GetSetInternal::Node *p=getProperty(path);
 		if (!p || p->getType()!="Section")
 		{
 			// Path points to a key (or to nothingness)
@@ -166,8 +166,8 @@ namespace GetSetIO {
 		else
 		{
 			using namespace GetSetInternal;
-			GetSetSection* s=dynamic_cast<GetSetSection*>(p);
-			typedef  std::map<std::string,GetSetNode*> MapStrParam;
+			Section* s=dynamic_cast<Section*>(p);
+			typedef  std::map<std::string,Node*> MapStrParam;
 			const MapStrParam& m=s->getSection();
 			// Recursively declare all keys in a section
 			for (MapStrParam::const_iterator it=m.begin();it!=m.end();++it)
@@ -192,7 +192,7 @@ namespace GetSetIO {
 				MapStrStr::iterator it=flags.find(arg);
 				if (it!=flags.end())
 				{
-					GetSetInternal::GetSetNode* n=getProperty(it->second);
+					GetSetInternal::Node* n=getProperty(it->second);
 					n->setString(argv[++i]);
 					required.erase(it->second);
 					if (found.find(it->second)!=found.end())
