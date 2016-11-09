@@ -275,22 +275,28 @@ namespace GetSetGui {
 			bool is_disabled    =attribs.end()==attribs.find("Disabled")?false:stringTo<bool>(attribs["Disabled"]);
 			// This section is shown in a group box, rather than an independent widget
 			bool is_grouped     =attribs.end()==attribs.find("Grouped" )?false:stringTo<bool>(attribs["Grouped" ]);
+			// This section is shown in a group box, rather than an independent widget
+			bool is_collapsible =attribs.end()!=attribs.find("Collapsed" );
 			if (is_hidden) return;
 			if (is_grouped)
 			{
+				bool is_collapsed=is_collapsible?stringTo<bool>(attribs["Collapsed"]):false;
 				std::string section=m_section.empty()?key:m_section+"/"+key;
 				GetSetWidget *widget=new GetSetWidget(dictionary, section, this);
-				widget->setObjectName("Collapsable");
+				widget->setObjectName("Collapsible");
 				widget->setFixedHeight( widget->sizeHint().height()+2); 
 				widget->setMinimumWidth( widget->sizeHint().width()+2); 
-				widget->setStyleSheet("#Collapsable {border: 1px solid gray}");
-				widget->setVisible(false);
-				QPushButton *label=new QPushButton((std::string("+ ")+key).c_str(),this);
+				widget->setStyleSheet("#Collapsible {border: 1px solid gray}");
+				widget->setVisible(!is_collapsed);
+				widget->setEnabled(!is_disabled);
+				QPushButton *label=new QPushButton(is_collapsible?(std::string("+ ")+key).c_str():key.c_str(),this);
+				label->setEnabled(is_collapsible);
 				label->setFlat(true);
 				label->setObjectName(key.c_str());
 				label->setStyleSheet(
 					"QPushButton{text-align:left;}"
 					"QPushButton:hover:!pressed{color: blue;}"
+					"QPushButton:disabled{color: black}"
 					);
 				m_owned[key]=widget;
 				connect(label, SIGNAL(clicked()), this, SLOT(collapseGroupedSection()));
@@ -502,7 +508,6 @@ namespace GetSetGui {
 	
 	void GetSetWidget::notifyUpdateAttrib(const std::string& section, const std::string& key)
 	{
-		
 		std::string path_to_key=section.empty() ? key : section+"/"+key;
 		if (path_to_key==m_section) // This concerns myself!
 		{
@@ -526,9 +531,27 @@ namespace GetSetGui {
 		// Set tool tip
 		if (attrib.end()!=attrib.find("Description"))
 			w->setToolTip(attrib["Description"].c_str());
-
 		w->blockSignals(true);
-		if (dynamic_cast<QSlider*>(w))
+		if (dynamic_cast<GetSetInternal::Section*>(p))
+		{
+			auto gw=dynamic_cast<GetSetWidget*>(w);
+			if (gw)
+			{
+				bool is_hidden      =attrib.end()==attrib.find("Hidden"   )?false:stringTo<bool>(attrib["Hidden"   ]);
+				bool is_disabled    =attrib.end()==attrib.find("Disabled" )?false:stringTo<bool>(attrib["Disabled" ]);
+				bool is_grouped     =attrib.end()==attrib.find("Grouped"  )?false:stringTo<bool>(attrib["Grouped"  ]);
+				bool is_collapsed   =attrib.end()==attrib.find("Collapsed")?false:stringTo<bool>(attrib["Collapsed"]);
+				gw->setVisible(!is_collapsed);
+				gw->setEnabled(!is_disabled);
+				/*if (!is_grouped || is_hidden)
+				{
+					delete w;
+					this->notifyCreate(section,key);
+					return;
+				}*/
+			}
+		}
+		else if (dynamic_cast<QSlider*>(w))
 		{
 			QSlider* item=dynamic_cast<QSlider*>(w);
 			if (attrib["Min"]=="") attrib["Min"]="0";
@@ -551,18 +574,6 @@ namespace GetSetGui {
 			else item->setMinimum(minv);
 			item->setSingleStep(step);
 		}
-		else if (dynamic_cast<QPushButton*>(w))
-		{
-			dynamic_cast<QPushButton*>(w)->setText(GetSet<std::string>(section,key,dictionary).getString().c_str());
-		}
-		else if (dynamic_cast<QCheckBox*>(w))
-		{
-			QCheckBox* item=dynamic_cast<QCheckBox*>(w);
-		}
-		else if (dynamic_cast<QComboBox*>(w))
-		{
-			QComboBox* item=dynamic_cast<QComboBox*>(w);
-		}
 		else if (dynamic_cast<QSpinBox*>(w))
 		{
 			QSpinBox* item=dynamic_cast<QSpinBox*>(w);
@@ -574,14 +585,6 @@ namespace GetSetGui {
 			bool is_periodic=stringTo<bool>(attrib["Periodic"]);
 			item->setMinimum(is_periodic?minv-1:minv);
 			item->setMaximum(is_periodic?maxv+1:maxv);
-		}
-		else if (dynamic_cast<QLabel*>(w))
-		{
-			QLabel* item=dynamic_cast<QLabel*>(w);
-		}
-		else if (dynamic_cast<QLineEdit*>(w))
-		{
-			QLineEdit* item=dynamic_cast<QLineEdit*>(w);
 		}
 		w->blockSignals(false);
 

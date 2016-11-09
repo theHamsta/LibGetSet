@@ -316,8 +316,44 @@ public:
 	///Contents of this section will not be modifiable in GUI
 	GetSetSection& setDisabled   (bool disabled=true)             { return setAttribute("Disabled",    toString(disabled));  }
 
-	/// Show contents of this section in a collapsable group box.
+	/// Show contents of this section in a group box.
 	GetSetSection& setGrouped    (bool grouped=true)              { return setAttribute("Grouped",     toString(grouped));   }
+
+	/// Collapse group box.
+	GetSetSection& setCollapsed  (bool collapsed=true)            { setGrouped(true); return setAttribute("Collapsed", toString(collapsed));}
+
+	/// Are contents of this section shown in a collapsible group box?
+	bool isCollapsible()
+	{
+		auto it=section->attributes.find("Collapsed");
+		return it!=section->attributes.end();
+	}
+
+	/// Show contents of this section in a collapsible group box.
+	GetSetSection& setCollapsible  (bool collapsible=true)
+	{
+		if (isCollapsible())
+		{
+			if (collapsible)
+				return *this;
+			else
+			{
+				section->attributes.erase(section->attributes.find("Collapsed"));
+				signalUpdateAttrib(superSection,thisKey);
+			}
+		}
+		else
+		{
+			if (!collapsible)
+				return *this;
+			else
+			{
+				setAttribute("Grouped","true");
+				setAttribute("Collapsed","false");
+			}
+		}
+		return *this;
+	}
 
 	/// This section will not be shown in GUI at all
 	GetSetSection& setHidden     (bool hidden=true)               { return setAttribute("Hidden",      toString(hidden));    }
