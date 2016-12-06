@@ -157,9 +157,6 @@ protected:
 	void parse_who(std::istream& script);
 	/// with <section> ... endwith, where section has same format as <key>
 	void parse_with(std::istream& script);
-	
-	/// Advance to the next line
-	std::stringstream rest_of_line(std::istream& script);
 
 	/// Make sure end of line or end of file is reached
 	bool expect_end_of_line(std::istream& script, const std::string& fn_name);

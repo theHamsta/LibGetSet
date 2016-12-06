@@ -4,7 +4,7 @@
 #include <GetSet/GetSetIO.h>
 #include <GetSet/GetSetDictionary.h>
 
-#define HAS_RUN_VERB
+// #define HAS_RUN_VERB
 
 #ifdef HAS_RUN_VERB
 // Only needed for "run" verb

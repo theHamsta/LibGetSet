@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5.2)
+cmake_minimum_required(VERSION 2.8.1)
 
 ### PROJECT AND VERSION
 project(GetSet)

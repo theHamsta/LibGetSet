@@ -38,7 +38,7 @@ namespace GetSetIO {
 		bool parse(int argc, char **argv);
 
 		/// Direct access to declared flags
-		const MapStrStr& CmdLineParser::getFlags() const;
+		const MapStrStr& getFlags() const;
 
 		// FIXME just print a list of all registered command line flags
 		std::string getSynopsis() const;

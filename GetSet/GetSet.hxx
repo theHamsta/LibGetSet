@@ -45,7 +45,7 @@ public:
 	const BasicType getValue() const;
 
 	/// Get the actual type of the underlying GetSet property (differs from BaseType!)
-	const std::string GetSet<BasicType>::getType() const;
+	const std::string getType() const;
 
 	/// Set the value of this property from a string
 	virtual GetSet<BasicType>& setString(const std::string& value);

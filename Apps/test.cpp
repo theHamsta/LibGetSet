@@ -4,24 +4,6 @@
 #include <GetSet/GetSet.hxx>
 #include <GetSetGui/GetSetGui.h>
 #include <GetSetGui/GetSetTabWidget.h>
-#include <GetSetObjects/ObjectFactory.h>
-
-#include <GetSet/GetSetLog.hxx>
-
-template <class Type>
-class NamedObject
-{
-	const std::string name;
-public:
-	NamedObject(const std::string& _name)  : name(_name) {}
-
-	const std::string getName();
-	static std::map<std::string, Type*> instances;
-	
-	operator Type& () {return *this;}
-	static Type& getInstance() { return NamedObject<Type>(name); }
-};
-
 
 /// Application
 GetSetGui::GetSetApplication g_app("Test");

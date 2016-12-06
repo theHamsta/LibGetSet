@@ -5,6 +5,17 @@
 #include "GetSet.hxx"
 #include "GetSetIO.h"
 
+
+/// Local helper
+inline std::string rest_of_line(std::istream& script)
+{ 
+	std::string line;
+	getline(script, line, '\n');
+	return line;
+}
+
+
+
 //
 // GetSetScriptParser
 //
@@ -322,7 +333,7 @@ bool GetSetScriptParser::expect_token_value(std::istream& script, const std::str
 
 void GetSetScriptParser::parse_help(std::istream& script)
 {
-	auto line=rest_of_line(script);
+	std::stringstream line(rest_of_line(script));
 	std::string command_name;
 	get_token_string(line, command_name);
 	expect_end_of_line(line,"help");
@@ -331,7 +342,7 @@ void GetSetScriptParser::parse_help(std::istream& script)
 
 void GetSetScriptParser::parse_call(std::istream& script)
 {
-	auto line=rest_of_line(script);
+	std::stringstream line(rest_of_line(script));
 	if (expect_keyword(line,"call","var;function")<0) return;
 	std::string varname;
 	expect_token_string(line,"call",varname);
@@ -344,7 +355,7 @@ void GetSetScriptParser::parse_call(std::istream& script)
 
 void GetSetScriptParser::parse_concat(std::istream& script)
 {
-	auto line=rest_of_line(script);
+	std::stringstream line(rest_of_line(script));
 	// Parse: var <varname> from ...
 	if (expect_keyword(line,"concat","var")<0) return;
 	std::string varname;
@@ -367,7 +378,7 @@ void GetSetScriptParser::parse_concat(std::istream& script)
 
 void GetSetScriptParser::parse_define(std::istream& script)
 {
-	auto line=rest_of_line(script);
+	std::stringstream line(rest_of_line(script));
 	if (expect_keyword(line,"define","var;function")<0) return;
 	std::string varname;
 	expect_token_string(line,"define",varname);
@@ -382,7 +393,7 @@ void GetSetScriptParser::parse_define(std::istream& script)
 
 void GetSetScriptParser::parse_discard(std::istream& script)
 {
-	auto line=rest_of_line(script);
+	std::stringstream line(rest_of_line(script));
 	int type=expect_keyword(line,"discard","key;var;function");
 	std::string var_or_key_name;
 	if (!expect_token_string(line,"discard",var_or_key_name)) return;
@@ -400,7 +411,7 @@ void GetSetScriptParser::parse_discard(std::istream& script)
 
 void GetSetScriptParser::parse_print(std::istream& script)
 {
-	auto line=rest_of_line(script);
+	std::stringstream line(rest_of_line(script));
 	std::string filename;
 	int what=expect_keyword(line,"print","output;file");
 	if (what<0) return;
@@ -415,16 +426,16 @@ void GetSetScriptParser::parse_print(std::istream& script)
 	if (!expect_token_value(line,"print",value)) return;
 	while (line && !line.eof())
 	{
-		std::string and;
-		get_token_string(line,and);
-		if (and=="and")
+		std::string and_token;
+		get_token_string(line,and_token);
+		if (and_token=="and")
 		{
 			std::string next_value;
 			if (!expect_token_value(line,"print",next_value)) return;
 			value=value+next_value;
 		}
-		else if (!and.empty())
-			parse_error("print",std::string("Expected \"and\" but found " + and));
+		else if (!and_token.empty())
+			parse_error("print",std::string("Expected \"and\" but found " + and_token));
 	}
 	if (!expect_end_of_line(line,"print")) return;
 	if (what == 0)
@@ -441,7 +452,7 @@ void GetSetScriptParser::parse_print(std::istream& script)
 
 void GetSetScriptParser::parse_eval(std::istream& script)
 {
-	auto line=rest_of_line(script);
+	std::stringstream line(rest_of_line(script));
 	// Parse: var <varname> as ...
 	if (expect_keyword(line,"eval","var")<0) return;
 	std::string varname;
@@ -467,7 +478,7 @@ void GetSetScriptParser::parse_eval(std::istream& script)
 
 void GetSetScriptParser::parse_exit(std::istream& script)
 {
-	auto line=rest_of_line(script);
+	std::stringstream line(rest_of_line(script));
 	std::string optional_exit_code;
 	get_token_string(line, optional_exit_code);
 	expect_end_of_line(line,"exit");
@@ -476,7 +487,7 @@ void GetSetScriptParser::parse_exit(std::istream& script)
 
 void GetSetScriptParser::parse_if(std::istream& script)
 {
-	auto line=rest_of_line(script);
+	std::stringstream line(rest_of_line(script));
 	bool result;
 	bool negate=false;
 	const std::string comparators="strequal;numequal;gequal;lequal;greater;less";
@@ -518,7 +529,7 @@ void GetSetScriptParser::parse_if(std::istream& script)
 
 void GetSetScriptParser::parse_file(std::istream& script)
 {
-	auto line=rest_of_line(script);
+	std::stringstream line(rest_of_line(script));
 	std::string file;
 	int what=expect_keyword(line,"file","ini;run");
 	if (what==1) // run
@@ -609,7 +620,7 @@ void GetSetScriptParser::parse_file(std::istream& script)
 
 void GetSetScriptParser::parse_for(std::istream& script)
 {
-	auto line=rest_of_line(script);
+	std::stringstream line(rest_of_line(script));
 	if (expect_keyword(line,"for","each")<0) return;
 	if (expect_keyword(line,"for","var")<0) return;
 	std::string varname;
@@ -650,7 +661,7 @@ void GetSetScriptParser::parse_for(std::istream& script)
 
 void GetSetScriptParser::parse_input(std::istream& script)
 {
-	auto line=rest_of_line(script);
+	std::stringstream line(rest_of_line(script));
 	if (expect_keyword(line,"input","var")<0) return;
 	std::string varname;
 	if (!expect_token_string(line,"input",varname)) return;
@@ -660,7 +671,7 @@ void GetSetScriptParser::parse_input(std::istream& script)
 
 void GetSetScriptParser::parse_set(std::istream& script)
 {
-	auto line=rest_of_line(script);
+	std::stringstream line(rest_of_line(script));
 	int type=expect_keyword(line,"set","var;key;trigger");
 	if (type<0) return;
 	else if (type==0) // set var to <value>
@@ -690,7 +701,7 @@ void GetSetScriptParser::parse_set(std::istream& script)
 
 void GetSetScriptParser::parse_while(std::istream& script)
 {
-	auto line=rest_of_line(script);
+	std::stringstream line(rest_of_line(script));
 	if (expect_keyword(line,"set","var")<0) return;
 	std::string varname;
 	expect_token_string(line,"while",varname);
@@ -706,7 +717,7 @@ void GetSetScriptParser::parse_while(std::istream& script)
 
 void GetSetScriptParser::parse_who(std::istream& script)
 {
-	auto line=rest_of_line(script);
+	std::stringstream line(rest_of_line(script));
 	if (!expect_end_of_line(line,"who")) return;
 	std::vector<std::string> varnames;
 	for (auto it=variables.begin();it!=variables.end();++it)
@@ -716,7 +727,7 @@ void GetSetScriptParser::parse_who(std::istream& script)
 
 void GetSetScriptParser::parse_with(std::istream& script)
 {
-	auto line=rest_of_line(script);
+	std::stringstream line(rest_of_line(script));
 	if (expect_keyword(line,"with","section")<0) return;
 	expect_token_string(line,"with",section_prefix);
 	expect_end_of_line(line,"with");
@@ -727,13 +738,6 @@ void GetSetScriptParser::parse_with(std::istream& script)
 //
 // Commands end
 //
-
-std::stringstream GetSetScriptParser::rest_of_line(std::istream& script)
-{
-	std::string line;
-	getline(script, line, '\n');
-	return std::stringstream(line);
-}
 
 bool GetSetScriptParser::expect_end_of_line(std::istream& script, const std::string& fn_name)
 {
