@@ -1,5 +1,5 @@
 # Choose public headers
-set(GETSETGUI_HEADERS "GetSetGui.h;GetSetWidget.h;GetSetTabWidget.h;GetSetProgressWindow.h;GetSetScriptEdit.h;GetSetMouseKeyboardInteraction.h")
+set(GETSETGUI_HEADERS "GetSetGui.h;GetSetWidget.h;GetSetTabWidget.h;GetSetProgressWindow.h;GetSetScriptEdit.h")
 # Build library
 add_library(GetSetGui
 	${GETSETGUI_HEADERS}
@@ -8,7 +8,6 @@ add_library(GetSetGui
 	GetSetTabWidget.cpp
 	GetSetProgressWindow.cpp
 	GetSetScriptEdit.cpp
-	GetSetMouseKeyboardInteraction.cpp
 )
 target_link_libraries(GetSetGui GetSet)
 qt5_use_modules(GetSetGui Widgets)
