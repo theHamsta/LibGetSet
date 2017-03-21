@@ -268,10 +268,10 @@ public:
 	GetSetSection super() const {return GetSetSection(superSection,dictionary);} 
 
 	// Subsection.
-	GetSetSection subsection(const std::string& key) const {return GetSetSection(thisKey+"/"+key,dictionary);} 
+	GetSetSection subsection(const std::string& key) const {return GetSetSection(pathToSection+"/"+key,dictionary);} 
 
 	// Path within current dictionary.
-	std::string path() const {return thisKey;}
+	std::string path() const {return pathToSection;}
 
 	/// Access to dictionary.
 	GetSetDictionary& dict() {return dictionary;}
@@ -286,14 +286,14 @@ public:
 	template <typename BasicType=std::string>
 	GetSet<BasicType> key(const std::string& key) const
 	{
-		return GetSet<BasicType>(section,key,dictionary);
+		return GetSet<BasicType>(pathToSection,key,dictionary);
 	}
 
 	// Get or set a key in this section. Specify GetSetGui:: types (GetSetGui::File for example);
 	template <typename GetSetGuiType>
 	GetSetGuiType special(const std::string& key) const 
 	{
-		return GetSetGuiType(section,key,dictionary);
+		return GetSetGuiType(pathToSection,key,dictionary);
 	}
 
 	/// Get type of a key in this section. Returns empty string if key does not exist.
