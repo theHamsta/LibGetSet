@@ -264,26 +264,39 @@ public:
 		section=dynamic_cast<GetSetInternal::Section*>(GetSetInternal::Access::getProperty(pathToSection));
 	}
 
-	/// Check whether the section exists
-	bool exists() const 
-	{
-		return section!=0x0;
-	}
+	// Super section.
+	GetSetSection super() const {return GetSetSection(superSection,dictionary);} 
 
-	/// Discard all keys in this section and the section itself
-	void discard() const 
-	{
-		dictionary.remove(pathToSection);
-	}
+	// Subsection.
+	GetSetSection subsection(const std::string& key) const {return GetSetSection(thisKey+"/"+key,dictionary);} 
+
+	// Path within current dictionary.
+	std::string path() const {return thisKey;}
+
+	/// Access to dictionary.
+	GetSetDictionary& dict() {return dictionary;}
+
+	/// Check whether the section exists.
+	bool exists() const {return section!=0x0;}
+
+	/// Discard all keys in this section and the section itself.
+	void discard() const {dictionary.remove(pathToSection);}
 	
-	// Get or set a key in this section
+	// Get or set a key in this section. See also special(...)
 	template <typename BasicType=std::string>
-	GetSet<BasicType> key(const std::string& key) const 
+	GetSet<BasicType> key(const std::string& key) const
 	{
 		return GetSet<BasicType>(section,key,dictionary);
 	}
 
-	/// Get type of a key in this section. Returns empty string if key does not exist
+	// Get or set a key in this section. Specify GetSetGui:: types (GetSetGui::File for example);
+	template <typename GetSetGuiType>
+	GetSetGuiType special(const std::string& key) const 
+	{
+		return GetSetGuiType(section,key,dictionary);
+	}
+
+	/// Get type of a key in this section. Returns empty string if key does not exist.
 	std::string getTypeOfKey(const std::string& key)
 	{
 		if (section->getSection().find(key)!=section->getSection().end())
@@ -291,7 +304,7 @@ public:
 		else return "";
 	}
 
-	/// Get current value of an attribute
+	/// Get current value of an attribute.
 	std::string getAttribute(const std::string& attrib)  const
 	{
 		if (section)
@@ -302,7 +315,7 @@ public:
 		return "";
 	}
 
-	/// Set value of an attribute
+	/// Set value of an attribute.
 	GetSetSection& setAttribute(const std::string& attrib, const std::string& value)
 	{
 		if (section) section->attributes[attrib]=value;
@@ -310,10 +323,10 @@ public:
 		return *this;
 	}
 
-	/// Set Description (e.g. shown as tool tip)
+	/// Set Description (e.g. shown as tool tip).
 	GetSetSection& setDescription(const std::string& description) { return setAttribute("Description", description);         }
 
-	///Contents of this section will not be modifiable in GUI
+	///Contents of this section will not be modifiable in GUI.
 	GetSetSection& setDisabled   (bool disabled=true)             { return setAttribute("Disabled",    toString(disabled));  }
 
 	/// Show contents of this section in a group box.
@@ -321,7 +334,10 @@ public:
 
 	/// Collapse group box.
 	GetSetSection& setCollapsed  (bool collapsed=true)            { setGrouped(true); return setAttribute("Collapsed", toString(collapsed));}
-
+	
+	/// This section will not be shown in GUI at all.
+	GetSetSection& setHidden     (bool hidden=true)               { return setAttribute("Hidden",      toString(hidden));    }
+		
 	/// Are contents of this section shown in a collapsible group box?
 	bool isCollapsible()
 	{
@@ -355,9 +371,6 @@ public:
 		return *this;
 	}
 
-	/// This section will not be shown in GUI at all
-	GetSetSection& setHidden     (bool hidden=true)               { return setAttribute("Hidden",      toString(hidden));    }
-		
 	bool isDisabled()  const { return stringTo<bool>(getAttribute("Disabled") ); }
 	bool isGrouped()   const { return stringTo<bool>(getAttribute("Grouped")  ); }
 	bool isHidden()    const { return stringTo<bool>(getAttribute("Hidden")   ); }
@@ -365,7 +378,7 @@ public:
 };
 
 namespace GetSetInternal {
-	/// Create a special property by string
+	/// Create a special property by string.
 	inline Node* createSpecial(const std::string& type)
 	{
 		Node* node=0x0;
