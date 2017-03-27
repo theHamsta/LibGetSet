@@ -246,7 +246,7 @@ class GetSetSection : public GetSetInternal::Access
 	std::string					superSection;
 	std::string					thisKey;
 public:
-	GetSetSection(const std::string& _pathToSection, GetSetDictionary& d=GetSetDictionary::global())
+	GetSetSection(const std::string& _pathToSection="", GetSetDictionary& d=GetSetDictionary::global())
 		: GetSetInternal::Access(d)
 		, pathToSection(_pathToSection)
 	{

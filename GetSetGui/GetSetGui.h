@@ -25,12 +25,23 @@
 class QApplication;
 class GetSetLog;
 
+
 namespace GetSetGui
 {
 	class GetSetTabWidget;
 	class GetSetProgressWindow;
 
-	class GetSetApplication
+	class ProgressInterface{
+		public:
+			virtual void progressStart(const std::string& progress, const std::string& info, int maximum, bool *cancel_clicked) =0;
+			virtual void progressUpdate(int i) =0;
+			virtual void progressEnd() =0;
+
+			virtual void info(const std::string& who, const std::string& what, bool show_dialog=false) =0;
+			virtual void warn(const std::string& who, const std::string& what, bool only_inormative=true) =0;
+	};
+
+	class GetSetApplication : public ProgressInterface
 	{
 	protected:
 		GetSetIO::CmdLineParser	cmd;
@@ -73,6 +84,10 @@ namespace GetSetGui
 
 		/// Inform the user of a problem. (optional: show modal dialog)
 		void warn(const std::string& who, const std::string& what, bool only_inormative=true);
+
+		//
+		//
+		//
 
 		/// Save ini-file
 		void saveSettings() const;

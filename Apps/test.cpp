@@ -8,45 +8,75 @@
 /// Application
 GetSetGui::GetSetApplication g_app("Test");
 
+/// Pre-processing of X-ray projection images.
+struct PreProccess {
+	
+	/// Modifying intensities (first normalize, then apply bias and scale, then logarithm)
+	struct Intensity {
+		bool	normalize=false;
+		double	bias=0.0;
+		double	scale=1.0;
+		bool	apply_log=false;
+	} intensity;
+
+	/// Low-pass filter. Applied after intensity changes.
+	struct Lowpass {
+		double gaussian_sigma=1.84;
+		int    half_kernel_width=5;
+	} lowpass;	
+	
+	/// Modifying geometry
+	struct Geometry {
+		bool	flip_u=false;
+		bool	flip_v=false;
+	} geometry;
+
+	/// Declare default values.
+	void declareGUI(GetSetSection& section)
+	{
+		section.key<bool>  ("Intensity/Normalize")=intensity.normalize;
+		section.key<double>("Intensity/Bias")=intensity.bias;
+		section.key<double>("Intensity/Scale")=intensity.scale;
+		section.key<bool>  ("Intensity/Apply Minus Logarithm")=intensity.apply_log;
+		section.subsection("Intensity").setGrouped();
+			
+		section.key<double>("Lowpass Filter/Gaussian Sigma")=lowpass.gaussian_sigma;
+		section.key<int>   ("Lowpass Filter/Half Kernel Width")=lowpass.half_kernel_width;
+		section.subsection ("Lowpass Filter").setGrouped();
+
+		section.key<bool>  ("Geometry/Flip u-Axis")=geometry.flip_u;
+		section.key<bool>  ("Geometry/Flip v-Axis")=geometry.flip_v;
+		section.subsection("Geometry").setGrouped();
+
+	}
+	
+	// Retreive current values from GUI
+	void retreiveFromGUI(GetSetSection& section)
+	{
+		intensity.normalize=section.key<bool>("Intensity/Normalize");
+		intensity.bias=section.key<double>("Intensity/Bias");
+		intensity.scale=section.key<double>("Intensity/Scale");
+		intensity.apply_log=section.key<bool>("Intensity/Apply Minus Logarithm");
+		lowpass.gaussian_sigma=section.key<double>("Lowpass Filter/Gaussian Sigma");
+		lowpass.half_kernel_width=section.key<int>("Lowpass Filter/Half Kernel Width");
+		geometry.flip_u=section.key<bool>("Geometry/Flip u-Axis");
+		geometry.flip_v=section.key<bool>("Geometry/Flip v-Axis");
+	}
+};
+
+
 void gui(const std::string& section, const std::string& key)
 {
 	std::cout << key << std::endl;
 
-	if (key=="Show")
-	{
-		GetSetSection("Visualization/Trajectory").setDisabled(!GetSet<bool>("Visualization/Images/Show"));
-	}
 
-	if (key=="Distort Images")
-	{
-		GetSetSection("Visualization/Trajectory").setCollapsible(!GetSet<bool>("Visualization/Images/Distort Images"));
-	}
-
-	g_app.saveSettings();
+//	g_app.saveSettings();
 }
 
 int main(int argc, char **argv)
 {
-	// Visualization
-	GetSet<int>("Visualization/Trajectory/Selection 0")=0;
-	GetSet<int>("Visualization/Trajectory/Selection 1")=1;
-	GetSet<int>("Visualization/Trajectory/Skip Projections")=0;
-	// Visualization/Images
-	GetSet<bool>("Visualization/Images/Show")=1;
-	GetSet<bool>("Visualization/Images/Distort Images")=1;
-	GetSetGui::RangedDouble("Visualization/Images/Scale").setMin(0.1).setMax(2).setStep(0.05)=0.2;
-	GetSetSection("Visualization/Images").setGrouped();
-	// Visualization/Trajectory
-	GetSetGui::File("Trajectory/Projection Matrices").setMultiple(true).setExtensions("One Projection Matrix Per Line (*.ompl);;All Files (*)");
-	GetSetGui::File("Trajectory/Projection Images").setMultiple(true).setExtensions("2D NRRD Images (*.nrrd);;All Files (*)");
-	GetSet<double>("Trajectory/Pixel Spacing")=.308;
-	GetSetSection("Visualization/Trajectory").setCollapsible();
 
-	// Projection Matrix
-	GetSet<>("Projection/Projection Matrix");
-	GetSet<double>("Projection/FOV")=20;
-	GetSet<>("Projection/Rotation").setString("0 0 -1.5708 0");
-	GetSet<double>("Projection/Distance")=2000;
+	PreProccess().declareGUI(GetSetSection("Pre-Processing"));
 
 	g_app.init(argc,argv,gui);
 	g_app.window().addDefaultFileMenu();
