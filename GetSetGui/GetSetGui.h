@@ -22,24 +22,16 @@
 
 #include "../GetSet/GetSetCmdLine.hxx"
 
+#include "ProgressInterface.hxx"
+
 class QApplication;
 class GetSetLog;
-
 
 namespace GetSetGui
 {
 	class GetSetTabWidget;
 	class GetSetProgressWindow;
 
-	class ProgressInterface{
-		public:
-			virtual void progressStart(const std::string& progress, const std::string& info, int maximum, bool *cancel_clicked) =0;
-			virtual void progressUpdate(int i) =0;
-			virtual void progressEnd() =0;
-
-			virtual void info(const std::string& who, const std::string& what, bool show_dialog=false) =0;
-			virtual void warn(const std::string& who, const std::string& what, bool only_inormative=true) =0;
-	};
 
 	class GetSetApplication : public ProgressInterface
 	{
@@ -71,19 +63,19 @@ namespace GetSetGui
 		GetSetProgressWindow& progress();
 
 		/// Show progress bar and hide main window (optionally includes a "cancel" button)
-		void progressStart(const std::string& progress, const std::string& info, int maximum=100, bool *cancel_clicked=0x0);
+		virtual void progressStart(const std::string& progress, const std::string& info, int maximum=100, bool *cancel_clicked=0x0);
 
 		/// Show progress bar and hide main window
-		void progressUpdate(int i);
+		virtual void progressUpdate(int i);
 
 		/// Hide progress bar and show main window
-		void progressEnd();
+		virtual void progressEnd();
 
 		/// Inform the user of something important. (optional: show modal dialog)
-		void info(const std::string& who, const std::string& what, bool show_dialog=false);
+		virtual void info(const std::string& who, const std::string& what, bool show_dialog=false);
 
 		/// Inform the user of a problem. (optional: show modal dialog)
-		void warn(const std::string& who, const std::string& what, bool only_inormative=true);
+		virtual void warn(const std::string& who, const std::string& what, bool only_inormative=true);
 
 		//
 		//
