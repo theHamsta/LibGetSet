@@ -8,6 +8,9 @@
 /// Application
 GetSetGui::GetSetApplication g_app("Test");
 
+// Managing saving/loading parametzers and automatic GUI
+#include <GetSetGui/GetSetTabWidget.h>
+
 /// Pre-processing of X-ray projection images.
 struct PreProccess {
 	
@@ -34,15 +37,15 @@ struct PreProccess {
 	/// Declare default values.
 	void declareGUI(GetSetSection& section)
 	{
-		section.key<bool>  ("Intensity/Normalize")=intensity.normalize;
-		section.key<double>("Intensity/Bias")=intensity.bias;
-		section.key<double>("Intensity/Scale")=intensity.scale;
-		section.key<bool>  ("Intensity/Apply Minus Logarithm")=intensity.apply_log;
-		section.subsection("Intensity").setGrouped();
+		section.key<bool>  ("Intensity/Per Pixel/Normalize")=intensity.normalize;
+		section.key<double>("Intensity/Per Pixel/Bias")=intensity.bias;
+		section.key<double>("Intensity/Per Pixel/Scale")=intensity.scale;
+		section.key<bool>  ("Intensity/Per Pixel/Apply Minus Logarithm")=intensity.apply_log;
+		section.subsection("Intensity/Per Pixel").setGrouped();
 			
-		section.key<double>("Lowpass Filter/Gaussian Sigma")=lowpass.gaussian_sigma;
-		section.key<int>   ("Lowpass Filter/Half Kernel Width")=lowpass.half_kernel_width;
-		section.subsection ("Lowpass Filter").setGrouped();
+		section.key<double>("Intensity/Lowpass Filter/Gaussian Sigma")=lowpass.gaussian_sigma;
+		section.key<int>   ("Intensity/Lowpass Filter/Half Kernel Width")=lowpass.half_kernel_width;
+		section.subsection ("Intensity/Lowpass Filter").setGrouped();
 
 		section.key<bool>  ("Geometry/Flip u-Axis")=geometry.flip_u;
 		section.key<bool>  ("Geometry/Flip v-Axis")=geometry.flip_v;
@@ -57,8 +60,8 @@ struct PreProccess {
 		intensity.bias=section.key<double>("Intensity/Bias");
 		intensity.scale=section.key<double>("Intensity/Scale");
 		intensity.apply_log=section.key<bool>("Intensity/Apply Minus Logarithm");
-		lowpass.gaussian_sigma=section.key<double>("Lowpass Filter/Gaussian Sigma");
-		lowpass.half_kernel_width=section.key<int>("Lowpass Filter/Half Kernel Width");
+		lowpass.gaussian_sigma=section.key<double>("Intensity/Lowpass Filter/Gaussian Sigma");
+		lowpass.half_kernel_width=section.key<int>("Intensity/Lowpass Filter/Half Kernel Width");
 		geometry.flip_u=section.key<bool>("Geometry/Flip u-Axis");
 		geometry.flip_v=section.key<bool>("Geometry/Flip v-Axis");
 	}
@@ -80,5 +83,9 @@ int main(int argc, char **argv)
 
 	g_app.init(argc,argv,gui);
 	g_app.window().addDefaultFileMenu();
+
+	GetSetGui::GetSetTabWidget* intensity=new GetSetGui::GetSetTabWidget("Pre-Processing/Intensity");
+	intensity->show();
+
 	return g_app.exec();
 }

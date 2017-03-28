@@ -99,7 +99,7 @@ namespace GetSetGui
 		else m_tabWidget = new QTabWidget(this);
 		for (int i=0;i<(int)tabs.size(); i++)
 		{
-			GetSetWidget* tab=new GetSetWidget(dict,tabs[i],m_tabWidget);
+			GetSetWidget* tab=new GetSetWidget(dict,path+"/"+tabs[i],m_tabWidget);
 			tab->setObjectName(tabs[i].c_str());
 			m_tabWidget->addTab(tab,tabs[i].c_str());
 		}
