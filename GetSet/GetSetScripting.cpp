@@ -5,7 +5,6 @@
 #include "GetSet.hxx"
 #include "GetSetIO.h"
 
-
 /// Local helper
 inline std::string rest_of_line(std::istream& script)
 { 
@@ -13,8 +12,6 @@ inline std::string rest_of_line(std::istream& script)
 	getline(script, line, '\n');
 	return line;
 }
-
-
 
 //
 // GetSetScriptParser
@@ -87,7 +84,7 @@ void GetSetScriptParser::printOut(const std::string& text)
 
 void GetSetScriptParser::printErr(const std::string& text)
 {
-	// The identifier 0x0 is user as a special callback which only forces a GUI update
+	// The identifier 0x0 is used as a special callback which only forces a GUI update
 	// It is set by GetSetApplication by default.
 	if (user_err.empty()||(user_err.size()==1 && user_err.find(0x0)!=user_err.end()))
 	{
@@ -175,7 +172,7 @@ std::string GetSetScriptParser::synopsis(const std::string& command, bool with_e
 		help    ["print"]   +="   print file <value:filename> {replace|append} <value> [and <value>]*\n";
 		examples["print"]   +="   print output key \"Personal/First Name\"\n";
 		examples["print"]   +="   print file value \"greeting.txt\" append value \"Hello \" and var user_name and value \"!\"\n";
-		examples["print"]   +="   print output var \"Personal/Last Name\"\n";
+		examples["print"]   +="   print output var last_name\n";
 		help    ["concat"]  +="   concat var <varname> from <value> [and <value>]+\n";
 		examples["concat"]  +="   concat var c from var a and var b\n";
 		help    ["eval"]    +="   eval var <varname> from <value> [{plus|minus|times|over} <value>]+\n";
