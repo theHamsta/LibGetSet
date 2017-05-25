@@ -39,5 +39,21 @@ int main(int argc, char **argv)
 		;
 	g_app.init(argc,argv,gui);
 	g_app.window().addDefaultFileMenu();
+	g_app.window().aboutText()=
+		"<h4>Tracking unknown objects under fluoroscopy.</h4>\n\n"
+		"Copyright 2014-2017 by <a href=\"mailto:aaichert@gmail.com?Subject=[Epipolar Consistency]\">Andre Aichert</a> <br>"
+		"<h4>Epipolar Consistency:</h4>\n\n"
+		"Any two ideal transmission images with perfectly known projection geometry contain redundant information. "
+		"Any inconsistencies, e.g., motion, truncation, scatter radiation or beam-hardening can be observed using Epipolar Consistency. "
+		"<br>"
+		"<br>"
+		"See also: "
+		"<br>"
+		"<a href=\"https://www5.cs.fau.de/research/software/epipolar-consistency/\">Pattern Recognition Lab at Technical University of Erlangen-Nuremberg</a> "
+		"<br>"
+		"<h4>Licensed under the Apache License, Version 2.0 (the \"License\")</h4>\n\n"
+		"You may not use this file except in compliance with the License. You may obtain a copy of the License at "
+		"<a href=\"http://www.apache.org/licenses/LICENSE-2.0\">http://www.apache.org/licenses/LICENSE-2.0</a><br>"
+		;
 	return g_app.exec();
 }

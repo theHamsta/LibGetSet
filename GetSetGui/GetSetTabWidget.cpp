@@ -219,14 +219,21 @@ namespace GetSetGui
 
 	void GetSetTabWidget::about()
 	{
-		QMessageBox::about( this, "GetSet c++ Library",
-			"<h4>Load/saving *typed* and *named* properties and automatic GUI</h4>\n\n"
-			"Copyright 2011-2016 by <a href=\"mailto:aaichert@gmail.com?Subject=GetSet\">Andre Aichert</a> <br><br> See slso: "
-			"<a href=\"https://sourceforge.net/projects/getset/\">SourceForge Project Page</a> <br><br>"
-			"<h4>Licensed under the Apache License, Version 2.0 (the \"License\")</h4>\n\n"
-			"You may not use this file except in compliance with the License. You may obtain a copy of the License at "
-			"<a href=\"http://www.apache.org/licenses/LICENSE-2.0\">http://www.apache.org/licenses/LICENSE-2.0</a><br>"
-			);
+		QMessageBox::about( this, GetSet<>("Application").getString().c_str(), aboutText().c_str());
+	}
+
+	std::string& GetSetTabWidget::aboutText() 
+	{
+		if (m_about.empty())
+			m_about=
+				"<h4>Load/saving *typed* and *named* properties and automatic GUI</h4>\n\n"
+				"Copyright 2011-2016 by <a href=\"mailto:aaichert@gmail.com?Subject=GetSet\">Andre Aichert</a> <br><br> See slso: "
+				"<a href=\"https://sourceforge.net/projects/getset/\">SourceForge Project Page</a> <br><br>"
+				"<h4>Licensed under the Apache License, Version 2.0 (the \"License\")</h4>\n\n"
+				"You may not use this file except in compliance with the License. You may obtain a copy of the License at "
+				"<a href=\"http://www.apache.org/licenses/LICENSE-2.0\">http://www.apache.org/licenses/LICENSE-2.0</a><br>"
+				;
+		return m_about;
 	}
 
 	void GetSetTabWidget::rec_start()

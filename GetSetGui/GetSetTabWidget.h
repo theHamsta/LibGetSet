@@ -53,6 +53,7 @@ namespace GetSetGui
 
 
 	protected:
+		std::string							m_about;
 		std::string							m_path;
 		std::vector<std::string>			m_tabs;
 		std::map<std::string,QMenu*>		m_menus;
@@ -83,6 +84,7 @@ namespace GetSetGui
 		QPushButton* addButton(const std::string& action);
 
 		void addDefaultFileMenu();
+		std::string& aboutText();
 
 		virtual ~GetSetTabWidget();
 
