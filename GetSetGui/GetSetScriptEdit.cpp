@@ -30,8 +30,9 @@ namespace GetSetGui
 		QApplication::processEvents();
 	}
 
-	GetSetScriptEdit::GetSetScriptEdit(QWidget *parent)
+	GetSetScriptEdit::GetSetScriptEdit(QWidget *parent, GetSetDictionary& _dict)
 		: QMainWindow(parent)
+		, parser(_dict)
 	{
 		setupToolBarsAndMenus();
 		setupEditor();

@@ -72,10 +72,10 @@ namespace GetSetGui
 	public:
 	
 		/// Settings dialog with a selection of sections from a dictionary
-		GetSetTabWidget(QWidget *parent);
+		GetSetTabWidget(QWidget *parent, GetSetDictionary& _dict = GetSetDictionary::global());
 
 		/// Settings dialog with a selection of sections from a dictionary
-		GetSetTabWidget(const std::string& path="", GetSetDictionary& dict=GetSetDictionary::global() ,const std::string& title="Settings", const std::string& listOfTabs="", QWidget *parent=0x0);
+		GetSetTabWidget(const std::string& path="", GetSetDictionary& dict = GetSetDictionary::global() ,const std::string& title="Settings", const std::string& listOfTabs="", QWidget *parent=0x0);
 
 		void setCallBack(void (*gui)(const std::string& sender, const std::string& action));
 

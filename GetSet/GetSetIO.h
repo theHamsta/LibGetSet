@@ -26,7 +26,7 @@ namespace GetSetIO {
 
 	/// Saving a file
 	template <typename GetSetIO_Object>
-	bool save(const std::string& path, GetSetDictionary& dict=GetSetDictionary::global())
+	bool save(const std::string& path, GetSetDictionary& dict = GetSetDictionary::global())
 	{
 		std::ofstream file(path.c_str());
 		if (!file.good()) return false;
@@ -37,7 +37,7 @@ namespace GetSetIO {
 
 	/// Loading a file
 	template <typename GetSetIO_Object>
-	bool load(const std::string& path, GetSetDictionary& dict=GetSetDictionary::global())
+	bool load(const std::string& path, GetSetDictionary& dict = GetSetDictionary::global())
 	{
 		std::ifstream file(path.c_str());
 		if (!file || !file.good()) return false;

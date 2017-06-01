@@ -34,9 +34,9 @@ class GetSet : public GetSetInternal::Access
 {
 public:
 	/// Access a GetSet property by section and key (and optionally explicitly a dictionary)
-	GetSet(const std::string& pathToSection, const std::string& k, GetSetDictionary& dict=GetSetDictionary::global());
+	GetSet(const std::string& pathToSection, const std::string& k, GetSetDictionary& dict = GetSetDictionary::global());
 	/// Access a GetSet property by the absolute path to its key (and optionally explicitly a dictionary)
-	GetSet(const std::string& pathToKey, GetSetDictionary& dict=GetSetDictionary::global());
+	GetSet(const std::string& pathToKey, GetSetDictionary& dict = GetSetDictionary::global());
 
 
 	/// Set the value of a GetSet property (same as: assigment operator)

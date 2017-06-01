@@ -36,6 +36,7 @@ namespace GetSetGui
 	class GetSetApplication : public ProgressInterface
 	{
 	protected:
+		GetSetDictionary&		dict;
 		GetSetIO::CmdLineParser	cmd;
 		QApplication			*qt_app;
 		GetSetHandler			*callback;
@@ -44,7 +45,7 @@ namespace GetSetGui
 		GetSetLog				*log;
 
 	public:
-		GetSetApplication(std::string _appname);
+		GetSetApplication(std::string _appname, GetSetDictionary& _dict = GetSetDictionary::global());
 		~GetSetApplication();
 
 		/// Define how to handle command line arguments
@@ -61,6 +62,9 @@ namespace GetSetGui
 		
 		/// Access to progress window
 		GetSetProgressWindow& progress();
+
+		/// 
+		operator GetSetDictionary&() {return dict;}
 
 		/// Show progress bar and hide main window (optionally includes a "cancel" button)
 		virtual void progressStart(const std::string& progress, const std::string& info, int maximum=100, bool *cancel_clicked=0x0);

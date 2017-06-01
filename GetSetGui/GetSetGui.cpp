@@ -20,16 +20,17 @@ void gui_update(const std::string&, void*)
 namespace GetSetGui
 {
 
-	GetSetApplication::GetSetApplication(std::string _appname)
-		: qt_app(0x0)
+	GetSetApplication::GetSetApplication(std::string _appname, GetSetDictionary& _dict)
+		: dict(_dict)
+		, cmd(dict)
+		, qt_app(0x0)
 		, callback(0x0)
 		, main_window(0x0)
 		, progress_window(0x0)
 		, log(new GetSetLog(_appname+".log"))
 	{
-		GetSet<>("Application")=_appname;
-		GetSet<>("ini-File")=_appname+".ini";
-		GetSetScriptParser::global().addErrorCallback(0x0,gui_update);
+		GetSet<>("Application",dict)=_appname;
+		GetSet<>("ini-File",dict)=_appname+".ini";
 	}
 
 	GetSetApplication::~GetSetApplication()
@@ -47,7 +48,7 @@ namespace GetSetGui
 
 	bool GetSetApplication::init(int &argc, char **argv, void (*gui)(const std::string&, const std::string&))
 	{
-		std::string appname=GetSet<>("Application");
+		std::string appname=GetSet<>("Application",dict);
 		qt_app=new QApplication(argc,argv);
 		bool single_unhandled_arg=false;
 		if ( argc==2 && (std::string(argv[1])=="--help"||std::string(argv[1])=="-h") )
@@ -69,9 +70,9 @@ namespace GetSetGui
 			std::string ext=splitRight(arg,".");
 			std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
 			if (ext=="ini")
-				GetSet<>("ini-File")=argv[1];
+				GetSet<>("ini-File",dict)=argv[1];
 			loadSettings();
-			callback=new GetSetHandler(gui);
+			callback=new GetSetHandler(gui,dict);
 			// Run script
 			if (ext=="getset")
 			{
@@ -123,8 +124,7 @@ namespace GetSetGui
 	{
 		if (!main_window)
 		{
-			main_window=new GetSetTabWidget();
-			main_window->setWindowTitle(GetSet<>("Application").getString().c_str());
+			main_window=new GetSetTabWidget("",dict,GetSet<>("Application",dict));
 			main_window->setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::CustomizeWindowHint | Qt::WindowSystemMenuHint);
 		}
 		return *main_window;
@@ -135,7 +135,7 @@ namespace GetSetGui
 		if (!progress_window)
 		{
 			progress_window=new GetSetProgressWindow();
-			progress_window->setWindowTitle(GetSet<>("Application").getString().c_str());
+			progress_window->setWindowTitle(GetSet<>("Application",dict).getString().c_str());
 		}
 		return *progress_window;
 	}
@@ -175,18 +175,20 @@ namespace GetSetGui
 
 	void GetSetApplication::saveSettings() const
 	{
-		GetSetIO::save<GetSetIO::IniFile>(GetSet<>("ini-File"));
+		GetSetIO::save<GetSetIO::IniFile>(GetSet<>("ini-File",dict));
 	}
 
 	void GetSetApplication::loadSettings()
 	{
-		GetSetIO::load<GetSetIO::IniFile>(GetSet<>("ini-File"));		
+		GetSetIO::load<GetSetIO::IniFile>(GetSet<>("ini-File",dict));		
 	}
 
 	bool GetSetApplication::parseScript(const std::string& script)
 	{
-		GetSetScriptParser::global().parse(script);
-		return GetSetScriptParser::global().good();
+		GetSetScriptParser parser(dict);
+		parser.addErrorCallback(0x0,gui_update);
+		parser.parse(script);
+		return parser.good();
 	}
 
 	int GetSetApplication::exec()

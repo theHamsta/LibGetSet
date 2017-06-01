@@ -5,6 +5,8 @@
 #include <GetSetGui/GetSetGui.h>
 #include <GetSetGui/GetSetTabWidget.h>
 
+// #include <GetSet/GetSetLocalDictionary.hxx>
+
 /// Application
 GetSetGui::GetSetApplication g_app("Test");
 
@@ -24,7 +26,7 @@ void gui(const std::string& section, const std::string& key)
 			;
 	}
 
-//	g_app.saveSettings();
+	g_app.saveSettings();
 }
 
 int main(int argc, char **argv)

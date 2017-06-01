@@ -39,7 +39,7 @@
 class GetSetScriptRecorder : public GetSetDictionary::Observer
 {
 public:
-	GetSetScriptRecorder(GetSetDictionary& subject=GetSetDictionary::global())
+	GetSetScriptRecorder(GetSetDictionary& subject)
 		: GetSetDictionary::Observer(subject) {}
 	std::string log;
 
@@ -54,7 +54,6 @@ protected:
 	}
 
 };
-
 
 namespace GetSetGui
 {
@@ -111,16 +110,16 @@ namespace GetSetGui
 		setWindowIcon(style()->standardIcon(QStyle::SP_TitleBarMenuButton));
 	}
 
-	GetSetTabWidget::GetSetTabWidget(QWidget *parent)
+	GetSetTabWidget::GetSetTabWidget(QWidget *parent, GetSetDictionary& _dict)
 		: QWidget(parent)
-		, GetSetDictionary::Observer(GetSetDictionary::global())
+		, GetSetDictionary::Observer(_dict)
 		, m_menuBar(0x0)
 		, m_mainLayout(0x0)
 		, m_tabWidget(0x0)
 		, m_script_recorder(0x0)
 	{
 		setWindowTitle("Settings");
-		create(GetSetDictionary::global(),"",std::vector<std::string>());
+		create(_dict,"",std::vector<std::string>());
 	}
 
 	GetSetTabWidget::GetSetTabWidget(const std::string& path, GetSetDictionary& dict ,const std::string& title, const std::string& listOfTabs, QWidget *parent)
@@ -166,7 +165,6 @@ namespace GetSetGui
 					addMenuItem(super_menu,"");
 				m_menus[super_menu]->addMenu(m_menus[menu]);
 			}
-
 		}
 		// Then create menu item
 		if (action=="-")
@@ -206,7 +204,6 @@ namespace GetSetGui
 		scripting_menu->addSeparator();
 		scripting_menu->addAction(tr("Run default script."), this, SLOT(script_run_default()), QKeySequence(Qt::CTRL + Qt::SHIFT+ Qt::Key_D));
 		scripting_menu->addAction(tr("Show Script &Editor..."), this, SLOT(script_editor()), QKeySequence(Qt::CTRL + Qt::Key_E));
-
 	}
 
 	void GetSetTabWidget::handle_action()
@@ -239,13 +236,13 @@ namespace GetSetGui
 	void GetSetTabWidget::rec_start()
 	{
 		if (m_script_recorder) delete m_script_recorder;
-		m_script_recorder=new GetSetScriptRecorder();
+		m_script_recorder=new GetSetScriptRecorder(dictionary);
 	}
 
 	void GetSetTabWidget::rec_stop()
 	{
 		if (!m_script_recorder) return;
-		GetSetScriptEdit *script_editor=new GetSetScriptEdit();
+		GetSetScriptEdit *script_editor=new GetSetScriptEdit(this,dictionary);
 		script_editor->setAttribute(Qt::WA_DeleteOnClose);
 		script_editor->setText(m_script_recorder->log.c_str());
 		script_editor->show();

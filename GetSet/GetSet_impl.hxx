@@ -121,7 +121,7 @@ std::string GetSet<BasicType>::getAttribute(const std::string& attrib) const
 		class SPECIAL_TYPE : public GetSet<BASE_TYPE>														\
 		{																									\
 		public:																								\
-			SPECIAL_TYPE(const std::string& pathToKey, GetSetDictionary& d=GetSetDictionary::global())		\
+			SPECIAL_TYPE(const std::string& pathToKey, GetSetDictionary& d = GetSetDictionary::global())		\
 				: GetSet<BASE_TYPE>(d)																		\
 			{																								\
 				section=pathToKey;																			\
@@ -130,7 +130,7 @@ std::string GetSet<BasicType>::getAttribute(const std::string& attrib) const
 				typedProperty=dynamic_cast<GetSetInternal::GetSetKey##SPECIAL_TYPE*>(property);				\
 			}																								\
 			SPECIAL_TYPE(const std::string& pathToSection, const std::string& k,							\
-					GetSetDictionary& d=GetSetDictionary::global())											\
+					GetSetDictionary& d = GetSetDictionary::global())											\
 						: GetSet<BASE_TYPE>(d)																\
 			{																								\
 				section=pathToSection; key=k;std::string path=section.empty()?key:section+"/"+key;			\
@@ -246,7 +246,7 @@ class GetSetSection : public GetSetInternal::Access
 	std::string					superSection;
 	std::string					thisKey;
 public:
-	GetSetSection(const std::string& _pathToSection="", GetSetDictionary& d=GetSetDictionary::global())
+	GetSetSection(const std::string& _pathToSection="", GetSetDictionary& d = GetSetDictionary::global())
 		: GetSetInternal::Access(d)
 		, pathToSection(_pathToSection)
 	{
@@ -255,7 +255,7 @@ public:
 		thisKey=splitRight(superSection,"/");
 	}
 
-	GetSetSection(const std::string& _superSection, const std::string& _thisKey, GetSetDictionary& d=GetSetDictionary::global())
+	GetSetSection(const std::string& _superSection, const std::string& _thisKey, GetSetDictionary& d = GetSetDictionary::global())
 		: GetSetInternal::Access(d)
 		, pathToSection(_superSection.empty()?_thisKey:_superSection+"/"+_thisKey)
 		, superSection(_superSection)
