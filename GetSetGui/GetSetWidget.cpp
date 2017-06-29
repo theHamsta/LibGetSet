@@ -430,6 +430,7 @@ namespace GetSetGui {
 
 	void GetSetWidget::notifyChange(const std::string& section, const std::string& key)
 	{
+		if (section!=m_section) return; // wrong section.
 		if (m_owned.find(key)==m_owned.end()) return; // doesn't exist anyway
 		QWidget* w=m_owned[key];
 

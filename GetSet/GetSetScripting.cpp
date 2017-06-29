@@ -158,7 +158,8 @@ std::string GetSetScriptParser::synopsis(const std::string& command, bool with_e
 		examples["for"]     +="   for each var i from value 5 to value 9\n";
 		examples["for"]     +="      print output var i\n";
 		examples["for"]     +="   endfor\n";
-		help    ["file"]    +="   file ini {load|save} <filename>\n";
+		help    ["file"]    +="   file txt print\n";
+		help    ["file"]    +="   file {ini|txt} {load|save} <filename>\n";
 		help    ["file"]    +="   file ini remove key <key> from <value:filename>\n";
 		help    ["file"]    +="   file ini set key <key> in <value:filename> to <value>\n";
 		help    ["file"]    +="   file ini get var <varname> from key <key> in <value:filename>\n";
@@ -528,8 +529,22 @@ void GetSetScriptParser::parse_file(std::istream& script)
 {
 	std::stringstream line(rest_of_line(script));
 	std::string file;
-	int what=expect_keyword(line,"file","ini;run");
-	if (what==1) // run
+	int what=expect_keyword(line,"file","ini;run;txt");
+	if (what==2) // txt
+	{
+		int action=expect_keyword(line,"file","load;save;print");
+		if (action<0) return;
+		if (action==2)
+			subject.save(GetSetIO::TxtFileDescription(std::cin, std::cout));
+		else
+		{
+			if (!expect_token_value(line,"file",file)) return;
+			if (!expect_end_of_line(line,"file")) return;
+			if (action==0) GetSetIO::load<GetSetIO::TxtFileDescription>(file);
+			else           GetSetIO::save<GetSetIO::TxtFileDescription>(file);
+		}
+	}
+	else if (what==1) // run
 	{
 		if (!expect_token_string(line,"file",file)) return;
 		if (!expect_end_of_line(line,"file")) return;

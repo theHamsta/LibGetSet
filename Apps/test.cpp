@@ -17,28 +17,20 @@ void gui(const std::string& section, const std::string& key)
 {
 	std::cout << key << std::endl;
 
-	if (section=="Test/Range")
-	{
-		std::cout << "Reset range.\n";
-		GetSetGui::RangedDouble("Test/Value")
-			.setMin(GetSet<int>("Test/Range/Min"))
-			.setMax(GetSet<int>("Test/Range/Max"))
-			;
-	}
+	std::cout << (double) GetSet<double>("A/B/C") << std::endl;
+	std::cout << (double) GetSet<double>("A/C") << std::endl;
+	std::cout << (double) GetSet<double>("A/D/C") << std::endl;
 
-	g_app.saveSettings();
+//	g_app.saveSettings();
 }
 
 int main(int argc, char **argv)
 {
 
-	GetSet<int>("Test/Range/Min")=5;
-	GetSet<int>("Test/Range/Max")=9;
+	GetSet<double>("A/B/C")=7;
+	GetSet<double>("A/C")=5;
+	GetSet<double>("A/D/C")=9;
 
-	GetSetGui::RangedDouble("Test/Value")
-		.setMin(GetSet<int>("Test/Range/Min"))
-		.setMax(GetSet<int>("Test/Range/Max"))
-		;
 	g_app.init(argc,argv,gui);
 	g_app.window().addDefaultFileMenu();
 	g_app.window().aboutText()=
