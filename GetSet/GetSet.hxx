@@ -20,7 +20,7 @@
 #ifndef __GetSet_hxx
 #define __GetSet_hxx
 
-#include "GetSetDictionary.h"
+#include "GetSetSection.hxx"
 
 // Basic GetSet usage:
 //   GetSet<bool>("Options/Checkbox")=true;
@@ -33,11 +33,8 @@ template <typename BasicType=std::string>
 class GetSet : public GetSetInternal::Access
 {
 public:
-	/// Access a GetSet property by section and key (and optionally explicitly a dictionary)
-	GetSet(const std::string& pathToSection, const std::string& k, GetSetDictionary& dict = GetSetDictionary::global());
-	/// Access a GetSet property by the absolute path to its key (and optionally explicitly a dictionary)
-	GetSet(const std::string& pathToKey, GetSetDictionary& dict = GetSetDictionary::global());
-
+	/// Access a GetSet property by by absolute path to its key (or optionally a relative path to a key within the given section)
+	GetSet(const std::string& key, const GetSetSection& section = GetSetDictionary::global());
 
 	/// Set the value of a GetSet property (same as: assigment operator)
 	GetSet<BasicType>& setValue(const BasicType& v);
@@ -67,20 +64,23 @@ public:
 	/// Access attributes directly
 	std::string getAttribute(const std::string& attrib) const;
 
+	/// Full path of this property in dictionary
+	std::string path() const { return section.empty()?key:section+"/"+key; }
+
 protected:
-	/// The path to the section where this property resides
+	/// The absolute path of the section
 	std::string section;
-	/// The name to the associated property in section
+	/// The name of this key
 	std::string key;
 
 	/// Keep track of the associated property (not actually owned by this class)
 	GetSetInternal::Node* property;
 
 	/// Same as property, if the type is an exact match. Else it is null.
-	GetSetInternal::GetSetKey<BasicType>* typedProperty;
+	GetSetInternal::GetSetKey<BasicType>* typed_property;
 
 	/// c-tor for subclasses: initialize property from there.
-	GetSet(GetSetDictionary& dict) : GetSetInternal::Access(dict) {}
+	GetSet(const GetSetSection& dict) : GetSetInternal::Access(dict) {}
 
 };
 

@@ -20,7 +20,7 @@
 #ifndef __GetSetWidget_h
 #define __GetSetWidget_h
 
-#include "../GetSet/GetSetDictionary.h"
+#include "../GetSet/GetSet.hxx"
 
 #include <string>
 
@@ -72,7 +72,7 @@ namespace GetSetGui {
 		void setRangeValue(double value);
 
 	public:
-		GetSetWidget(GetSetDictionary& dict, const std::string& list, QWidget *parent=0x0);
+		GetSetWidget(const GetSetSection& section = GetSetDictionary::global(), QWidget *parent=0x0);
 		virtual ~GetSetWidget();
 
 		/// Access to dictionary this section resides in

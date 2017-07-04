@@ -8,6 +8,7 @@ add_library(GetSetGui
 	GetSetTabWidget.cpp
 	GetSetProgressWindow.cpp
 	GetSetScriptEdit.cpp
+	GetSetModalDialog.cpp
 )
 target_link_libraries(GetSetGui GetSet)
 qt5_use_modules(GetSetGui Widgets)

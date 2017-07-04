@@ -36,8 +36,8 @@ namespace GetSetGui
 	GetSetApplication::~GetSetApplication()
 	{
 		delete log;
-//		if (main_window) delete main_window;
-//		if (callback) delete callback;
+		if (callback) delete callback;
+		if (main_window) delete main_window;
 //		if (qt_app) delete qt_app; // Crashed on delete on windows (why?)
 	}
 
@@ -111,7 +111,7 @@ namespace GetSetGui
 			}
 		}
 
-		window().setCallBack(gui);
+		//window().setCallBack(gui);
 		return true;
 	}
 

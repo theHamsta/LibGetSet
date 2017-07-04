@@ -51,20 +51,29 @@ namespace GetSetGui
 		/// Define how to handle command line arguments
 		GetSetIO::CmdLineParser& commandLine();
 
+		//
+		// main(...) should call init(...) and then exec().
+		//
+
+		/// Run application (shows gui and enters Qt's event loop)
+		int exec();
+
 		/// Parse command line and load settings. Must be called before exec!
 		bool init(int &argc, char **argv, void (*gui)(const std::string&, const std::string&));
 
-		/// Ignores notifications temporarily
-		void ignoreNotifications(bool ignore);
-		
+
+		/// Access underlying dictionary
+		const GetSetDictionary& dictionary() {return dict;}
+
 		/// Access to main window
 		GetSetTabWidget& window();
 		
+		//
+		// Showing model progress bar
+		//
+
 		/// Access to progress window
 		GetSetProgressWindow& progress();
-
-		/// 
-		operator GetSetDictionary&() {return dict;}
 
 		/// Show progress bar and hide main window (optionally includes a "cancel" button)
 		virtual void progressStart(const std::string& progress, const std::string& info, int maximum=100, bool *cancel_clicked=0x0);
@@ -75,6 +84,10 @@ namespace GetSetGui
 		/// Hide progress bar and show main window
 		virtual void progressEnd();
 
+		//
+		// Informative modal dialog
+		//
+
 		/// Inform the user of something important. (optional: show modal dialog)
 		virtual void info(const std::string& who, const std::string& what, bool show_dialog=false);
 
@@ -82,7 +95,7 @@ namespace GetSetGui
 		virtual void warn(const std::string& who, const std::string& what, bool only_inormative=true);
 
 		//
-		//
+		// Ini-File and Scripting
 		//
 
 		/// Save ini-file
@@ -94,8 +107,14 @@ namespace GetSetGui
 		/// Parse a GetSet script (see GetSetScriptParser)
 		bool parseScript(const std::string& script);
 
-		/// Run application (shows gui and enters Qt's event loop)
-		int exec();
+		//
+		// Silently alter the applications state using ignoreNotifications(true);
+		//
+
+		/// Ignores notifications temporarily
+		void ignoreNotifications(bool ignore);
+		
+
 
 	};
 

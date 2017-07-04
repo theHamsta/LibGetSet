@@ -58,7 +58,7 @@ public:
 	// Signal/Observer implementation Observers are notified for the signals "create" "change" and "destroy"
 	class Observer : public GetSetInternal::Access {
 	public:
-		Observer(GetSetDictionary& d);
+		Observer(const GetSetDictionary& d);
 		~Observer();
         virtual void notifyChange(const std::string& section, const std::string& key)=0;
 		virtual void notifyCreate(const std::string& section, const std::string& key) {};
@@ -72,7 +72,7 @@ protected:
 	static GetSetDictionary *_instance;
 
 	/// This is where the observers reside
-	std::set<Observer*> registered_observers;
+	mutable std::set<Observer*> registered_observers;
 
 	/// Not copy-able
 	GetSetDictionary(const GetSetDictionary&);
@@ -84,7 +84,7 @@ protected:
 class GetSetHandler : public GetSetDictionary::Observer
 {
 public:
-	GetSetHandler(void (*change)(const std::string& section, const std::string& key), GetSetDictionary& subject = GetSetDictionary::global());
+	GetSetHandler(void (*change)(const std::string& section, const std::string& key), const GetSetDictionary& subject = GetSetDictionary::global());
 	void ignoreNotifications(bool ignore);
 protected:
 	bool ignore_notify;

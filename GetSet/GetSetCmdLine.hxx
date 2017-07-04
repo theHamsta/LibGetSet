@@ -29,7 +29,7 @@ namespace GetSetIO {
 		typedef std::map<std::string, std::string>	MapStrStr;
 
 		/// Longformat: GetSet("Super Section/Some Key") becomes --super-section-some-key instead of just --some-key
-		CmdLineParser(GetSetDictionary& d = GetSetDictionary::global(), bool useLongFlags=false)
+		CmdLineParser(const GetSetSection& d = GetSetDictionary::global(), bool useLongFlags=false)
 			: GetSetInternal::Access(d)
 			, longFormat(useLongFlags)
 		{}

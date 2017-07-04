@@ -73,7 +73,7 @@ bool GetSetDictionary::isValue(const std::string path)
 // GetSetDictionary::Observer
 //
 
-GetSetDictionary::Observer::Observer(GetSetDictionary& d)
+GetSetDictionary::Observer::Observer(const GetSetDictionary& d)
 	: GetSetInternal::Access(d)
 {
 	d.registered_observers.insert(this);
@@ -88,7 +88,7 @@ GetSetDictionary::Observer::~Observer()
 // GetSetHandler
 //
 
-GetSetHandler::GetSetHandler(void (*change)(const std::string& section, const std::string& key),GetSetDictionary& subject)
+GetSetHandler::GetSetHandler(void (*change)(const std::string& section, const std::string& key), const GetSetDictionary& subject)
 	: GetSetDictionary::Observer(subject)
 	, change_handler(change)
 	, ignore_notify(false)

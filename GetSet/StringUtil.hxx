@@ -213,5 +213,4 @@ inline void parseAttribs(const std::string& in, std::map<std::string,std::string
 	}
 }
 
-
 #endif // __StringUtil_hxx

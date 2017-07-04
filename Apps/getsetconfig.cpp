@@ -18,7 +18,7 @@ void kill_child()
 #endif
 
 // Helper function for the "copy" verb
-void copy(const std::string& prefix, const GetSetInternal::Section::PropertyByName& sin, GetSetDictionary& dout)
+void copy(const std::string& prefix, const GetSetInternal::Section::PropertyByName& sin, const GetSetSection& dout)
 {
 	for (auto it=sin.begin();it!=sin.end();++it)
 	{
@@ -40,7 +40,7 @@ void copy(const std::string& prefix, const GetSetInternal::Section::PropertyByNa
 }
 
 
-std::string replace(const std::string& in, GetSetDictionary& config=GetSetDictionary::global())
+std::string replace(const std::string& in, const GetSetSection& config=GetSetDictionary::global())
 {
 	auto pos=in.find("GetSet[");
 	if (pos==std::string::npos) return in;

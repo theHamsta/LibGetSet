@@ -44,13 +44,13 @@ namespace GetSetGui {
 	void GetSetWidget::trigger()
 	{
 		std::string key=sender()->objectName().toLatin1().data();
-		GetSetGui::Button(m_section,key,dictionary).trigger(); // signalChange(m_section,key);
+		GetSetGui::Button(key,GetSetSection(m_section,dictionary)).trigger(); // signalChange(m_section,key);
 	}
 
 	void GetSetWidget::selectFile()
 	{
 		std::string key=sender()->objectName().toLatin1().data();
-		GetSetGui::File file(m_section,key,dictionary);
+		GetSetGui::File file(key,GetSetSection(m_section,dictionary));
 		std::string path;
 		if (file.getMultiple())
 		{
@@ -88,7 +88,7 @@ namespace GetSetGui {
 	void GetSetWidget::selectFolder()
 	{
 		std::string key=sender()->objectName().toLatin1().data();
-		GetSetGui::Directory folder(m_section,key,dictionary);
+		GetSetGui::Directory folder(key,GetSetSection(m_section,dictionary));
 		QString path = QFileDialog::getExistingDirectory(this, "Select A Directory",folder.getString().c_str());
 		if ( path.isNull())
 			return;
@@ -117,7 +117,7 @@ namespace GetSetGui {
 	{
 		std::string key=sender()->objectName().toLatin1().data();
 		std::string section=m_section.empty()?key:m_section+"/"+key;
-		GetSetWidget* w=new GetSetWidget(dictionary, section);
+		GetSetWidget* w=new GetSetWidget(GetSetSection(section,dictionary));
 		w->setAttribute(Qt::WA_DeleteOnClose, true);
 		w->setWindowFlags(Qt::Tool);
 		w->show();
@@ -129,7 +129,7 @@ namespace GetSetGui {
 		QLineEdit* l=dynamic_cast<QLineEdit*>(sender());
 		if (!l) return;
 		std::string value=l->text().toStdString();
-		GetSet<std::string> property(m_section,key,dictionary);
+		GetSet<std::string> property(key,GetSetSection(m_section,dictionary));
 		if (property.getString()!=value)
 			property=value;
 	}
@@ -138,7 +138,7 @@ namespace GetSetGui {
 	{
 		if (m_expectChange) { m_expectChange=0; return; }
 		std::string key=sender()->objectName().toLatin1().data();
-		GetSetGui::Slider slider(m_section,key,dictionary);
+		GetSetGui::Slider slider(key,GetSetSection(m_section,dictionary));
 		double	d=(double)value/1000.;
 		slider=d;
 	}
@@ -146,13 +146,13 @@ namespace GetSetGui {
 	void GetSetWidget::setValue(int value)
 	{
 		std::string key=sender()->objectName().toLatin1().data();
-		GetSet<std::string>(m_section,key,dictionary)=toString(value);
+		GetSet<std::string>(key,GetSetSection(m_section,dictionary))=toString(value);
 	}
 
 	void GetSetWidget::setRangeValue(double value)
 	{
 		std::string key=sender()->objectName().toLatin1().data();
-		GetSetGui::RangedDouble item(m_section,key,dictionary);
+		GetSetGui::RangedDouble item(key,GetSetSection(m_section,dictionary));
 		double minv=item.getMin();
 		double maxv=item.getMax();
 		double step=item.getStep();
@@ -173,7 +173,7 @@ namespace GetSetGui {
 		std::string type=GetSetSection(m_section,dictionary).getTypeOfKey(key);
 		if (type=="RangedInt")
 		{
-			RangedInt item(m_section,key,dictionary);
+			RangedInt item(key,GetSetSection(m_section,dictionary));
 			int minv=item.getMin();
 			int maxv=item.getMax();
 			if (item.getPeriodic())
@@ -188,13 +188,13 @@ namespace GetSetGui {
 			}
 			item.setValue(value);
 		}
-		else GetSet<int>(m_section,key,dictionary)=value;
+		else GetSet<int>(key,GetSetSection(m_section,dictionary))=value;
 	}
 
 	void GetSetWidget::setValue(const QString& value)
 	{
 		std::string key=sender()->objectName().toLatin1().data();
-		GetSet<std::string>(m_section,key,dictionary)=value.toLatin1().data();
+		GetSet<std::string>(key,GetSetSection(m_section,dictionary))=value.toLatin1().data();
 	}
 
 	void GetSetWidget::init()
@@ -227,10 +227,10 @@ namespace GetSetGui {
 		m_owned.clear();
 	}
 
-	GetSetWidget::GetSetWidget(GetSetDictionary& dict, const std::string& section, QWidget *parent)
+	GetSetWidget::GetSetWidget(const GetSetSection& section, QWidget *parent)
 		: QScrollArea(parent)
-		, GetSetDictionary::Observer(dict)
-		, m_section(section)
+		, GetSetDictionary::Observer(section.dict())
+		, m_section(section.path())
 	{
 		init();
 	}
@@ -282,7 +282,7 @@ namespace GetSetGui {
 			{
 				bool is_collapsed=is_collapsible?stringTo<bool>(attribs["Collapsed"]):false;
 				std::string section=m_section.empty()?key:m_section+"/"+key;
-				GetSetWidget *widget=new GetSetWidget(dictionary, section, this);
+				GetSetWidget *widget=new GetSetWidget(GetSetSection(section,dictionary), this);
 				widget->setObjectName("Collapsible");
 				widget->setFixedHeight( widget->sizeHint().height()+2); 
 				widget->setMinimumWidth( widget->sizeHint().width()+2); 
@@ -342,7 +342,7 @@ namespace GetSetGui {
 		else if (dynamic_cast<GetSetKeyEnum*>(p)!=0x0)
 		{
 			QComboBox* item = new QComboBox(this);
-			std::vector<std::string> enumerator=Enum(section,key,dictionary).getChoices();
+			std::vector<std::string> enumerator=Enum(key,GetSetSection(section,dictionary)).getChoices();
 			for (std::vector<std::string>::iterator it=enumerator.begin(); it!=enumerator.end(); ++it)
 				item->addItem(it->c_str());
 			m_owned[key]=item;
@@ -439,51 +439,51 @@ namespace GetSetGui {
 			// put the slider first in line since sliders tend to create lots of events
 			QSlider* item=dynamic_cast<QSlider*>(w);
 			item->blockSignals(true);
-			item->setValue((int)(1000.*GetSet<double>(section,key,dictionary)));
+			item->setValue((int)(1000.*GetSet<double>(key,GetSetSection(section,dictionary))));
 			item->blockSignals(false);
 		}
 		if (dynamic_cast<QDoubleSpinBox*>(w))
 		{
 			QDoubleSpinBox* item=dynamic_cast<QDoubleSpinBox*>(w);
 			item->blockSignals(true);
-			item->setValue(GetSet<double>(section,key,dictionary));
+			item->setValue(GetSet<double>(key,GetSetSection(section,dictionary)));
 			item->blockSignals(false);
 		}
 		else if (dynamic_cast<QPushButton*>(w))
 		{
-			dynamic_cast<QPushButton*>(w)->setText(GetSet<std::string>(section,key,dictionary).getString().c_str());
+			dynamic_cast<QPushButton*>(w)->setText(GetSet<std::string>(key,GetSetSection(section,dictionary)).getString().c_str());
 		}
 		else if (dynamic_cast<QCheckBox*>(w))
 		{
 			QCheckBox* item=dynamic_cast<QCheckBox*>(w);
 			item->blockSignals(true);
-			item->setChecked(GetSet<bool>(section,key,dictionary));		
+			item->setChecked(GetSet<bool>(key,GetSetSection(section,dictionary)));		
 			item->blockSignals(false);
 		}
 		else if (dynamic_cast<QComboBox*>(w))
 		{
 			QComboBox* item=dynamic_cast<QComboBox*>(w);
 			item->blockSignals(true);
-			item->setCurrentIndex(GetSet<int>(section,key,dictionary));
+			item->setCurrentIndex(GetSet<int>(key,GetSetSection(section,dictionary)));
 			item->blockSignals(false);
 		}
 		else if (dynamic_cast<QSpinBox*>(w))
 		{
 			QSpinBox* item=dynamic_cast<QSpinBox*>(w);
 			item->blockSignals(true);
-			item->setValue(GetSet<int>(section,key,dictionary));
+			item->setValue(GetSet<int>(key,GetSetSection(section,dictionary)));
 			item->blockSignals(false);
 		}
 		else if (dynamic_cast<QLabel*>(w))
 		{
 			QLabel* item=dynamic_cast<QLabel*>(w);
-			item->setText(GetSet<std::string>(section,key,dictionary).getString().c_str());
+			item->setText(GetSet<std::string>(key,GetSetSection(section,dictionary)).getString().c_str());
 		}
 		else if (dynamic_cast<QLineEdit*>(w))
 		{
 			QLineEdit* item=dynamic_cast<QLineEdit*>(w);
 			item->blockSignals(true);
-			item->setText(GetSet<std::string>(section,key,dictionary).getString().c_str());
+			item->setText(GetSet<std::string>(key,GetSetSection(section,dictionary)).getString().c_str());
 			item->blockSignals(false);
 		}
 		else if (w->layout() && w->layout()->count()) // true only for file, folder and subsection (editfield+pushbutton)
@@ -493,7 +493,7 @@ namespace GetSetGui {
 			if (item)
 			{
 				item->blockSignals(true);
-				item->setText(GetSet<std::string>(section,key,dictionary).getString().c_str());
+				item->setText(GetSet<std::string>(key,GetSetSection(section,dictionary)).getString().c_str());
 				item->blockSignals(false);
 			}
 		}
@@ -557,8 +557,8 @@ namespace GetSetGui {
 			QSlider* item=dynamic_cast<QSlider*>(w);
 			if (attrib["Min"]=="") attrib["Min"]="0";
 			if (attrib["Max"]=="") attrib["Max"]="1";
-			item->setMaximum(Slider(section,key,dictionary).getMax()*1000);
-			item->setMinimum(Slider(section,key,dictionary).getMin()*1000);
+			item->setMaximum(Slider(key,GetSetSection(section,dictionary)).getMax()*1000);
+			item->setMinimum(Slider(key,GetSetSection(section,dictionary)).getMin()*1000);
 		}
 		if (dynamic_cast<QDoubleSpinBox*>(w))
 		{

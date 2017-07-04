@@ -98,7 +98,7 @@ namespace GetSetGui
 		else m_tabWidget = new QTabWidget(this);
 		for (int i=0;i<(int)tabs.size(); i++)
 		{
-			GetSetWidget* tab=new GetSetWidget(dict,path.empty()?tabs[i]:path+"/"+tabs[i],m_tabWidget);
+			GetSetWidget* tab=new GetSetWidget(GetSetSection(path,dict).subsection(tabs[i]),m_tabWidget);
 			tab->setObjectName(tabs[i].c_str());
 			m_tabWidget->addTab(tab,tabs[i].c_str());
 		}
@@ -282,7 +282,7 @@ namespace GetSetGui
 			if (out)
 			{
 				std::string section=out->objectName().toLatin1().data();
-				GetSetWidget* w=new GetSetWidget(out->getDictionary(), section, this);
+				GetSetWidget* w=new GetSetWidget(GetSetSection(section, out->getDictionary()), this);
 				w->setAttribute(Qt::WA_DeleteOnClose, true);
 				w->setWindowFlags(Qt::Tool | Qt::WindowStaysOnTopHint);
 				w->show();
