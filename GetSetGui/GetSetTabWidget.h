@@ -59,7 +59,7 @@ namespace GetSetGui
 		std::map<std::string,QMenu*>		m_menus;
 		std::map<std::string,QPushButton*>	m_push_buttons;
 
-		void (*callback)(const std::string& sender, const std::string& action);
+		void (*m_menu_callback)(const std::string& sender, const std::string& action);
 
 	protected:
 		QVBoxLayout					*m_mainLayout;
@@ -77,11 +77,11 @@ namespace GetSetGui
 		/// Settings dialog with a selection of sections from a dictionary
 		GetSetTabWidget(const std::string& path="", GetSetDictionary& dict = GetSetDictionary::global() ,const std::string& title="Settings", const std::string& listOfTabs="", QWidget *parent=0x0);
 
-		void setCallBack(void (*gui)(const std::string& sender, const std::string& action));
 
 		/// Shortcut for example "Ctrl+O", If no action is supplied, a seperator will be added.
 		QAction* addMenuItem(const std::string& menu, const std::string& action="-", const std::string& shortcut="");
 		QPushButton* addButton(const std::string& action);
+		void setMenuCallBack(void (*gui)(const std::string& sender, const std::string& action));
 
 		void addDefaultFileMenu();
 		std::string& aboutText();

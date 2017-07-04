@@ -111,7 +111,7 @@ namespace GetSetGui
 			}
 		}
 
-		//window().setCallBack(gui);
+		window().setMenuCallBack(gui);
 		return true;
 	}
 

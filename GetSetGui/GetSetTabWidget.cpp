@@ -117,6 +117,7 @@ namespace GetSetGui
 		, m_mainLayout(0x0)
 		, m_tabWidget(0x0)
 		, m_script_recorder(0x0)
+		, m_menu_callback(0x0)
 	{
 		setWindowTitle("Settings");
 		create(_dict,"",std::vector<std::string>());
@@ -129,15 +130,16 @@ namespace GetSetGui
 		, m_mainLayout(0x0)
 		, m_tabWidget(0x0)
 		, m_script_recorder(0x0)
+		, m_menu_callback(0x0)
 	{
 		setWindowTitle(title.c_str());
 		std::vector<std::string> tabs=stringToVector<std::string>(listOfTabs,';');
 		create(dict,path,tabs);
 	}
 
-	void GetSetTabWidget::setCallBack(void (*gui)(const std::string& sender, const std::string& action))
+	void GetSetTabWidget::setMenuCallBack(void (*gui)(const std::string& sender, const std::string& action))
 	{
-		callback=gui;
+		m_menu_callback=gui;
 	}
 
 	QAction* GetSetTabWidget::addMenuItem(const std::string& menu, const std::string& action, const std::string& shortcut)
@@ -210,8 +212,7 @@ namespace GetSetGui
 	{
 		std::string who=windowTitle().toStdString();
 		std::string what=sender()->objectName().toStdString();
-		if (callback) callback(who,what);
-
+		if (m_menu_callback) m_menu_callback(who,what);
 	}
 
 	void GetSetTabWidget::about()
