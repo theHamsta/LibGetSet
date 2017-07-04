@@ -21,7 +21,7 @@ void gui(const std::string& section, const std::string& key)
 	if (section=="ExampleAdvanced")
 	{
 		if (key=="Do Something")
-			GetSetGui::Button("More","Do Something").trigger();
+			GetSetGui::Button("More/Do Something").trigger();
 		return;
 	}
 
@@ -39,10 +39,10 @@ void gui(const std::string& section, const std::string& key)
 	// This is how to handle a button. Note you can change it's caption (eg. "Start" to "Stop" and such)
 	if (key=="Do Something")
 	{
-		if (GetSet<>("Setup","Some Text").getString()=="Bla")
-			GetSet<>("Setup","Some Text")="Blubb";
+		if (GetSet<>("Setup/Some Text").getString()=="Bla")
+			GetSet<>("Setup/Some Text")="Blubb";
 		else
-			GetSet<>("Setup","Some Text")="Bla";
+			GetSet<>("Setup/Some Text")="Bla";
 	}
 
 	g_app.saveSettings();
@@ -52,24 +52,24 @@ void gui(const std::string& section, const std::string& key)
 int main(int argc, char** argv)
 {
 	// Define some parameters with arbitrary types
-	GetSet<int>("Setup","Number Of Iterations")=123;
-	GetSet<double>("Setup","The Value of X")=123.456;
-	GetSet<double>("Setup","A Value between 0 and 1")=0.5;
-	GetSet<bool>("Setup","Check Me")=false;
-	GetSet<std::string>("Setup","Some Text")="Hello World";
+	GetSet<int>("Setup/Number Of Iterations")=123;
+	GetSet<double>("Setup/The Value of X")=123.456;
+	GetSet<double>("Setup/A Value between 0 and 1")=0.5;
+	GetSet<bool>("Setup/Check Me")=false;
+	GetSet<std::string>("Setup/Some Text")="Hello World";
 
 	// Declare Advanced types (for better GUI representation). Here: multiple files
-	GetSet<std::string>("More","Input Files")="foo.bar;baz.qux";
+	GetSet<std::string>("More/Input Files")="foo.bar;baz.qux";
 	GetSetGui::File("More/Input Files").setExtensions("Bar Files (*.bar);;All Files (*)").setMultiple(true);
 	// This is how you get access to files:
-	std::vector<std::string> files=GetSet<std::vector<std::string> >("More","Input Files");
+	std::vector<std::string> files=GetSet<std::vector<std::string> >("More/Input Files");
 
 	// A slider
-	GetSet<double>("More","Another Value between 0 and 1")=0.5;
-	GetSetGui::Slider("More","Another Value between 0 and 1").setMin(0).setMax(1);
+	GetSet<double>("More/Another Value between 0 and 1")=0.5;
+	GetSetGui::Slider("More/Another Value between 0 and 1").setMin(0).setMax(1);
 
 	// A button with the caption "Print Some Text"
-	GetSetGui::Button("More","Do Something")="Start";
+	GetSetGui::Button("More/Do Something")="Start";
 
 	// A selector with three options: "Choice 1", "Choice 2" and "And so on", whith current value choice 2
 	GetSetGui::Enum("More/Choose!").setChoices("Choice 1;Choice 2;And so on").setValue(1);

@@ -17,14 +17,13 @@ void gui(const std::string& section, const std::string& key)
 int main(int argc, char** argv)
 {
 	g_app.init(argc,argv,gui);
-	g_app.window().setWindowTitle("GetSet Keys");
 	GetSetGui::GetSetScriptEdit script_edit;
 	script_edit.setWindowFlags(Qt::WindowTitleHint | Qt::WindowMinimizeButtonHint);
 	script_edit.openFile("GetSetScript.getset");
 	script_edit.show();
-	GetSetGui::GetSetWidget global(GetSetDictionary::global(),"");
-	global.setWindowFlags(Qt::WindowTitleHint | Qt::WindowMinimizeButtonHint);
-	global.setWindowTitle("Global GetSet Dictionary (including hidden keys)");
-	global.show();
+	GetSetGui::GetSetWidget *global=new GetSetGui::GetSetWidget();
+	global->setWindowFlags(Qt::WindowTitleHint | Qt::WindowMinimizeButtonHint);
+	global->setWindowTitle("Global GetSet Dictionary (including hidden keys)");
+	global->show();
 	return g_app.exec();
 }

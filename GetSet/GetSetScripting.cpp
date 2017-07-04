@@ -535,7 +535,7 @@ void GetSetScriptParser::parse_file(std::istream& script)
 		int action=expect_keyword(line,"file","load;save;print");
 		if (action<0) return;
 		if (action==2)
-			subject.save(GetSetIO::TxtFileDescription(std::cin, std::cout));
+			subject.save(GetSetIO::TxtFileKeyValue(std::cin, std::cout));
 		else
 		{
 			if (!expect_token_value(line,"file",file)) return;
