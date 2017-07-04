@@ -116,7 +116,7 @@ std::string GetSet<BasicType>::getAttribute(const std::string& attrib) const
 			SPECIAL_TYPE(const std::string& path_to_key, const GetSetSection& d = GetSetDictionary::global())	\
 				: GetSet<BASE_TYPE>(path_to_key,d)																\
 			{																									\
-				property=&declare<GetSetInternal::GetSetKey##SPECIAL_TYPE>(path_to_key,true);					\
+				property=&declare<GetSetInternal::GetSetKey##SPECIAL_TYPE>(path(),true);						\
 				typed_property=dynamic_cast<GetSetInternal::GetSetKey##SPECIAL_TYPE*>(property);				\
 			}																									\
 			GetSet<BASE_TYPE>& operator=(const BASE_TYPE& v) { return setValue(v); }							\
@@ -182,13 +182,13 @@ std::string GetSet<BasicType>::getAttribute(const std::string& attrib) const
 	}																											\
 	void trigger()																								\
 	{																											\
-/*		auto *exactlyTypedProperty=dynamic_cast<GetSetInternal::GetSetKeyButton*>(property);					\
+		auto *exactlyTypedProperty=dynamic_cast<GetSetInternal::GetSetKeyButton*>(property);					\
 		if (!exactlyTypedProperty) { std::cerr << "GetSetGui::Button Wrong key type.\n"; return;}				\
 		if (!exactlyTypedProperty->caller_info.empty())															\
 			exactlyTypedProperty->callback(																		\
 				exactlyTypedProperty->caller_info,																\
 				exactlyTypedProperty->caller_data);																\
-		signalChange(section,key);																				*/\
+		signalChange(section,key);																				\
 	}
 
 /// A pulldown menu with a number of choices.
