@@ -23,221 +23,209 @@
 #include <map>
 #include <set>
 #include <vector>
+#include <array>
 
 #include "StringUtil.hxx"
-
-class GetSetDictionary;
-
 #include "TypeString.hxx"
 
-//
+////////////////////////////////////////////////////////////////////////////////////////////////////
 // GetSet internal -- Please refer to GetSet<T> in GetSet.hxx to use this framework.
-//
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+namespace GetSetGui {
+	/// Pre-declaration: User's view of a GetSetInternal::Section
+	class Section;
+};
 
 namespace GetSetInternal {
 
+	/// Pre-declaration: the root Section.
+	class Dictionary;
+	/// Pre-declaration: a Section.
 	class Section;
 
 	/// Variant interface class. Super class of all nodes in the property tree.
 	class Node {
-	public:
-		virtual std::string getType() const = 0;
-		virtual void setString(const std::string& new_value) = 0;
-		virtual std::string getString() const = 0;
-		virtual ~Node() {}
+	protected:
+		Node::Node(Dictionary& _dictionary, const std::string& _super_section, const std::string& _name);
 		std::map<std::string,std::string> attributes;
+	public:
+		/// Dictionary where this node resides. Root of the property tree.
+		Dictionary& dictionary;
+		// Absolute path of the section, where this key resides.
+		const std::string super_section;
+		// Name of this node.
+		const std::string name;
+
+		// The absolute path of this node in the dictionary.
+		std::string path() const;
+
+		/// Set value of this node by string. (Does not apply to Sections)
+		virtual void        setString(const std::string& new_value)       = 0;
+		/// Get value of this node as string. (Does not apply to Sections)
+		virtual std::string getString()                             const = 0;
+		/// Get the type of this node as string.
+		virtual std::string getType()                               const = 0;
+
+		/// Signals sent to dictionaries when values change.
+		void                signalChange();
+		/// Signals sent to dictionaries when attributes change.
+		void                signalAttribChange();
+		
+		/// Get value of an attribute. If attrib is not defined, return empty string.
+		template <typename T=std::string>
+		T getAttribute(const std::string attrib) const {
+			auto it=attributes.find(attrib);
+			return stringTo<T>(it==attributes.end()?"":it->second);
+		}
+
+		/// Set an attribute of this Node.
+		template <typename T=std::string>
+		void setAttribute(const std::string attrib, const T& value) {
+			// Set new value
+			attributes[attrib]=toString(value);
+			// If, however, the value is empty or default, remove attrib altogether.
+			if (value==stringTo<T>("") || attributes[attrib].empty())
+				attributes.erase(attributes.find(attrib));
+			signalAttribChange();
+		}
+
+		virtual ~Node();
 	};
 
 	/// Templated Variant specialization. Leaves of the property tree.
 	template <typename T>
-	class GetSetKey : public Node
-	{
+	class Key : public Node {
 	public:
+		Key(Dictionary& _dictionary, const std::string& _super_section, const std::string& _name)
+			: Node(_dictionary, _super_section, _name) { reset(value); }
+		virtual void        setString(const std::string& v)       { value=stringTo<T>(v); signalChange(); }
+		virtual std::string getString()                     const { return toString(value); }
+		virtual void        setValue (const T& v)                 { value=v; signalChange(); }
+		virtual const T&    getValue ()                     const { return value; }
+		virtual std::string getType  ()                     const { return typeName<T>(); }
+	private:
 		T value;
-
-		GetSetKey() {reset(value);}
-
-		virtual std::string getType() const {
-			return typeName<T>();
-		}
-
-		virtual void setString(const std::string& new_value) {
-			value=stringTo<T>(new_value);
-		}
-
-		virtual std::string getString() const {
-			return toString(value);
-		}
 	};
 
 	/// This function is defined in GetSet.hxx, because there are local types defined that have to be available internally.
-	Node* createSpecial(const std::string& type);
+	/// Create a new Node of type (unless that type is a default type or unknown). The Node is not added to the Section (yet).
+	inline Node* createSpecialNode(const Section& section, const std::string& key, const std::string& type);
 
-	/// Way to expose select privates in GetSetDictionary. Definitions can only occur in GetSetDictionary.hxx!
-	/// The idea is, that instead of having a member of GetSetDictionary, a class derives from GetSetInternal::Access.
-	class Access
+	/// This is a (sub-)Section that can holds other Nodes.
+	class Section : public Node
 	{
+		friend class GetSetGui::Section;
 	public:
-		/// Create a new property in dictionary at path with specified type provided as string.
-        static Node& createProperty(GetSetDictionary& dictionary, const std::string& path, const std::string& type)
-        {
-            // Special GetSet types first
-            GetSetInternal::Node * node=createSpecial(type);
-            if (!node)
-            {
-                // This (ugly) code craetes a GetSetKey from a string for c-types, std::string and std::vectors of these
-                if (type=="string") node=new GetSetKey<std::string>();
-                else if (type=="vector<string>") node=new GetSetKey<std::vector<std::string> >();
-                #define _DEFINE_TYPE(X) else if (type==#X) node=new GetSetKey<X>();
-                #include "BaseTypes.hxx"
-                #undef _DEFINE_TYPE
-                #define _DEFINE_TYPE(X) else if (type=="vector<"#X">") node=new GetSetKey<std::vector<X> >();
-                #include "BaseTypes.hxx"
-                #undef _DEFINE_TYPE
-            }
-            // For unkown types we just use std::string because it can hold /any/ value
-            if (!node) node=new GetSetKey<std::string>();
-            Access(dictionary).setProperty(path,node);
-            return *node;
-        }
 
-		/// Allow access to getProperty
-		Node* getProperty(const std::string& path);
-
-	protected:
-
-		GetSetDictionary& dictionary;
-		Access(GetSetDictionary& d);
-
-		/// Allow access to setProperty
-		void setProperty(const std::string& path, Node* p);
-
-		/// GetSetKeyType must inherit from Node
-		template <typename GetSetKeyType>
-        Node& declare(const std::string& path, bool forceType) const;
-
-		/// Notify all observers of a change event
-		void signalChange(const std::string& section, const std::string& key);
-		/// Notify all observers of a creation event
-		void signalCreate(const std::string& section, const std::string& key);
-		/// Notify all observers of a destruction event
-		void signalDestroy(const std::string& section, const std::string& key);
-		/// Notify all observers of a change in attributes
-		void signalUpdateAttrib(const std::string& section, const std::string& key);
-    };
-
-
-	/// An interface for file access. See Also: namespace GetSetIO
-	class InputOutput
-	{
-	public:
-		/// Flexible c-tor for string streams, stdio, file streams etc.
-        InputOutput(std::istream&, std::ostream&);
-
-    // protected: // FIXME gcc does not like this gui despite old friendship
-
-        // In a way, this class extends the functionality of GetSetDictionary.
-		// Currently I use friendship to express this. But this is not a good design.
-		// Still, nothing inside this class should be accessible to the user.
-		friend class Section;
-		friend class GetSetDictionary;
 		
-		/// Store value of a key
-		virtual void store(const std::string& section, const std::string& key, GetSetInternal::Node* value);
-		/// Retreive all values that are available and store them in dictionary
-		virtual void retreiveAll(GetSetDictionary& dictionary);
+		//
+		// Sections contain several child nodes associated with a name.
+		//
 
-        virtual void write() const = 0;
-        virtual void read() = 0;
-
-		/// reference to the stream used for input. Usually istr==*pFile or some std::istringstream
-		std::istream&	istr;
-		/// reference to the stream used for output. Usually ostr==*pFile or ostr==std::cout
-		std::ostream&	ostr;
-
-		typedef std::map<std::string, std::string> MapStrStr;
-		typedef std::map<std::string, std::map<std::string, std::string> > MapStrMapStrStr;
-		std::map<std::string, std::map<std::string, std::string> > contents;
-
-	};
-
-	/// This is a (sub-)Section that can hold other Keys. It is an inner node of the property tree.
-	class Section : public Node, public Access
-	{
-		/// GetSetInternal::Access and GetSetSection classes should have access, so they can declare(...) Sections
-		friend class GetSetInternal::Access;
-
-	public:
 		/// A mapping from a string to a variant property data
-		typedef std::map<std::string,Node*> PropertyByName;
+		typedef std::map<std::string,Node*> NodesByName;
 		/// Direct READ-ONLY access. Only needed to walk the tree (which is rarely neccessary).
-		const PropertyByName& getSection() const;
+		const NodesByName& getSection() const;
+		
+		//
+		// Operations on sections
+		//
 
-	protected:
-		/// This is where the properties reside
-		PropertyByName properties;
-		/// Path to this Section 
-		std::string absolutePath;
+		/// Remove a property from the tree. See also: exists(...)
+		void remove(const std::string& relative_path);
+		/// Tests if a property exists under path. See also: isValue(...)
+		bool exists(const std::string relative_path) const;
+		/// Tests if a property is a section or any other Node not associated with a parameter (e.g. Button or StaticText)
+		bool isValue(const std::string relative_path) const;
 
-		/// Not copyable
-		Section(const Section&);
+		/// Obtain the absolute path given a relative path
+		std::string absolutePath(const std::string relative_path) const;
 
-		/// Not publicly constructible
-		Section(const std::string& path, GetSetDictionary& dict);
-
-		/// Store values in a InputOutput object
-		void store(InputOutput& file) const;		
-
-		/// Destroy all properties held by this object
-		virtual ~Section();
-
+		//
 		// Node implementation
+		//
 
 		// We are a "Section" holding more properties
-		virtual std::string getType() const {return "Section";}
+		virtual std::string getType() const;
 		// Silently ignore calls to set (does not apply to this special case)
-		virtual void setString(const std::string& new_value) {}
+		virtual void setString(const std::string& new_value);
 		// Obtain a short string with the types of our children (not really our value...)
 		virtual std::string getString() const;
 
-		/// Replace or create a property at path in the tree
-		void setProperty(const std::vector<std::string>& path, Node* prop, int i);
+	protected:
+		/// This is where the properties reside
+		NodesByName properties;
 
-		/// Check if there is a property at path. If so, Return it eles return null.
-		Node* getProperty(const std::vector<std::string>& path, int i) const;
+		Section(Section& super, const std::string& _name);
+		Section(const Section&);
+		virtual ~Section();
+
+		/// Walk the tree to find an existing node. Returns null if not existing.
+		Node* nodeAt(const std::string& relative_path) const;
+		Node* nodeAt(const std::vector<std::string>& path, int i=0) const;
+
+		/// Walk the tree to create path to a section.
+		/// Destroys everything in path's way. Returns new or existing section at path
+		Section& createSection(const std::string& relative_path);
+		Section& createSection(const std::vector<std::string>& path, int i=0);
+	};
+	
+
+	/// The root of a propetry tree. Access only via GetSet&lt;BasicType&gt;, see also: GetSet.hxx
+	class Dictionary : public GetSetInternal::Section
+	{
+		friend class GetSetInternal::Node;
+	public:
+		/// Allow instantiation of GetSetDictionaries (not copyable)
+		Dictionary();
+		virtual ~Dictionary();
+
+		/// Signals sent by nodes to their dictionaries
+		enum Signal { Create, Destroy, Change, Attrib };
+
+		/// Signal/Observer implementation Observers are notified when something changes.
+		struct Observer {
+			friend class Dictionary;
+			Observer(const Dictionary& dict);
+			virtual ~Observer();
+			virtual void notify(const GetSetInternal::Node& node, Signal signal)=0;
+		private:
+			const Dictionary* dictionary;
+		};
+
+		/// Delete all properties
+		void clear();
+
+		/// Access to the global Dictionary, which is used whenever no Dictionary is explicitly specified.
+		static Dictionary& global();
+
+	protected:
+		/// Signals sent to this class from its friend Nodes
+		void signal(const GetSetInternal::Node& node, Signal signal);
+		
+		/// This is where the observers reside
+		mutable std::set<Observer*> registered_observers;
+
+		/// Not copy-able
+		Dictionary(const Dictionary&);
+
 	};
 
 }// namespace GetSetInternal
 
+/// A class which calls a function to handle change signals from GetSet (eg. GUI input)
+class GetSetHandler : public GetSetInternal::Dictionary::Observer
+{
+public:
+	void ignoreNotifications(bool ignore);
+	GetSetHandler(void (*change)(const std::string& section, const std::string& key), const GetSetInternal::Dictionary& subject = GetSetInternal::Dictionary::global());
+	GetSetHandler(void (*change)(const GetSetInternal::Node&), const GetSetInternal::Dictionary& subject = GetSetInternal::Dictionary::global());
+protected:
+	bool ignore_notify;
+	virtual void notify(const GetSetInternal::Node& node, GetSetInternal::Dictionary::Signal signal);
+	void (*change_handler_section_key)(const std::string&,const std::string&);
+	void (*change_handler_node)(const GetSetInternal::Node&);
+};
 
 #endif // __GetSetInternal_h
-
-#include "GetSetDictionary.h"
-
-#ifdef __GetSetDictionary_h
-#ifndef __GetSet_Access_Declare
-#define __GetSet_Access_Declare
-
-namespace GetSetInternal
-{
-    template <typename GetSetKeyType>
-    Node& Access::declare(const std::string& path, bool forceType) const
-    {
-        std::vector<std::string> pv=stringToVector<std::string>(path,'/');
-        Node* d=dictionary.getProperty(pv,0);
-        // Check if GetSetKeyType at path exists or if another Node exsist and we don't forceType
-        if (d && (!forceType || dynamic_cast<GetSetKeyType*>(d)))
-            return *d;
-        std::string value="";
-        // d exists but is of wrong type and we want to forceType
-        if (d) value=d->getString();
-        // Create a new GetSetKeyType at path
-        GetSetKeyType* p=new GetSetKeyType();
-        p->setString(value);
-        dictionary.setProperty(pv,p,0);
-        return *p;
-    }
-}
-
-#endif // __GetSet_def_declare
-#endif // __GetSetDictionary_h

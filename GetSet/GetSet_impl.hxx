@@ -22,76 +22,116 @@
 
 #include "GetSet.hxx"
 
-// --- Implementation ---
+// --- Implementation of GetSetGui::Section ---
+
+
+namespace GetSetGui {
+
+	Section::Section(const std::string& relative_path,  Section& super_section)
+		: node(super_section.node.createSection(relative_path))
+	{}
+		
+	/// Create a new property of specified type. If type is not known, std::string is assumed.
+	GetSetInternal::Node& Section::createNode(const std::string& key, const std::string& type)
+	{
+		// Special GetSet types first (Button, Slider etc. are not defined in GetSetInternal but in GetSetGui.)
+		GetSetInternal::Node * new_node=GetSetInternal::createSpecialNode(node,key,type);
+		if (new_node) return *new_node;
+		// This (ugly) code craetes a Key from a string for c-types, std::string and std::vectors of these
+		if (type=="vector<string>") new_node=new GetSetInternal::Key<std::vector<std::string> >(node.dictionary,node.path(),key);
+		//#define _DEFINE_TYPE(X) else if (type==#X) new_node=new Key<X>(dictionary,path(),key);
+		//#include "BaseTypes.hxx"
+		//#undef _DEFINE_TYPE
+		//#define _DEFINE_TYPE(X) else if (type=="vector<"#X">") node=new GetSetInternal::Key<std::vector<X> >(node.dictionary,node.path(),key);
+		//#include "BaseTypes.hxx"
+		//#undef _DEFINE_TYPE
+		// For unknown types, std::string is assumed.
+		if (!new_node) new_node=new GetSetInternal::Key<std::string>(node.dictionary,node.path(),key);
+		// Check if an old one exists.
+		auto it=node.properties.find(key);
+		// Retain previous value (if any) but delete old node
+		if (it!=node.properties.end()) new_node->setString(it->second->getString());
+		if (it!=node.properties.end()) delete it->second;
+		// Insert new node into this section. 
+		node.properties[key]=new_node;
+		return *new_node;
+	}
+				
+	/// Create new Key or replace an already existing node if it is a string or forceType is set.
+	/// Most of the time, just return a pointer to an existing node.
+	template <typename KeyType>
+	GetSetInternal::Node& Section::declare(const std::string& absolute_path, bool forceType) const
+	{
+		// See if a node at absolute_path exists
+		GetSetInternal::Node* new_node=node.nodeAt(absolute_path);
+		// Check for an exact match of key type
+		KeyType* typed_node=dynamic_cast<KeyType*>(new_node);
+		if (typed_node) return *typed_node;
+		// if node exists and it is of type string, we would also like to forceType
+		if (!forceType&&new_node&&new_node->getType()==typeName<std::string>())
+			forceType=true;
+		// Check if we need to create a new key
+		if (!new_node || (!typed_node && forceType))
+		{
+			// Get current value (if any)
+			std::string value=new_node?new_node->getString():"";
+			// Delete current node
+			if (new_node) delete new_node;
+			// Get path to super section and key name
+			auto path=stringToVector<>(absolute_path,'/');
+			std::string key=path.back();
+			path.pop_back();
+			// Find super section and insert new node
+			GetSetInternal::Section& super_section=node.createSection(path);
+			new_node=new KeyType(node.dictionary,super_section.path(),key);
+			super_section.properties[key]=new_node;
+		}
+		return *new_node;
+	}
+
+} // namespace GetSetGui
+
+// --- Implementation of GetSet<...> ---
 
 template <typename BasicType>
-GetSet<BasicType>::GetSet(const std::string& _key, const GetSetSection& _section)
-	: GetSetInternal::Access(_section.dict())
-	, section(_section.path())
-	, key(_key)
-    , property(&declare<GetSetInternal::GetSetKey<BasicType> >(path(),false))
-{typed_property=dynamic_cast<GetSetInternal::GetSetKey<BasicType>*>(property);}
+GetSet<BasicType>::GetSet(const std::string& key, const GetSetGui::Section& section)
+	: node(section.declare<GetSetInternal::Key<BasicType> >(key,false))
+	, typed_node(dynamic_cast<GetSetInternal::Key<BasicType>*>(&node))
+{}
 
 template <typename BasicType>
 GetSet<BasicType>& GetSet<BasicType>::setValue(const BasicType& v)
 {
-	if (typed_property) typed_property->value=v;
-	else property->setString(toString(v));
-	signalChange(section,key);
+	if (typed_node) typed_node->setValue(v);
+	else node.setString(toString(v));
 	return *this;
 }
 
 template <typename BasicType>
 const BasicType GetSet<BasicType>::getValue() const
 {
-	if (typed_property) return typed_property->value;
-	else return stringTo<BasicType>(property->getString());
-}
-
-template <typename BasicType>
-const std::string GetSet<BasicType>::getType() const
-{
-	return property->getType();
+	if (typed_node) return typed_node->getValue();
+	else return stringTo<BasicType>(node->getString());
 }
 
 template <typename BasicType>
 GetSet<BasicType>& GetSet<BasicType>::setString(const std::string& value)
 {
-	property->setString(value);
-	signalChange(section,key);
+	node.setString(value);
 	return *this;
 }
 
 template <typename BasicType>
-std::string GetSet<BasicType>::getString() const { return property->getString(); }
+std::string GetSet<BasicType>::getString() const { return node.getString(); }
 
 template <typename BasicType>
-GetSet<BasicType>& GetSet<BasicType>::setDescription(const std::string& desc)
-{
-	return setAttribute("Description",desc);
-}
+inline GetSet<BasicType>& GetSet<BasicType>::operator=(const BasicType& v) { setValue(v); return *this; }
 
 template <typename BasicType>
-std::string GetSet<BasicType>::getDescription() const
-{
-	return getAttribute("Description");
-}
+inline GetSet<BasicType>::operator BasicType() const { return getValue(); }
 
 template <typename BasicType>
-GetSet<BasicType>& GetSet<BasicType>::setAttribute(const std::string& attrib, const std::string& value)
-{
-	property->attributes[attrib]=value;
-	signalUpdateAttrib(section,key);
-	return *this;
-}
-
-template <typename BasicType>
-std::string GetSet<BasicType>::getAttribute(const std::string& attrib) const
-{
-	std::map<std::string,std::string>::const_iterator it=property->attributes.find(attrib);
-	if (it!=property->attributes.end()) return it->second;
-	else return "";
-}
+GetSet<BasicType>::GetSet(GetSetInternal::Node& _node) : node(_node), typed_node(0x0) {}
 
 //
 // DEFINITION OF SPECIAL TYPES Enum, Button, File, ect.
@@ -101,9 +141,11 @@ std::string GetSet<BasicType>::getAttribute(const std::string& attrib) const
 #define GETSET_SPECIALIZATION(SPECIAL_TYPE,BASE_TYPE,CLASS_BODY,KEY_BODY)										\
 	namespace GetSetInternal																					\
 	{																											\
-		class GetSetKey##SPECIAL_TYPE : public GetSetKey<BASE_TYPE>												\
+		class Key##SPECIAL_TYPE : public GetSetInternal::Key<BASE_TYPE>											\
 		{																										\
 		public:																									\
+			Key##SPECIAL_TYPE(Dictionary& _dict, const std::string& _section, const std::string& _key)			\
+				: GetSetInternal::Key<BASE_TYPE>(_dict,_section,_key) {}										\
 			virtual std::string getType() const { return #SPECIAL_TYPE; }										\
 			KEY_BODY																							\
 		};																										\
@@ -113,45 +155,38 @@ std::string GetSet<BasicType>::getAttribute(const std::string& attrib) const
 		class SPECIAL_TYPE : public GetSet<BASE_TYPE>															\
 		{																										\
 		public:																									\
-			SPECIAL_TYPE(const std::string& path_to_key, const GetSetSection& d = GetSetDictionary::global())	\
-				: GetSet<BASE_TYPE>(path_to_key,d)																\
+			SPECIAL_TYPE(const std::string& k, const GetSetGui::Section& s = GetSetGui::Section())				\
+				: GetSet<BASE_TYPE>(s.declare<GetSetInternal::Key##SPECIAL_TYPE>(k,true))						\
 			{																									\
-				property=&declare<GetSetInternal::GetSetKey##SPECIAL_TYPE>(path(),true);						\
-				typed_property=dynamic_cast<GetSetInternal::GetSetKey##SPECIAL_TYPE*>(property);				\
+				typed_node=static_cast<GetSetInternal::Key<BASE_TYPE>*>(&node);									\
 			}																									\
-			GetSet<BASE_TYPE>& operator=(const BASE_TYPE& v) { return setValue(v); }							\
-			operator BASE_TYPE() const { return getValue(); }													\
+			GetSet<BASE_TYPE>& operator=(const BASE_TYPE& v) { typed_node->setValue(v); return *this; }			\
+			operator BASE_TYPE() const { return typed_node->getValue(); }										\
 			CLASS_BODY																							\
 		};																										\
 	}
 // end of GETSET_SPECIALIZATION
 
-#define GETSET_TAG(SPECIAL_TYPE,TYPE,TAG)																		\
-	SPECIAL_TYPE& set##TAG(const TYPE& value) {setAttribute(#TAG,toString(value));return *this;}				\
-	TYPE get##TAG() const {return stringTo<TYPE>(property->attributes[#TAG]);}
-
 // The Enum class is more complex, because it has features of both GetSet<std::string> and GetSet<int>
 #define GETSET_ENUM_CLASS_BODY																					\
 	GETSET_TAG(Enum,std::vector<std::string>,Choices)															\
-	Enum& setChoices(const std::string& c) {setAttribute("Choices",c);return *this;}							\
-	inline GetSet<int>& operator=(const std::string& v) { return setString(v); }								\
-	inline operator std::string() const { return getString(); }
+	Enum& setChoices(const std::string& c) { node.setAttribute<>("Choices",c); return *this; }					\
+	inline GetSet<int>& operator=(const std::string& v) { node.setString(v); return *this; }					\
+	inline operator std::string() const { return node.getString(); }
 
 #define GETSET_ENUM_KEY_BODY																					\
 	virtual std::string getString() const																		\
 	{																											\
-		std::map<std::string,std::string>::const_iterator it=attributes.find("Choices");						\
-		if (it==attributes.end()) return toString(value);														\
-		std::vector<std::string> c=stringTo<std::vector<std::string> >(it->second);								\
-		if (value<0||value>=(int)c.size()) return toString(value); else return c[value];						\
+		auto choices=getAttribute<std::vector<std::string> >("Choices");										\
+		int index=getValue();																					\
+		if (index<0||index>=(int)choices.size()) return toString(index); else return choices[index];			\
 	}																											\
 	virtual void setString(const std::string& in)																\
 	{																											\
-		std::vector<std::string> c=stringTo<std::vector<std::string> >(attributes["Choices"]);					\
-		for (int i=0;i<(int)c.size();i++)																		\
-			if (c[i]==in) { value=i; return; }																	\
-		value=stringTo<int>(in);																				\
-}
+		auto choices=getAttribute<std::vector<std::string> >("Choices");										\
+		for (int i=0;i<(int)choices.size();i++) if (choices[i]==in) { setValue(i); return; }					\
+		setValue(stringTo<int>(in));																			\
+	}
 
 #define GETSET_BUTTON_KEY_BODY																					\
 	void (*callback)(const std::string& info, void* user_data);													\
@@ -167,28 +202,28 @@ std::string GetSet<BasicType>::getAttribute(const std::string& attrib) const
 	}																											\
 	virtual GetSet<std::string>& setValue(const std::string& in)												\
 	{																											\
-		GetSet<std::string>::setValue(in);																		\
-		trigger();																								\
+		trigger(false);																							\
+		node.setString(in);																		\
 		return *this;																							\
 	}																											\
 	Button& setCallback(void (*c)(const std::string&, void*), const std::string& info, void* data)				\
 	{																											\
-		auto *exactlyTypedProperty=dynamic_cast<GetSetInternal::GetSetKeyButton*>(property);					\
-		if (!exactlyTypedProperty) { std::cerr << "GetSetGui::Button Wrong key type.\n"; return *this;}			\
-		exactlyTypedProperty->caller_info=info;																	\
-		exactlyTypedProperty->caller_data=data;																	\
-		exactlyTypedProperty->callback=exactlyTypedProperty->caller_info.empty()?0x0:c;							\
+		auto *exactlyTypedNode=dynamic_cast<GetSetInternal::KeyButton*>(&node);									\
+		if (!exactlyTypedNode) { std::cerr << "GetSetGui::Button Wrong key type.\n"; return *this;}				\
+		exactlyTypedNode->caller_info=info;																		\
+		exactlyTypedNode->caller_data=data;																		\
+		exactlyTypedNode->callback=exactlyTypedNode->caller_info.empty()?0x0:c;									\
 		return *this;																							\
 	}																											\
-	void trigger()																								\
+	void trigger(bool signal_change=true)																		\
 	{																											\
-		auto *exactlyTypedProperty=dynamic_cast<GetSetInternal::GetSetKeyButton*>(property);					\
-		if (!exactlyTypedProperty) { std::cerr << "GetSetGui::Button Wrong key type.\n"; return;}				\
-		if (!exactlyTypedProperty->caller_info.empty())															\
-			exactlyTypedProperty->callback(																		\
-				exactlyTypedProperty->caller_info,																\
-				exactlyTypedProperty->caller_data);																\
-		signalChange(section,key);																				\
+		auto *exactlyTypedNode=dynamic_cast<GetSetInternal::KeyButton*>(&node);									\
+		if (!exactlyTypedNode) { std::cerr << "GetSetGui::Button Wrong key type.\n"; return;}					\
+		if (!exactlyTypedNode->caller_info.empty())																\
+			exactlyTypedNode->callback(																			\
+				exactlyTypedNode->caller_info,																	\
+				exactlyTypedNode->caller_data);																	\
+		if (signal_change) node.signalChange();																	\
 	}
 
 /// A pulldown menu with a number of choices.
@@ -221,10 +256,10 @@ GETSET_SPECIALIZATION(File,std::string, GETSET_TAG(File,std::string,Extensions) 
 
 namespace GetSetInternal {
 	/// Create a special property by string.
-	inline Node* createSpecial(const std::string& type)
+	Node* createSpecialNode(const Section& section, const std::string& key, const std::string& type)
 	{
 		Node* node=0x0;
-		#define GETSET_TYPE_STR(X) if (type==#X) node=new GetSetKey##X();
+		#define GETSET_TYPE_STR(X) if (type==#X) node=new Key##X(section.dictionary,section.path(),key);
 		// special types
 		GETSET_TYPE_STR(Slider)
 		GETSET_TYPE_STR(RangedDouble)
@@ -236,14 +271,15 @@ namespace GetSetInternal {
 		GETSET_TYPE_STR(File)
 		#undef GETSET_TYPE_STR
 		// Not actually that special at all
-		if (type=="RangedInt") node=new GetSetKey<int>();
+		if (type=="RangedInt") node=new Key<int>(section.dictionary,section.path(),key);
 		return node;
 	}
 }
 
 #undef GETSET_ENUM_CLASS_BODY
 #undef GETSET_ENUM_KEY_BODY
+#undef GETSET_BUTTON_CLASS_BODY
+#undef GETSET_BUTTON_KEY_BODY
 #undef GETSET_SPECIALIZATION
-#undef GETSET_TAG
 
 #endif // __GetSetSpecial_hxx

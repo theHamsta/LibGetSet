@@ -26,6 +26,7 @@
 #include <sstream>
 #include <fstream>
 #include <vector>
+#include <array>
 #include <map>
 
 /// Reset value (call constructor or zeros c-types, see specializations)
@@ -74,7 +75,7 @@ template <typename T> inline std::string vectorToString(const std::vector<T>& in
 }
 
 // Conversion of a string to a vector of any type
-template <typename T> inline std::vector<T> stringToVector(const std::string& in, const char delim=' ', bool multiple=false)
+template <typename T=std::string> inline std::vector<T> stringToVector(const std::string& in, const char delim=' ', bool multiple=false)
 {
 	std::string item;
 	std::vector<T> ret;

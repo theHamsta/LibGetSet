@@ -22,7 +22,7 @@
 
 #include "GetSetDictionary.h"
 
-/// Access to sections and its parameters
+/// Access to sections and their parameters
 
 class GetSetSection : public GetSetInternal::Access
 {
