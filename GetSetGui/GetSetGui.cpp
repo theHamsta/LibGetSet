@@ -20,7 +20,7 @@ void gui_update(const std::string&, void*)
 namespace GetSetGui
 {
 
-	GetSetApplication::GetSetApplication(std::string _appname, GetSetDictionary& _dict)
+	GetSetApplication::GetSetApplication(std::string _appname, GetSetInternal::Dictionary& _dict)
 		: dict(_dict)
 		, cmd(dict)
 		, qt_app(0x0)

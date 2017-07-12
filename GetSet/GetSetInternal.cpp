@@ -6,12 +6,12 @@ namespace GetSetInternal {
 	// Node
 	//
 
-	Node::Node(Dictionary& _dictionary, const std::string& _super_section, const std::string& _name)
-		: dictionary(_dictionary)
-		, super_section(_super_section)
+	Node::Node(Section& _section, const std::string& _name)
+		: dictionary(this==&_section?*static_cast<Dictionary*>(this):_section.dictionary)
+		, super_section(_section.path())
 		, name(_name)
 	{
-		dictionary.signal(*this, Dictionary::Signal::Create);
+		if (this!=&dictionary) dictionary.signal(*this, Dictionary::Signal::Create);
 	}
 	
 	Node::~Node() {
@@ -20,7 +20,14 @@ namespace GetSetInternal {
 
 	std::string Node::path() const
 	{
+		if (this==&dictionary) return "";
 		return super_section.empty()?name:super_section+"/"+name;
+	}
+
+	Section& Node::super()
+	{
+		Section *super=dynamic_cast<Section*>(dictionary.nodeAt(super_section));
+		return super?*super:dictionary;
 	}
 
 	void Node::signalChange()
@@ -37,21 +44,24 @@ namespace GetSetInternal {
 	// Section
 	//
 
-	const Section::NodesByName& Section::getSection() const
-	{
-		return properties;
-	}
+	Section::Section(Section& super, const std::string& _name)
+		: Node(super,_name)
+	{}
 
 	Section::~Section()
 	{
 		// Delete all children
-		for (NodesByName::iterator it=properties.begin();it!=properties.end();++it)
+		for (NodesByName::iterator it=children.begin();it!=children.end();++it)
 			delete it->second;
-		properties.clear();
+		children.clear();
 	}
 
-		
-	void Section::remove(const std::string& relative_path)
+	const Section::NodesByName& Section::getChildren() const
+	{
+		return children;
+	}
+
+	void Section::removeNode(const std::string& relative_path)
 	{
 		// Get relative path in vector form
 		auto path=stringToVector<>(relative_path,'/',true);
@@ -65,31 +75,9 @@ namespace GetSetInternal {
 		// Get an existing section, which contains key_name
 		path.pop_back();
 		Section& super_section=createSection(path);
-		auto it=super_section.properties.find(key_name);
+		auto it=super_section.children.find(key_name);
 		delete it->second;
-		super_section.properties.erase(it);
-	}
-		
-	bool Section::exists(const std::string relative_path) const
-	{
-		return nodeAt(relative_path)!=0x0;
-	}
-		
-	bool Section::isValue(const std::string relative_path) const
-	{
-		// Make sure that relative_path points to a Node
-		Node* node=nodeAt(relative_path);
-		// If it does exist it is not a value
-		if (!node) return false;
-		// If it is a section, it does not have a value.
-		if (dynamic_cast<Section*>(node)) return false;
-		//  Button, StaticText etc. have set attribute isValue=false, so they are not saved to ini-Files
-		return node->getAttribute<bool>("isValue");
-	}
-
-	std::string Section::absolutePath(const std::string relative_path) const
-	{
-		return (this==&dictionary)?relative_path:path()+"/"+relative_path;
+		super_section.children.erase(it);
 	}
 		
 	std::string Section::getType() const {return "Section";}
@@ -98,10 +86,10 @@ namespace GetSetInternal {
 
 	std::string Section::getString() const
 	{
-		if (properties.empty()) return "<null>";
-		NodesByName::const_iterator it=properties.begin();
+		if (children.empty()) return "<null>";
+		NodesByName::const_iterator it=children.begin();
 		std::string ret=it->first; // it->second->getType()
-		for (++it;it!=properties.end();++it)
+		for (++it;it!=children.end();++it)
 			ret+=";"+it->first; // it->second->getType()
 		return ret;
 	}
@@ -114,11 +102,11 @@ namespace GetSetInternal {
 	Node* Section::nodeAt(const std::vector<std::string>& path, int i) const
 	{
 		// Find next key in this section.
-		auto it=properties.find(path[i]);
+		auto it=children.find(path[i]);
 		// If it does not exist, path is invalid.
-		if (it==properties.end()) return 0x0;
+		if (it==children.end()) return 0x0;
 		// If it does exist and we are at the end of path, return the node.
-		if (i+1>=properties.size()) return it->second;
+		if (i+1>=children.size()) return it->second;
 		// Otherwise, we check if the key we found is a section.
 		Section* subsection=dynamic_cast<Section*>(it->second);
 		// If it is not, then path is also invalid.
@@ -135,12 +123,12 @@ namespace GetSetInternal {
 	Section& Section::createSection(const std::vector<std::string>& path, int i)
 	{
 		// If we have reached the end of path, we are done.
-		if (i>=properties.size()) return *this;
+		if (i>=children.size()) return *this;
 		// Find next key in this section.
 		const std::string& next_key=path[i];
-		auto it=properties.find(next_key);
+		auto it=children.find(next_key);
 		// If the next key exist in this section
-		if (it!=properties.end())
+		if (it!=children.end())
 		{
 			// We check if the key we found is a section.
 			Section* subsection=dynamic_cast<Section*>(it->second);
@@ -148,11 +136,11 @@ namespace GetSetInternal {
 			if (subsection) return subsection->createSection(path,i+1);
 			// If not, we delete whatever is there.
 			delete it->second;
-			properties.erase(it);
+			children.erase(it);
 		}
 		// If the key does not exist (anymore) we create a new section and recurse
 		Section *subsection=new Section(*this, next_key);
-		properties[next_key]=subsection;
+		children[next_key]=subsection;
 		return subsection->createSection(path, i+1);
 	}
 		
@@ -181,9 +169,9 @@ namespace GetSetInternal {
 	}
 
 	void Dictionary::clear() {
-		for (auto it=properties.begin();it!=properties.end();++it)
+		for (auto it=children.begin();it!=children.end();++it)
 			if (it->second) delete it->second;
-		properties.clear();
+		children.clear();
 	}
 
 	Dictionary& Dictionary::global() {
@@ -198,7 +186,6 @@ namespace GetSetInternal {
 		for (auto it=registered_observers.begin();it!=registered_observers.end();++it)
 			if (*it) (*it)->notify(node,signal);
 	}
-
 
 } // namespace GetSetInternal
 

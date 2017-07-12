@@ -36,21 +36,21 @@
 // Minor leaks. FIXME
 
 /// Same as GetSetHandler, but keeps track of state changes
-class GetSetScriptRecorder : public GetSetDictionary::Observer
+class GetSetScriptRecorder : public GetSetInternal::Dictionary::Observer
 {
 public:
-	GetSetScriptRecorder(GetSetDictionary& subject)
-		: GetSetDictionary::Observer(subject) {}
+	GetSetScriptRecorder(GetSetInternal::Dictionary& subject)
+		: GetSetInternal::Dictionary::Observer(subject) {}
 	std::string log;
 
 protected:
-	virtual void notifyChange(const std::string& section, const std::string& key)
+	virtual void notify(const GetSetInternal::Node& node, GetSetInternal::Dictionary::Signal signal)
 	{
-		std::string path=section+"/"+key;
-		if (GetSet<>(path).getType()=="Button")
-			log=log+"set trigger \""+ path + "\"\n";
+		if (signal==GetSetInternal::Dictionary::Signal::Change)
+		if (node.getType()=="Button")
+			log=log+"set trigger \""+ node.path() + "\"\n";
 		else
-			log=log+"set key \""+ path + "\" to value \"" + GetSet<>(path).getString() + "\"\n"; 
+			log=log+"set key \""+ node.path() + "\" to value \"" + node.getString() + "\"\n"; 
 	}
 
 };
@@ -58,36 +58,13 @@ protected:
 namespace GetSetGui
 {
 
-	void GetSetTabWidget::create(GetSetDictionary& dict, const std::string & path, const std::vector<std::string>& tabs)
+	void GetSetTabWidget::create(GetSetInternal::Section& section)
 	{
-		if (tabs.empty())
-		{
-			std::vector<std::string> all;
-			GetSetInternal::Section * section=dynamic_cast<GetSetInternal::Section *>(Access::getProperty(path));
-			if (section)
-			{
-				for (GetSetInternal::Section::PropertyByName::const_iterator it=section->getSection().begin();it!=section->getSection().end();++it)
-					if (dynamic_cast<GetSetInternal::Section *>(it->second))
-						all.push_back(it->first);
-				if (!all.empty())
-				{
-					create(dict,path,all);
-					m_tabs.clear();
-					return;
-				}
-			}
-			else return;
-		}
-
-		m_path=path;
-		m_tabs=tabs;
-
 		if (!m_mainLayout)
 		{
 			m_mainLayout = new QVBoxLayout;
 			setLayout(m_mainLayout);
 		}
-
 		if (m_tabWidget)
 		{
 			int n=m_tabWidget->count();
@@ -96,11 +73,18 @@ namespace GetSetGui
 			m_tabWidget->clear();
 		}
 		else m_tabWidget = new QTabWidget(this);
-		for (int i=0;i<(int)tabs.size(); i++)
+		auto children=section.getChildren();
+		for (auto it=children.begin();it!=children.end();++it)
 		{
-			GetSetWidget* tab=new GetSetWidget(GetSetSection(path,dict).subsection(tabs[i]),m_tabWidget);
-			tab->setObjectName(tabs[i].c_str());
-			m_tabWidget->addTab(tab,tabs[i].c_str());
+			// Is this a section and is it even visible?
+			if (!it->second
+				|| it->second->getType()!="Section"
+				|| it->second->getAttribute<bool>("Hidden"))
+				continue;
+
+			GetSetWidget* tab=new GetSetWidget(GetSetGui::Section(it->second->path(), it->second->dictionary),m_tabWidget);
+			tab->setObjectName(it->first.c_str());
+			m_tabWidget->addTab(tab,it->first.c_str());
 		}
 		m_tabWidget->setContextMenuPolicy(Qt::CustomContextMenu);
 		connect(m_tabWidget, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(ctxMenu(const QPoint &)));
@@ -110,31 +94,19 @@ namespace GetSetGui
 		setWindowIcon(style()->standardIcon(QStyle::SP_TitleBarMenuButton));
 	}
 
-	GetSetTabWidget::GetSetTabWidget(QWidget *parent, GetSetDictionary& _dict)
+	GetSetTabWidget::GetSetTabWidget(QWidget *parent, GetSetInternal::Section& section)
 		: QWidget(parent)
-		, GetSetDictionary::Observer(_dict)
+		, GetSetInternal::Dictionary::Observer(section.dictionary)
+		, m_dict(section.dictionary)
+		, m_path(section.path())
 		, m_menuBar(0x0)
 		, m_mainLayout(0x0)
 		, m_tabWidget(0x0)
 		, m_script_recorder(0x0)
 		, m_menu_callback(0x0)
 	{
-		setWindowTitle("Settings");
-		create(_dict,"",std::vector<std::string>());
-	}
-
-	GetSetTabWidget::GetSetTabWidget(const std::string& path, GetSetDictionary& dict ,const std::string& title, const std::string& listOfTabs, QWidget *parent)
-		: QWidget(parent)
-		, GetSetDictionary::Observer(dict)
-		, m_menuBar(0x0)
-		, m_mainLayout(0x0)
-		, m_tabWidget(0x0)
-		, m_script_recorder(0x0)
-		, m_menu_callback(0x0)
-	{
-		setWindowTitle(title.c_str());
-		std::vector<std::string> tabs=stringToVector<std::string>(listOfTabs,';');
-		create(dict,path,tabs);
+		setWindowTitle(section.name.empty()?"Settings":section.name.c_str());
+		create(section);
 	}
 
 	void GetSetTabWidget::setMenuCallBack(void (*gui)(const std::string& sender, const std::string& action))
@@ -237,13 +209,13 @@ namespace GetSetGui
 	void GetSetTabWidget::rec_start()
 	{
 		if (m_script_recorder) delete m_script_recorder;
-		m_script_recorder=new GetSetScriptRecorder(dictionary);
+		m_script_recorder=new GetSetScriptRecorder(m_dict);
 	}
 
 	void GetSetTabWidget::rec_stop()
 	{
 		if (!m_script_recorder) return;
-		GetSetScriptEdit *script_editor=new GetSetScriptEdit(this,dictionary);
+		GetSetScriptEdit *script_editor=new GetSetScriptEdit(this,m_dict);
 		script_editor->setAttribute(Qt::WA_DeleteOnClose);
 		script_editor->setText(m_script_recorder->log.c_str());
 		script_editor->show();
@@ -283,7 +255,7 @@ namespace GetSetGui
 			if (out)
 			{
 				std::string section=out->objectName().toLatin1().data();
-				GetSetWidget* w=new GetSetWidget(GetSetSection(section, out->getDictionary()), this);
+				GetSetWidget* w=new GetSetWidget(out->getSection(), this);
 				w->setAttribute(Qt::WA_DeleteOnClose, true);
 				w->setWindowFlags(Qt::Tool | Qt::WindowStaysOnTopHint);
 				w->show();
@@ -291,18 +263,13 @@ namespace GetSetGui
 		}
 	}
 
-	void GetSetTabWidget::notifyCreate(const std::string& list, const std::string& key)
+	void GetSetTabWidget::notify(const GetSetInternal::Node& node, GetSetInternal::Dictionary::Signal signal)
 	{
-		if (m_tabs.empty()) // only if this window shows *all* tabs, we have to make sure that a new one was not created
-			create(dictionary,m_path,m_tabs);
+		if (signal==GetSetInternal::Dictionary::Signal::Change) return;
+		if (node.super_section!=m_path) return;
+		// Update our tabs.
+		create(GetSetGui::Section(node.path(),node.dictionary));
 	}
 
-	void GetSetTabWidget::notifyDestroy(const std::string& list, const std::string& key)
-	{
-		if (m_tabs.empty()) // only if this window shows *all* tabs, we have to make sure that a new one was not created
-			create(dictionary,m_path,m_tabs);
-	}
-
-	void GetSetTabWidget::notifyChange(const std::string &,const std::string &) {} // ignore
 
 } // namespace GetSetGui

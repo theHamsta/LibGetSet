@@ -20,71 +20,71 @@
 #ifndef __GetSetFile_h
 #define __GetSetFile_h
 
-#include "GetSetDictionary.h"
+#include "GetSet.hxx"
+
+namespace GetSetInternal {
+	/// A simple representation of all the information in a property (sub-)tree
+	struct InputOutput{
+		typedef std::map<std::string, std::string> MapStrStr;
+		typedef std::map<std::string, std::map<std::string, std::string> > MapStrMapStrStr;
+		std::map<std::string, std::map<std::string, std::string> > contents;
+
+		/// Retreive information in this object from a Section or Dictionary. path_prefix is used for recursion and empty by default.
+		void retreive(const Section& section=Dictionary::global(), const std::string& path_prefix="");
+
+		/// Create Section from information in this object
+		void restore(Section& section=Dictionary::global()) const;
+
+		virtual void loadStream(std::istream& istr) = 0;
+		virtual void saveStream(std::ostream& ostr) const = 0;
+	};
+
+} // namespace GetSetInternal
 
 namespace GetSetIO {
 
-
-	/// Saving a file
-	template <typename GetSetIO_Object>
-	bool save(const std::string& file_path, const GetSetDictionary& dict = GetSetDictionary::global())
+	template <typename InputOutputType=IniFile>
+	inline bool load(const std::string& path, GetSetInternal::Section& section=GetSetGui::Section())
 	{
-		std::ofstream file(file_path.c_str());
-		if (!file.good()) return false;
-		GetSetIO_Object io(std::cin, file);
-		dict.save(io);
+		std::ifstream file(path);
+		if (!file) return false;
+		InputOutputType io;
+		io.loadStream(file);
+		io.restore(section);
 		return true;
 	}
 
-	/// Loading a file
-	template <typename GetSetIO_Object>
-	bool load(const std::string& file_path, GetSetDictionary& dict = GetSetDictionary::global())
+	template <typename InputOutputType=IniFile>
+	inline bool save(const std::string& path, const GetSetInternal::Section& section=GetSetGui::Section())
 	{
-		std::ifstream file(file_path.c_str());
-		if (!file || !file.good()) return false;
-		GetSetIO_Object io(file, std::cout);
-		dict.load(io);	
+		std::ofstream file(path);
+		if (!file) return false;
+		InputOutputType io;
+		io.retreive(section);
+		io.saveStream(file);
 		return true;
 	}
-
-	/// An ini-File in "[Section.Subsection] Key=Value" format
-	class IniFile : public GetSetInternal::InputOutput
-	{
-	public:
-		IniFile(std::istream&, std::ostream&);
-	protected:
-		virtual void write() const;
-		virtual void read();
-	};
 
 	/// A simple text file with one property per line in "section/key=value" format
-	class TxtFileKeyValue : public GetSetInternal::InputOutput
-	{
-	public:
-		TxtFileKeyValue(std::istream&, std::ostream&);
-	protected:
-		virtual void write() const;
-		virtual void read();
+	struct TxtKeyValue : public GetSetInternal::InputOutput {
+		virtual void loadStream(std::istream& istr);
+		virtual void saveStream(std::ostream& ostr) const ;
+	};
+
+	/// An ini-File in "[Section.Subsection] Key=Value" format
+	struct IniFile : public GetSetInternal::InputOutput {
+		virtual void loadStream(std::istream& istr);
+		virtual void saveStream(std::ostream& ostr) const ;
 	};
 
 	/// A text file with one property per line containing all information (Key, Value, Type and additional info) in attribute="value" format
-	class TxtFileDescription : public GetSetInternal::InputOutput
-	{
-	public:
-		TxtFileDescription(std::istream&, std::ostream&);
-	protected:
-		virtual void write() const;
-		virtual void read();
+	struct TxtDetailed : public GetSetInternal::InputOutput {
+		virtual void loadStream(std::istream& istr);
+		virtual void saveStream(std::ostream& ostr) const ;
 	};
-
-	/// Saving a file
-	template <typename GetSetIO_Object=TxtFileDescription>
-	void debug_print(const GetSetDictionary& dict = GetSetDictionary::global())
-	{
-		GetSetIO_Object io(std::cin, std::cout);
-		dict.save(io);
-	}
 
 } // namespace GetSetIO
 
 #endif // __GetSetFile_h
+
+

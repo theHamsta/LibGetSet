@@ -2,7 +2,7 @@
 
 #include <GetSet/GetSet.hxx>
 #include <GetSet/GetSetIO.h>
-#include <GetSet/GetSetDictionary.h>
+#include <GetSet/GetSetInternal::Dictionary.h>
 
 // #define HAS_RUN_VERB
 
@@ -40,7 +40,7 @@ void copy(const std::string& prefix, const GetSetInternal::Section::PropertyByNa
 }
 
 
-std::string replace(const std::string& in, const GetSetSection& config=GetSetDictionary::global())
+std::string replace(const std::string& in, const GetSetSection& config=GetSetInternal::Dictionary::global())
 {
 	auto pos=in.find("GetSet[");
 	if (pos==std::string::npos) return in;
@@ -152,7 +152,7 @@ int main(int argc, char ** argv)
 		std::string file_in=argv[2];
 		std::string path=argv[3];
 		std::string file_out=argv[4];
-		GetSetDictionary din,dout;
+		GetSetInternal::Dictionary din,dout;
 		if (!GetSetIO::load<GetSetIO::IniFile>(file_in,din))
 		{
 			std::cerr << "Failed to load " << file_in << "!\n";
@@ -301,7 +301,7 @@ int main(int argc, char ** argv)
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 	if (verb=="del")
 	{
-		GetSetDictionary dict;
+		GetSetInternal::Dictionary dict;
 		if (argc!=4)
 		{
 			std::cout <<

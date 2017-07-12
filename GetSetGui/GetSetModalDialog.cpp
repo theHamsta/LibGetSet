@@ -9,7 +9,7 @@
 namespace GetSetGui
 {
 
-	 GetSetModalDialog::operator GetSetSection() const { return GetSetSection(my_dict); }
+	 GetSetModalDialog::operator GetSetGui::Section() { return my_dict; }
 
 	bool GetSetModalDialog::exec(const std::string& title)
 	{

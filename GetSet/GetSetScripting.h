@@ -23,13 +23,13 @@
 #include <sstream>
 #include <map>
 
-#include "GetSetDictionary.h"
+#include "GetSetInternal.h"
 
 /// Parse a script line-by-line. Language is not context free. See ScriptSyntax.txt for more info.
 class GetSetScriptParser
 {
 public:
-	GetSetScriptParser(GetSetDictionary& _subject=GetSetDictionary::global());
+	GetSetScriptParser(GetSetInternal::Dictionary& _subject=GetSetInternal::Dictionary::global());
 
 	/// Global instance
 	static GetSetScriptParser& global();
@@ -88,7 +88,7 @@ protected:
 	void printErr(const std::string& text);
 
 	/// Only this dictionary will be affectd by this parser
-	GetSetDictionary& subject;
+	GetSetInternal::Dictionary& subject;
 
 
 	/// A section used as prefix for all keys ("with" command)

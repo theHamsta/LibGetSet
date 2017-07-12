@@ -46,8 +46,9 @@ namespace GetSetInternal {
 
 	/// Variant interface class. Super class of all nodes in the property tree.
 	class Node {
+		friend struct InputOutput;
 	protected:
-		Node::Node(Dictionary& _dictionary, const std::string& _super_section, const std::string& _name);
+		Node::Node(Section& _section, const std::string& _name);
 		std::map<std::string,std::string> attributes;
 	public:
 		/// Dictionary where this node resides. Root of the property tree.
@@ -57,8 +58,11 @@ namespace GetSetInternal {
 		// Name of this node.
 		const std::string name;
 
-		// The absolute path of this node in the dictionary.
+		// The absolute path of this node in the dictionary. (slow)
 		std::string path() const;
+
+		// Section containing this node. Returns dictionary if no such section exists.
+		Section& super();
 
 		/// Set value of this node by string. (Does not apply to Sections)
 		virtual void        setString(const std::string& new_value)       = 0;
@@ -97,8 +101,8 @@ namespace GetSetInternal {
 	template <typename T>
 	class Key : public Node {
 	public:
-		Key(Dictionary& _dictionary, const std::string& _super_section, const std::string& _name)
-			: Node(_dictionary, _super_section, _name) { reset(value); }
+		Key(Section& _section, const std::string& _name)
+			: Node(_section, _name) { reset(value); }
 		virtual void        setString(const std::string& v)       { value=stringTo<T>(v); signalChange(); }
 		virtual std::string getString()                     const { return toString(value); }
 		virtual void        setValue (const T& v)                 { value=v; signalChange(); }
@@ -110,15 +114,17 @@ namespace GetSetInternal {
 
 	/// This function is defined in GetSet.hxx, because there are local types defined that have to be available internally.
 	/// Create a new Node of type (unless that type is a default type or unknown). The Node is not added to the Section (yet).
-	inline Node* createSpecialNode(const Section& section, const std::string& key, const std::string& type);
+	inline Node* createSpecialNode(Section& section, const std::string& key, const std::string& type);
 
 	/// This is a (sub-)Section that can holds other Nodes.
 	class Section : public Node
 	{
 		friend class GetSetGui::Section;
-	public:
 
-		
+	public:
+		Section(Section& super, const std::string& _name);
+		virtual ~Section();
+
 		//
 		// Sections contain several child nodes associated with a name.
 		//
@@ -126,21 +132,13 @@ namespace GetSetInternal {
 		/// A mapping from a string to a variant property data
 		typedef std::map<std::string,Node*> NodesByName;
 		/// Direct READ-ONLY access. Only needed to walk the tree (which is rarely neccessary).
-		const NodesByName& getSection() const;
-		
-		//
-		// Operations on sections
-		//
+		const NodesByName& getChildren() const;
 
-		/// Remove a property from the tree. See also: exists(...)
-		void remove(const std::string& relative_path);
-		/// Tests if a property exists under path. See also: isValue(...)
-		bool exists(const std::string relative_path) const;
-		/// Tests if a property is a section or any other Node not associated with a parameter (e.g. Button or StaticText)
-		bool isValue(const std::string relative_path) const;
+		/// Walk the tree to find an existing node. Returns null if not existing.
+		Node* nodeAt(const std::string& relative_path) const;
 
-		/// Obtain the absolute path given a relative path
-		std::string absolutePath(const std::string relative_path) const;
+		/// Remove a child from the tree. See also: nodeAt(...)
+		void removeNode(const std::string& relative_path);
 
 		//
 		// Node implementation
@@ -154,21 +152,19 @@ namespace GetSetInternal {
 		virtual std::string getString() const;
 
 	protected:
-		/// This is where the properties reside
-		NodesByName properties;
-
-		Section(Section& super, const std::string& _name);
 		Section(const Section&);
-		virtual ~Section();
+
+		/// This is where the properties reside
+		NodesByName children;
 
 		/// Walk the tree to find an existing node. Returns null if not existing.
-		Node* nodeAt(const std::string& relative_path) const;
 		Node* nodeAt(const std::vector<std::string>& path, int i=0) const;
 
 		/// Walk the tree to create path to a section.
 		/// Destroys everything in path's way. Returns new or existing section at path
 		Section& createSection(const std::string& relative_path);
 		Section& createSection(const std::vector<std::string>& path, int i=0);
+
 	};
 	
 
@@ -212,7 +208,8 @@ namespace GetSetInternal {
 
 	};
 
-}// namespace GetSetInternal
+
+} // namespace GetSetInternal
 
 /// A class which calls a function to handle change signals from GetSet (eg. GUI input)
 class GetSetHandler : public GetSetInternal::Dictionary::Observer

@@ -20,7 +20,7 @@
 #ifndef __GetSetTabWidget_h
 #define __GetSetTabWidget_h
 
-#include "../GetSet/GetSetDictionary.h"
+#include "../GetSet/GetSetInternal.h"
 
 #include "GetSetWidget.h"
 
@@ -38,7 +38,7 @@ namespace GetSetGui
 {
 	class GetSetScriptEdit;
 
-	class GetSetTabWidget : public QWidget, public GetSetDictionary::Observer
+	class GetSetTabWidget : public QWidget, public GetSetInternal::Dictionary::Observer
 	{
 		Q_OBJECT
 
@@ -51,11 +51,10 @@ namespace GetSetGui
 		void script_editor();
 		void script_run_default();
 
-
 	protected:
 		std::string							m_about;
+		GetSetInternal::Dictionary&			m_dict;
 		std::string							m_path;
-		std::vector<std::string>			m_tabs;
 		std::map<std::string,QMenu*>		m_menus;
 		std::map<std::string,QPushButton*>	m_push_buttons;
 
@@ -68,15 +67,11 @@ namespace GetSetGui
 		GetSetScriptRecorder		*m_script_recorder;
 
 		/// (Re-)Create the tabs and GetSetWidgets
-		void create(GetSetDictionary& dict, const std::string& path, const std::vector<std::string>& tabs);
+		void create(GetSetInternal::Section& section);
 	public:
 	
 		/// Settings dialog with a selection of sections from a dictionary
-		GetSetTabWidget(QWidget *parent, GetSetDictionary& _dict = GetSetDictionary::global());
-
-		/// Settings dialog with a selection of sections from a dictionary
-		GetSetTabWidget(const std::string& path="", GetSetDictionary& dict = GetSetDictionary::global() ,const std::string& title="Settings", const std::string& listOfTabs="", QWidget *parent=0x0);
-
+		GetSetTabWidget(QWidget *parent=0x0, GetSetInternal::Section& section=GetSetGui::Section());
 
 		/// Shortcut for example "Ctrl+O", If no action is supplied, a seperator will be added.
 		QAction* addMenuItem(const std::string& menu, const std::string& action="-", const std::string& shortcut="");
@@ -88,10 +83,8 @@ namespace GetSetGui
 
 		virtual ~GetSetTabWidget();
 
-		// GetSetDictionary::Observer
-		virtual void notifyCreate(const std::string& list, const std::string& key);
-		virtual void notifyDestroy(const std::string& list, const std::string& key);
-		virtual void notifyChange(const std::string &,const std::string &);
+		// GetSetInternal::Dictionary::Observer
+		virtual void notify(const GetSetInternal::Node& node, GetSetInternal::Dictionary::Signal signal);
 	};
 
 } // namespace GetSetGui

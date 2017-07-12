@@ -31,15 +31,18 @@ class QFormLayout;
 
 namespace GetSetGui {
 
-	/// A QWidget based representation of a GetSetDictionary's section
-	class GetSetWidget : public QScrollArea, protected GetSetDictionary::Observer
+	/// A QWidget based representation of a GetSetInternal::Dictionary's section
+	class GetSetWidget : public QScrollArea, protected GetSetInternal::Dictionary::Observer
 	{
 		Q_OBJECT
 
 	protected:
+		/// the dictionary the section resides in
+		GetSetInternal::Dictionary& m_dictionary;
+
 		/// string identifying the GetSet section represented by this widget
 		std::string		m_section;
-	
+
 		/// A widget that can be scrolled
 		QWidget*		m_content;
 
@@ -58,6 +61,7 @@ namespace GetSetGui {
 		/// clean up
 		void destroy();
 
+
 	private slots:
 		void trigger();
 		void selectFile();
@@ -72,20 +76,24 @@ namespace GetSetGui {
 		void setRangeValue(double value);
 
 	public:
-		GetSetWidget(const GetSetSection& section = GetSetDictionary::global(), QWidget *parent=0x0);
+		GetSetWidget(const GetSetInternal::Section& section = GetSetGui::Section(), QWidget *parent=0x0);
 		virtual ~GetSetWidget();
 
-		/// Access to dictionary this section resides in
-		GetSetDictionary& getDictionary();
+		/// Access to the GetSet Section represented by this widget.
+		GetSetInternal::Section& getSection() {
+			return GetSetGui::Section(m_section,Section(m_dictionary));
+		}
 
 		/// Close window on ESC key (if we have no parent)
 		void keyPressEvent(QKeyEvent *e);
 
-		// GetSetDictionary::Observer
-		virtual void notifyCreate(const std::string& list, const std::string& key);
-		virtual void notifyChange(const std::string& list, const std::string& key);
-		virtual void notifyDestroy(const std::string& list, const std::string& key);
-		virtual void notifyUpdateAttrib(const std::string& list, const std::string& key);
+		// GetSetInternal::Dictionary::Observer
+		void notify(const GetSetInternal::Node& node, GetSetInternal::Dictionary::Signal signal);
+
+		void notifyCreate      (const GetSetInternal::Node& node);
+		void notifyChange      (const GetSetInternal::Node& node);
+		void notifyDestroy     (const GetSetInternal::Node& node);
+		void notifyUpdateAttrib(const GetSetInternal::Node& node);
 	};
 
 } // namespace GetSetGui

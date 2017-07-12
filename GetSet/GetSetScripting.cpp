@@ -1,6 +1,5 @@
 
 #include "GetSetScripting.h"
-#include "GetSetDictionary.h"
 
 #include "GetSet.hxx"
 #include "GetSetIO.h"
@@ -17,7 +16,7 @@ inline std::string rest_of_line(std::istream& script)
 // GetSetScriptParser
 //
 
-GetSetScriptParser::GetSetScriptParser(GetSetDictionary& _subject)
+GetSetScriptParser::GetSetScriptParser(GetSetInternal::Dictionary& _subject)
 	: subject(_subject)
 	, user_input(0x0)
 	, parse_error_occured(false)
@@ -27,7 +26,7 @@ GetSetScriptParser& GetSetScriptParser::global()
 {
 	static GetSetScriptParser* instance;
 	if (!instance)
-		instance=new GetSetScriptParser(GetSetDictionary::global());
+		instance=new GetSetScriptParser(GetSetInternal::Dictionary::global());
 	return *instance;
 }
 
@@ -398,7 +397,11 @@ void GetSetScriptParser::parse_discard(std::istream& script)
 	if (!expect_end_of_line(line,"discard")) return;
 	if (type<0) return;
 	else if (type==0)
-		GetSetDictionary::global().remove(var_or_key_name);
+	{
+		GetSetInternal::Node* node=subject.nodeAt(var_or_key_name);
+		GetSetInternal::Section& section=GetSetGui::Section(node->super_section,subject);
+		section.removeNode(var_or_key_name);
+	}
 	else
 	{
 		auto it=variables.find(var_or_key_name);
@@ -535,13 +538,17 @@ void GetSetScriptParser::parse_file(std::istream& script)
 		int action=expect_keyword(line,"file","load;save;print");
 		if (action<0) return;
 		if (action==2)
-			subject.save(GetSetIO::TxtFileKeyValue(std::cin, std::cout));
+		{
+			GetSetIO::TxtKeyValue io;
+			io.retreive(subject);
+			io.saveStream(std::cout);
+		}
 		else
 		{
 			if (!expect_token_value(line,"file",file)) return;
 			if (!expect_end_of_line(line,"file")) return;
-			if (action==0) GetSetIO::load<GetSetIO::TxtFileDescription>(file);
-			else           GetSetIO::save<GetSetIO::TxtFileDescription>(file);
+			if (action==0) GetSetIO::load<GetSetIO::TxtKeyValue>(file);
+			else           GetSetIO::save<GetSetIO::TxtKeyValue>(file);
 		}
 	}
 	else if (what==1) // run
@@ -578,7 +585,7 @@ void GetSetScriptParser::parse_file(std::istream& script)
 			if (!expect_token_string(line,"file",ini_file)) return;
 			if (!expect_end_of_line(line,"file")) return;
 			// Implementation:
-			GetSetDictionary file_contents;
+			GetSetInternal::Dictionary file_contents;
 			if (!GetSetIO::load<GetSetIO::IniFile>(ini_file,file_contents)) {
 				parse_error("file", ini_file + " could not be loaded.");
 				return;
@@ -600,7 +607,7 @@ void GetSetScriptParser::parse_file(std::istream& script)
 			if (!expect_token_value(line,"file",value)) return;
 			if (!expect_end_of_line(line,"file")) return;
 			// Implementation:
-			GetSetDictionary file_contents;
+			GetSetInternal::Dictionary file_contents;
 			if (!GetSetIO::load<GetSetIO::IniFile>(ini_file,file_contents)) {
 				// if file does not exist, we may still want to set some values.
 			}
@@ -618,12 +625,12 @@ void GetSetScriptParser::parse_file(std::istream& script)
 			if (!expect_token_string(line,"file",ini_file)) return;
 			if (!expect_end_of_line(line,"file")) return;
 			// Implementation:
-			GetSetDictionary file_contents;
+			GetSetInternal::Dictionary file_contents;
 			if (!GetSetIO::load<GetSetIO::IniFile>(ini_file,file_contents)) {
 				parse_error("file", ini_file + " could not be loaded.");
 				return;
 			}
-			file_contents.remove(keyname);
+			file_contents.removeNode(keyname);
 			if (!GetSetIO::save<GetSetIO::IniFile>(ini_file,file_contents))
 				parse_error("file", ini_file + " could not be saved.");
 		}

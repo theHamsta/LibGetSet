@@ -42,7 +42,7 @@ namespace GetSetGui
 		Q_OBJECT
 
 	public:
-		GetSetScriptEdit(QWidget *parent = 0, GetSetDictionary& _dict = GetSetDictionary::global());
+		GetSetScriptEdit(QWidget *parent = 0, GetSetInternal::Dictionary& _dict = GetSetInternal::Dictionary::global());
 
 		void setScript(const std::string& script);
 

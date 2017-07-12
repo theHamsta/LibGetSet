@@ -29,8 +29,8 @@
 // See also: Special GetSet types defined in namespace GetSetGui (below)
 
 // A macro to reduce the amount of code needed to describe attributes.
-#define GETSET_TAG(CLASS,TYPE,TAG)																\
-	CLASS& set##TAG(const TYPE& value)       {node.setAttribute<TYPE>(#TAG,value);return *this;}		\
+#define GETSET_TAG(CLASS,TYPE,TAG)																	\
+	CLASS& set##TAG(const TYPE& value)       {node.setAttribute<TYPE>(#TAG,value);return *this;}	\
 	TYPE   get##TAG()                  const {return node.getAttribute<TYPE>(#TAG);}
 
 /// Access a section other than global dictionary. Destroys everything in the way of creating relative_path.
@@ -40,18 +40,21 @@ namespace GetSetGui {
 		GetSetInternal::Section& node;
 	public:
 		Section(GetSetInternal::Section& _section=GetSetInternal::Dictionary::global()) : node(_section) {}
-		Section(const std::string& relative_path, Section& super_section=Section());
+		inline Section(const std::string& relative_path, GetSetInternal::Section& super_section=Section());
 
 		/// Create new Key or replace an already existing one if it is a string or forceType is set.
 		/// Most of the time, just return a pointer to an existing node.
 		template <typename GetSetKey>
-		GetSetInternal::Node& declare(const std::string& absolute_path, bool forceType) const;
-		
-		/// Create nodes by type
-		GetSetInternal::Node& Section::createNode(const std::string& key, const std::string& type);
+		GetSetInternal::Node& declare(const std::string& relative_path, bool forceType) const;
+				
+		/// Create nodes by type (note that all types must be known at the time of compilation of GetSetIO)
+		inline GetSetInternal::Node& Section::createNode(const std::string& relative_path, const std::string& type);
 
-		/// Implicit cast to GetSetInternal::Section&
+		/// Implicit cast to GetSetInternal::Section& for construction of GetSet<...>(key,section)
 		operator GetSetInternal::Section& () { return node; }
+
+		/// Discard this property. Do NOT use this instance again after a call to discard.
+		virtual void discard() { node.super().removeNode(node.name); }
 
 		/// Set a brief description for this Section.
 		GETSET_TAG( Section, std::string, Description )
@@ -66,7 +69,7 @@ namespace GetSetGui {
 		/// Are contents of this section shown in a collapsible group box?
 		GETSET_TAG( Section, bool, Collapsible )
 	};
-} // 
+} // namespace GetSetGui
 
 
 /// Syntactic sugar to access and change GetSet properties
@@ -87,6 +90,9 @@ public:
 	/// Get the value of the property as string
 	virtual std::string getString() const;
 
+	/// Discard this property. Do NOT use this instance again after a call to discard.
+	virtual void discard();
+	
 	/// Set the value of a GetSet property directly via assignment operator
 	inline GetSet<BasicType>& operator=(const BasicType& v);
 	/// Cast operator directly to BasicType (behaves almost like a c++ variable of BasicType)
@@ -141,7 +147,7 @@ protected:
 //    // prints "Codec used = H.264 (.mp4)" or "DivX (.dmf)"
 //
 // Hint: to reduce the amount of code, you can use GetSetIO to load a full description of your parameters.
-// Example: (GetSetIO::TxtFileDescription)
+// Example: (GetSetIO::TxtDetailed)
 //    Key="Mask/Threshold" Type="double" Value="0.5"
 //    or even
 //    Key="Alphabet/Letter" Choices="A;B;C;D" Type="Enum" Value="B"

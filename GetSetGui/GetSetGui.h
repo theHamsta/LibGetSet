@@ -36,7 +36,7 @@ namespace GetSetGui
 	class GetSetApplication : public ProgressInterface
 	{
 	protected:
-		GetSetDictionary&		dict;
+		GetSetInternal::Dictionary&		dict;
 		GetSetIO::CmdLineParser	cmd;
 		QApplication			*qt_app;
 		GetSetHandler			*callback;
@@ -45,7 +45,7 @@ namespace GetSetGui
 		GetSetLog				*log;
 
 	public:
-		GetSetApplication(std::string _appname, GetSetDictionary& _dict = GetSetDictionary::global());
+		GetSetApplication(std::string _appname, GetSetInternal::Dictionary& _dict = GetSetInternal::Dictionary::global());
 		~GetSetApplication();
 
 		/// Define how to handle command line arguments
@@ -63,7 +63,7 @@ namespace GetSetGui
 
 
 		/// Access underlying dictionary
-		const GetSetDictionary& dictionary() {return dict;}
+		const GetSetInternal::Dictionary& dictionary() {return dict;}
 
 		/// Access to main window
 		GetSetTabWidget& window();

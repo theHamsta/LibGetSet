@@ -18,15 +18,10 @@ void gui(const std::string& section, const std::string& key)
 	if (key=="Input")
 	{
 		GetSetGui::GetSetModalDialog who_re_you;
-		GetSet<>("First Name",who_re_you)="John";
-		GetSet<>("Last Name",who_re_you)="Doe";
-		GetSetGui::Enum("Gender",who_re_you).setChoices("Female;Male");
+		GetSet<int>("Number",who_re_you);
 
 		if (who_re_you.exec())
-			g_app.warn("Greetings", std::string() + (GetSet<int>("Gender",who_re_you)==0?"Ms. ":"Mr. ")
-			+ GetSet<>("First Name",who_re_you).getString() + " "
-			+ GetSet<>("Last Name",who_re_you).getString()
-			);
+			GetSet<int>("Input/Bla")=GetSet<int>("Number",who_re_you);
 
 	}
 

@@ -28,12 +28,12 @@ namespace GetSetGui
 	class GetSetModalDialog
 	{
 		/// Each modal dialog shall have its own, independant dictionary
-		GetSetDictionary my_dict;
+		GetSetInternal::Dictionary my_dict;
 	public:
 
-		operator GetSetSection() const;
+		operator GetSetGui::Section();
 
-		bool exec(const std::string& title="Query");
+		bool exec(const std::string& title="Please enter and press \"Ok\".");
 
 	};
 

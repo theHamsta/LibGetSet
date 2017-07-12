@@ -30,7 +30,7 @@ namespace GetSetGui
 		QApplication::processEvents();
 	}
 
-	GetSetScriptEdit::GetSetScriptEdit(QWidget *parent, GetSetDictionary& _dict)
+	GetSetScriptEdit::GetSetScriptEdit(QWidget *parent, GetSetInternal::Dictionary& _dict)
 		: QMainWindow(parent)
 		, parser(_dict)
 	{
