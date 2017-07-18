@@ -2,7 +2,6 @@
 
 #include <GetSet/GetSet.hxx>
 #include <GetSet/GetSetIO.h>
-#include <GetSet/GetSetInternal::Dictionary.h>
 
 // #define HAS_RUN_VERB
 
@@ -18,17 +17,17 @@ void kill_child()
 #endif
 
 // Helper function for the "copy" verb
-void copy(const std::string& prefix, const GetSetInternal::Section::PropertyByName& sin, const GetSetSection& dout)
+void copy(const std::string& prefix, const GetSetInternal::Section::NodesByName& sin, const GetSetGui::Section& dout)
 {
 	for (auto it=sin.begin();it!=sin.end();++it)
 	{
 		using GetSetInternal::Section;
-		Section *s=dynamic_cast<Section*>(it->second);
+		const Section *s=dynamic_cast<const Section*>(it->second);
 		std::string p=prefix.empty()?it->first:prefix+"/"+it->first;
 		if (s)
 		{
 			// recursively copy subsections	
-			auto sin2=s->getSection();
+			auto sin2=s->getChildren();
 			copy(p,sin2,dout);
 		}
 		else
@@ -40,7 +39,7 @@ void copy(const std::string& prefix, const GetSetInternal::Section::PropertyByNa
 }
 
 
-std::string replace(const std::string& in, const GetSetSection& config=GetSetInternal::Dictionary::global())
+std::string replace(const std::string& in, const GetSetGui::Section& config=GetSetInternal::Dictionary::global())
 {
 	auto pos=in.find("GetSet[");
 	if (pos==std::string::npos) return in;
@@ -168,8 +167,8 @@ int main(int argc, char ** argv)
 		if (argc==6)
 			prefix=argv[5];
 
-		auto *sin=&(din.getSection());
-		auto *sout=&(dout.getSection());
+		auto *sin=&(din.getChildren());
+		auto *sout=&(dout.getChildren());
 		
 		std::vector<std::string> p=stringToVector<std::string>(path,'/');
 		for (int i=0;i<(int)p.size()&&sin;i++)
@@ -180,7 +179,7 @@ int main(int argc, char ** argv)
 				using GetSetInternal::Section;
 				Section *s=dynamic_cast<Section*>(it->second);
 				if (!s) sin=0x0;
-				else sin=&(s->getSection());
+				else sin=&(s->getChildren());
 			}
 			else sin=0x0;
 		}
@@ -318,7 +317,7 @@ int main(int argc, char ** argv)
 			return 2;
 		}
 
-		dict.remove(key);
+		dict.removeNode(key);
 
 		if (!GetSetIO::save<GetSetIO::IniFile>(file,dict))
 		{

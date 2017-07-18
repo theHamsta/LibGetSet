@@ -45,6 +45,7 @@ namespace GetSetIO {
 
 	using GetSetInternal::InputOutput;
 
+	/// Utility function to read GetSet properties from file
 	template <typename InputOutputType=IniFile>
 	inline bool load(const std::string& path, GetSetInternal::Section& section=GetSetGui::Section())
 	{
@@ -56,6 +57,7 @@ namespace GetSetIO {
 		return true;
 	}
 
+	/// Utility function to save GetSet properties to file
 	template <typename InputOutputType=IniFile>
 	inline bool save(const std::string& path, const GetSetInternal::Section& section=GetSetGui::Section())
 	{
@@ -66,6 +68,14 @@ namespace GetSetIO {
 		io.saveStream(file);
 		return true;
 	}
+
+	/// Utility function to print all GetSet keys in path=value style to stdout.
+	template <typename InputOutputType=TxtKeyValue>
+	inline void debug_print(const GetSetInternal::Section& section=GetSetGui::Section())
+	{
+		InputOutputType().retreive(section).saveStream(std::cout);
+	}
+	
 
 	/// A simple text file with one property per line in "section/key=value" format
 	struct TxtKeyValue : public GetSetInternal::InputOutput {
