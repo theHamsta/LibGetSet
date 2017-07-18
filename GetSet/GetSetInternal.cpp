@@ -214,9 +214,12 @@ GetSetHandler::GetSetHandler(void (*change)(const std::string& section, const st
 
 void GetSetHandler::notify(const GetSetInternal::Node& node, GetSetInternal::Dictionary::Signal signal)
 {
+	// This handler can be deactivated by calling ignoreNotifications(true)
+	if (ignore_notify) return;
+	// Always ignore signals other than Change.
 	if (signal != GetSetInternal::Dictionary::Change) return;
-	if (change_handler_section_key)
-		change_handler_section_key(node.super_section,node.name);
-	if (change_handler_node)
-		change_handler_node(node);
+	// Choose correct callback function. Legacy code uses this one:
+	if (change_handler_section_key) change_handler_section_key(node.super_section,node.name);
+	// This is the preferred version...
+	if (change_handler_node) change_handler_node(node);
 }
