@@ -4,7 +4,7 @@
 
 namespace GetSetInternal {
 
-	void InputOutput::retreive(const Section& section, const std::string& path_prefix)
+	InputOutput& InputOutput::retreive(const Section& section, const std::string& path_prefix)
 	{
 		const auto& keys=section.getChildren();
 		for (auto it=keys.begin();it!=keys.end();++it)
@@ -19,6 +19,7 @@ namespace GetSetInternal {
 			if (section) retreive(*section, path);
 			else attribs["Value"]=it->second->getString();
 		}
+		return *this;
 	}
 
 	void InputOutput::restore(Section& section) const
@@ -31,7 +32,7 @@ namespace GetSetInternal {
 			// Silently ignore keys, for which the type is missing.
 			if (type_it==it->second.end()) continue;
 			// Create Node and copy attributes
-			Node &node=GetSetGui::Section(section).createNode(it->first,type_it->second);
+			Node &node=section.createNode(it->first,type_it->second);
 			node.attributes=it->second;
 			// Set value and remove already handled attributes "Value" and "Type"
 			node.setString(node.attributes["Value"]);
@@ -48,7 +49,7 @@ namespace GetSetIO {
 	// IniFile
 	//
 
-	void IniFile::loadStream(std::istream& istr)
+	InputOutput& IniFile::loadStream(std::istream& istr)
 	{
 		std::string section,key,value;
 		// Inerpret lines individually
@@ -73,6 +74,7 @@ namespace GetSetIO {
 			std::string path=section+(section.empty()?"":"/")+key;
 			contents[path]["Value"]=value;
 		}
+		return *this;
 	}
 
 	void IniFile::saveStream(std::ostream& ostr) const 
@@ -105,7 +107,7 @@ namespace GetSetIO {
 	// TxtFileKeyValue
 	//
 
-	void TxtKeyValue::loadStream(std::istream& istr)
+	InputOutput& TxtKeyValue::loadStream(std::istream& istr)
 	{
 		std::string line,path,value;
 		// Interpret lines individually
@@ -120,6 +122,7 @@ namespace GetSetIO {
 			getline(linestr,value,'\0');
 			contents[path]["Value"]=value;
 		}
+		return *this;
 	}
 
 	void TxtKeyValue::saveStream(std::ostream& ostr) const
@@ -145,7 +148,7 @@ namespace GetSetIO {
 	// TxtDetailed
 	//
 
-	void TxtDetailed::loadStream(std::istream& istr)
+	InputOutput& TxtDetailed::loadStream(std::istream& istr)
 	{
 		// Interpret lines individually. 
 		for (int lineNumber=0; !istr.eof(); lineNumber++)
@@ -160,6 +163,7 @@ namespace GetSetIO {
 			contents[m["Key"]]=m;
 			contents[m["Key"]].erase(contents[m["Key"]].find("Key"));
 		}
+		return *this;
 	}
 
 	void TxtDetailed::saveStream(std::ostream& ostr) const

@@ -267,6 +267,7 @@ namespace GetSetGui
 	{
 		if (signal==GetSetInternal::Dictionary::Signal::Change) return;
 		if (node.super_section!=m_path) return;
+		if (dynamic_cast<const GetSetInternal::Section*>(&node)==0x0) return;
 		// Update our tabs.
 		create(GetSetGui::Section(node.path(),node.dictionary));
 	}

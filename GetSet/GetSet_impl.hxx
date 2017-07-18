@@ -31,39 +31,6 @@ namespace GetSetGui {
 	Section::Section(const std::string& relative_path,  GetSetInternal::Section& super_section)
 		: node(super_section.createSection(relative_path))
 	{}
-
-	/// Create a new property of specified type. If type is not known, std::string is assumed.
-	GetSetInternal::Node& Section::createNode(const std::string& relative_path, const std::string& type)
-	{
-		// relative path consists of "super_section"/"key"
-		auto path=stringToVector<>(relative_path,'/',true);
-		std::string key=path.back();
-		path.pop_back();
-		// The section where the key will be created
-		Section section(vectorToString(path,"/"),*this);
-		// Special GetSet types first (Button, Slider etc. are not defined in GetSetInternal but in GetSetGui.)
-		GetSetInternal::Node * new_node=GetSetInternal::createSpecialNode(section,key,type);
-		if (new_node) return *new_node;
-		// This (ugly) code craetes a Key from a string for c-types, std::string and std::vectors of these
-		if (type=="vector<string>") new_node=new GetSetInternal::Key<std::vector<std::string> >(section,key);
-		else if (type=="Section") new_node=new GetSetInternal::Section(node,key);
-		#define _DEFINE_TYPE(X) else if (type==#X) new_node=new GetSetInternal::Key<X>(section,key);
-		#include "BaseTypes.hxx"
-		#undef _DEFINE_TYPE
-		#define _DEFINE_TYPE(X) else if (type=="vector<"#X">") new_node=new GetSetInternal::Key<std::vector<X> >(section,key);
-		#include "BaseTypes.hxx"
-		#undef _DEFINE_TYPE
-		// For unknown types, std::string is assumed.
-		if (!new_node) new_node=new GetSetInternal::Key<std::string>(section,key);
-		// Check if an old one exists.
-		auto it=node.children.find(key);
-		// Retain previous value (if any) but delete old node
-		if (it!=node.children.end()) new_node->setString(it->second->getString());
-		if (it!=node.children.end()) delete it->second;
-		// Insert new node into this section. 
-		node.children[key]=new_node;
-		return *new_node;
-	}
 				
 	/// Create new Key or replace an already existing node if it is a string or forceType is set.
 	/// Most of the time, just return a pointer to an existing node.
@@ -81,18 +48,13 @@ namespace GetSetGui {
 		// Check if we need to create a new key
 		if (!new_node || (!typed_node && forceType))
 		{
-			// Get current value (if any)
-			std::string value=new_node?new_node->getString():"";
-			// Delete current node
-			if (new_node) delete new_node;
 			// Get path to super section and key name
-			auto path=stringToVector<>(relative_path,'/');
-			std::string key=path.back();
-			path.pop_back();
+			std::string path_to_super=relative_path;
+			std::string key=splitRight(path_to_super,"/");
 			// Find super section and insert new node
-			GetSetInternal::Section& super_section=node.createSection(path);
-			new_node=new KeyType(node,key);
-			super_section.children[key]=new_node;
+			GetSetInternal::Section& super_section=node.createSection(path_to_super);
+			new_node=new KeyType(super_section,key);
+			super_section.insertNode(*new_node);
 		}
 		return *new_node;
 	}

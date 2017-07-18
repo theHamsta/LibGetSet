@@ -10,13 +10,7 @@ namespace GetSetInternal {
 		: dictionary(this==&_section?*static_cast<Dictionary*>(this):_section.dictionary)
 		, super_section(_section.path())
 		, name(_name)
-	{
-		if (this!=&dictionary) dictionary.signal(*this, Dictionary::Signal::Create);
-	}
-	
-	Node::~Node() {
-		dictionary.signal(*this, Dictionary::Signal::Destroy);
-	}
+	{}
 
 	std::string Node::path() const
 	{
@@ -32,14 +26,11 @@ namespace GetSetInternal {
 
 	void Node::signalChange()
 	{
-		dictionary.signal(*this, Dictionary::Signal::Destroy);
+		dictionary.signal(*this, Dictionary::Signal::Change);
 	}
 
-	void Node::signalAttribChange()
-	{
-		dictionary.signal(*this, Dictionary::Signal::Destroy);
-	}
- 
+	const std::map<std::string,std::string>& Node::getAttributes() const { return attributes; }
+
 	//
 	// Section
 	//
@@ -48,18 +39,10 @@ namespace GetSetInternal {
 		: Node(super,_name)
 	{}
 
-	Section::~Section()
-	{
-		// Delete all children
-		for (NodesByName::iterator it=children.begin();it!=children.end();++it)
-			delete it->second;
-		children.clear();
-	}
+	Section::~Section() { clear(); }
 
-	const Section::NodesByName& Section::getChildren() const
-	{
-		return children;
-	}
+	const Section::NodesByName& Section::getChildren() const { return children; }
+
 
 	void Section::removeNode(const std::string& relative_path)
 	{
@@ -76,10 +59,38 @@ namespace GetSetInternal {
 		path.pop_back();
 		Section& super_section=createSection(path);
 		auto it=super_section.children.find(key_name);
+		dictionary.signal(*it->second,Dictionary::Signal::Destroy);
 		delete it->second;
 		super_section.children.erase(it);
 	}
-		
+
+	void Section::clear()
+	{
+		// Delete all children
+		for (NodesByName::iterator it=children.begin();it!=children.end();++it)
+		{
+			dictionary.signal(*it->second,Dictionary::Signal::Destroy);
+			delete it->second;
+		}
+		children.clear();
+	}
+
+	void Section::insertNode(Node& new_node)
+	{
+		auto it=children.find(new_node.name);
+		// If an old node exists, store its value and destroy
+		std::string old_value;
+		if (it!=children.end()) {
+			old_value=it->second->getString();
+			dictionary.signal(*it->second,Dictionary::Signal::Destroy);
+			delete it->second;
+			children.erase(it);
+		}
+		children[new_node.name]=&new_node;
+		dictionary.signal(new_node, Dictionary::Signal::Create);
+		new_node.setString(old_value);
+	}
+
 	std::string Section::getType() const {return "Section";}
 
 	void Section::setString(const std::string& new_value) {}
@@ -101,12 +112,13 @@ namespace GetSetInternal {
 
 	Node* Section::nodeAt(const std::vector<std::string>& path, int i) const
 	{
+		if (path.empty()) return &dictionary;
 		// Find next key in this section.
 		auto it=children.find(path[i]);
 		// If it does not exist, path is invalid.
 		if (it==children.end()) return 0x0;
 		// If it does exist and we are at the end of path, return the node.
-		if (i+1>=children.size()) return it->second;
+		if (i+1>=path.size()) return it->second;
 		// Otherwise, we check if the key we found is a section.
 		Section* subsection=dynamic_cast<Section*>(it->second);
 		// If it is not, then path is also invalid.
@@ -123,7 +135,7 @@ namespace GetSetInternal {
 	Section& Section::createSection(const std::vector<std::string>& path, int i)
 	{
 		// If we have reached the end of path, we are done.
-		if (i>=children.size()) return *this;
+		if (i>=path.size()) return *this;
 		// Find next key in this section.
 		const std::string& next_key=path[i];
 		auto it=children.find(next_key);
@@ -135,15 +147,15 @@ namespace GetSetInternal {
 			// If it is, we recurse
 			if (subsection) return subsection->createSection(path,i+1);
 			// If not, we delete whatever is there.
+			dictionary.signal(*it->second,Dictionary::Signal::Destroy);
 			delete it->second;
 			children.erase(it);
 		}
 		// If the key does not exist (anymore) we create a new section and recurse
 		Section *subsection=new Section(*this, next_key);
-		children[next_key]=subsection;
+		insertNode(*subsection);
 		return subsection->createSection(path, i+1);
 	}
-		
 
 	//
 	// Dictionary
@@ -166,12 +178,6 @@ namespace GetSetInternal {
 	Dictionary::Observer::~Observer()
 	{
 		if (dictionary) dictionary->registered_observers.erase(this);
-	}
-
-	void Dictionary::clear() {
-		for (auto it=children.begin();it!=children.end();++it)
-			if (it->second) delete it->second;
-		children.clear();
 	}
 
 	Dictionary& Dictionary::global() {

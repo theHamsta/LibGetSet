@@ -24,13 +24,13 @@
 
 namespace GetSetIO {
 	/// Set properties via command line.
-	class CmdLineParser : private GetSetInternal::Access {
+	class CmdLineParser {
 	public:
 		typedef std::map<std::string, std::string>	MapStrStr;
 
 		/// Longformat: GetSet("Super Section/Some Key") becomes --super-section-some-key instead of just --some-key
-		CmdLineParser(const GetSetSection& d = GetSetInternal::Dictionary::global(), bool useLongFlags=false)
-			: GetSetInternal::Access(d)
+		CmdLineParser(GetSetInternal::Section& d = GetSetInternal::Dictionary::global(), bool useLongFlags=false)
+			: section(d)
 			, longFormat(useLongFlags)
 		{}
 
@@ -67,6 +67,9 @@ namespace GetSetIO {
 		}
 
 	protected:
+		/// The section this interface represents (typically a dictionary).
+		GetSetInternal::Section& section;
+
 		/// Stores all Flags (and numbers for indexed params) together with a key
 		MapStrStr flags;
 
@@ -135,14 +138,14 @@ namespace GetSetIO {
 
 	CmdLineParser& CmdLineParser::declare(const std::string& path, const std::string& flag)
 	{
-		GetSetInternal::Node *p=getProperty(path);
+		GetSetInternal::Node *p=section.nodeAt(path);
 		if (!p || p->getType()!="Section")
 		{
 			// Path points to a key (or to nothingness)
 			// Special command line flags may already be specified.
 			if (flag.empty())
 			{
-				std::vector<std::string> f=stringToVector<std::string>(p->attributes["CommandLineFlag"],';');
+				std::vector<std::string> f=stringToVector<std::string>(p->getAttribute("CommandLineFlag"),';');
 				for (std::vector<std::string>::iterator it=f.begin();it!=f.end();++it)
 					flags[*it]=path;
 				if (flag.empty() && !f.empty() )
@@ -167,10 +170,9 @@ namespace GetSetIO {
 		{
 			using namespace GetSetInternal;
 			Section* s=dynamic_cast<Section*>(p);
-			typedef  std::map<std::string,Node*> MapStrParam;
-			const MapStrParam& m=s->getSection();
+			const GetSetInternal::Section::NodesByName& m=s->getChildren();
 			// Recursively declare all keys in a section
-			for (MapStrParam::const_iterator it=m.begin();it!=m.end();++it)
+			for (auto it=m.begin();it!=m.end();++it)
 				declare(path.empty() ? it->first : path+"/"+it->first);
 		}
 		return *this;
@@ -192,8 +194,7 @@ namespace GetSetIO {
 				MapStrStr::iterator it=flags.find(arg);
 				if (it!=flags.end())
 				{
-					GetSetInternal::Node* n=getProperty(it->second);
-					n->setString(argv[++i]);
+					GetSet<>(it->second,section).setString(argv[++i]);
 					required.erase(it->second);
 					if (found.find(it->second)!=found.end())
 						std::cerr << "Warning: Multiple definitions of parameters \"" << it->second << "\" via command line!\n";
@@ -204,7 +205,7 @@ namespace GetSetIO {
 			MapStrStr::iterator it=flags.find(toString(unnamed++));
 			if (it!=flags.end() && i<argc)
 			{
-				getProperty(it->second)->setString(argv[i]);
+				GetSet<>(it->second,section).setString(argv[i]);
 				required.erase(it->second);
 				if (found.find(it->second)!=found.end())
 					std::cerr << "Warning: Multiple definitions of parameters \"" << it->second << "\" via command line!\n";

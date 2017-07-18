@@ -46,9 +46,6 @@ namespace GetSetGui {
 		/// Most of the time, just return a pointer to an existing node.
 		template <typename GetSetKey>
 		GetSetInternal::Node& declare(const std::string& relative_path, bool forceType) const;
-				
-		/// Create nodes by type (note that all types must be known at the time of compilation of GetSetIO)
-		inline GetSetInternal::Node& Section::createNode(const std::string& relative_path, const std::string& type);
 
 		/// Implicit cast to GetSetInternal::Section& for construction of GetSet<...>(key,section)
 		operator GetSetInternal::Section& () { return node; }
@@ -101,6 +98,9 @@ public:
 	/// Set a brief description for this property.
 	GETSET_TAG( GetSet<BasicType>, std::string, Description )
 
+	/// Set a command line flag or multiple ';' seperated options. Example: "--output-file;-o" See also: GetSetCmdLine.hxx
+	GETSET_TAG( GetSet<BasicType>, std::string, CommandLineFlag )
+		
 protected:
 	/// Keep track of the associated property (not actually owned by this class)
 	GetSetInternal::Node& node;

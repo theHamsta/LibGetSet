@@ -124,7 +124,7 @@ namespace GetSetGui
 	{
 		if (!main_window)
 		{
-			main_window=new GetSetTabWidget("",dict,GetSet<>("Application",dict));
+			main_window=new GetSetTabWidget(0x0,dict);
 			main_window->setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::CustomizeWindowHint | Qt::WindowSystemMenuHint);
 		}
 		return *main_window;

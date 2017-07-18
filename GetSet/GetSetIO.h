@@ -30,18 +30,20 @@ namespace GetSetInternal {
 		std::map<std::string, std::map<std::string, std::string> > contents;
 
 		/// Retreive information in this object from a Section or Dictionary. path_prefix is used for recursion and empty by default.
-		void retreive(const Section& section=Dictionary::global(), const std::string& path_prefix="");
+		InputOutput& retreive(const Section& section=Dictionary::global(), const std::string& path_prefix="");
 
 		/// Create Section from information in this object
 		void restore(Section& section=Dictionary::global()) const;
 
-		virtual void loadStream(std::istream& istr) = 0;
+		virtual InputOutput& loadStream(std::istream& istr) = 0;
 		virtual void saveStream(std::ostream& ostr) const = 0;
 	};
 
 } // namespace GetSetInternal
 
 namespace GetSetIO {
+
+	using GetSetInternal::InputOutput;
 
 	template <typename InputOutputType=IniFile>
 	inline bool load(const std::string& path, GetSetInternal::Section& section=GetSetGui::Section())
@@ -67,19 +69,19 @@ namespace GetSetIO {
 
 	/// A simple text file with one property per line in "section/key=value" format
 	struct TxtKeyValue : public GetSetInternal::InputOutput {
-		virtual void loadStream(std::istream& istr);
+		virtual InputOutput& loadStream(std::istream& istr);
 		virtual void saveStream(std::ostream& ostr) const ;
 	};
 
 	/// An ini-File in "[Section.Subsection] Key=Value" format
 	struct IniFile : public GetSetInternal::InputOutput {
-		virtual void loadStream(std::istream& istr);
+		virtual InputOutput& loadStream(std::istream& istr);
 		virtual void saveStream(std::ostream& ostr) const ;
 	};
 
 	/// A text file with one property per line containing all information (Key, Value, Type and additional info) in attribute="value" format
 	struct TxtDetailed : public GetSetInternal::InputOutput {
-		virtual void loadStream(std::istream& istr);
+		virtual InputOutput& loadStream(std::istream& istr);
 		virtual void saveStream(std::ostream& ostr) const ;
 	};
 
