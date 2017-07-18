@@ -214,6 +214,7 @@ GetSetHandler::GetSetHandler(void (*change)(const std::string& section, const st
 
 void GetSetHandler::notify(const GetSetInternal::Node& node, GetSetInternal::Dictionary::Signal signal)
 {
+	if (signal != GetSetInternal::Dictionary::Change) return;
 	if (change_handler_section_key)
 		change_handler_section_key(node.super_section,node.name);
 	if (change_handler_node)
