@@ -33,8 +33,14 @@
 	CLASS& set##TAG(const TYPE& value)       {node.setAttribute<TYPE>(#TAG,value);return *this;}	\
 	TYPE   get##TAG()                  const {return node.getAttribute<TYPE>(#TAG);}
 
+// A macro to reduce the amount of code needed to describe attributes. Special case of booleans, which default to true, once called.
+#define GETSET_TAG_BOOL(CLASS,TAG)																			\
+	CLASS& set##TAG(const bool& value = true)       {node.setAttribute<bool>(#TAG,value);return *this;}		\
+	bool   get##TAG()                         const {return node.getAttribute<bool>(#TAG);}
+
 /// Access a section other than global dictionary. Destroys everything in the way of creating relative_path.
 namespace GetSetGui {
+	/// A Section which contains other Sections or Keys.
 	class Section
 	{
 		GetSetInternal::Section& node;
@@ -50,21 +56,24 @@ namespace GetSetGui {
 		/// Implicit cast to GetSetInternal::Section& for construction of GetSet<...>(key,section)
 		operator GetSetInternal::Section& () { return node; }
 
+		/// Access (or make) a subsection of this section
+		Section subsection(const std::string& name) { return Section(name, *this); }
+
 		/// Discard this property. Do NOT use this instance again after a call to discard.
 		virtual void discard() { node.super().removeNode(node.name); }
 
 		/// Set a brief description for this Section.
 		GETSET_TAG( Section, std::string, Description )
 		/// Contents of this section will not be modifiable in GUI.
-		GETSET_TAG( Section, bool, Disabled )
+		GETSET_TAG_BOOL( Section, Disabled )
 		/// Show contents of this section in a group box.
-		GETSET_TAG( Section, bool, Grouped )
+		GETSET_TAG_BOOL( Section, Grouped )
 		/// Collapse group box.
-		GETSET_TAG( Section, bool, Collapsed )
+		GETSET_TAG_BOOL( Section, Collapsed )
 		/// This section will not be shown in GUI at all.
-		GETSET_TAG( Section, bool, Hidden )
+		GETSET_TAG_BOOL( Section, Hidden )
 		/// Are contents of this section shown in a collapsible group box?
-		GETSET_TAG( Section, bool, Collapsible )
+		GETSET_TAG_BOOL( Section, Collapsible )
 	};
 } // namespace GetSetGui
 

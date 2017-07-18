@@ -210,10 +210,10 @@ GETSET_SPECIALIZATION(Enum,int,GETSET_ENUM_CLASS_BODY, GETSET_ENUM_KEY_BODY)
 GETSET_SPECIALIZATION(Slider,double, GETSET_TAG(Slider,double,Min) GETSET_TAG(Slider,double,Max), )
 
 /// A GetSet&lt;double&gt; with additional range information, so that it could be represented as a SpinBox
-GETSET_SPECIALIZATION(RangedDouble,double, GETSET_TAG(RangedDouble,double,Min) GETSET_TAG(RangedDouble,double,Step) GETSET_TAG(RangedDouble,double,Max) GETSET_TAG(RangedDouble,bool,Periodic) , )
+GETSET_SPECIALIZATION(RangedDouble,double, GETSET_TAG(RangedDouble,double,Min) GETSET_TAG(RangedDouble,double,Step) GETSET_TAG(RangedDouble,double,Max) GETSET_TAG_BOOL(RangedDouble,Periodic) , )
 
 /// A GetSet&lt;int&gt; with additional range information, so that it could be represented as a SpinBox
-GETSET_SPECIALIZATION(RangedInt,int, GETSET_TAG(RangedInt,int,Min) GETSET_TAG(RangedInt,int,Step) GETSET_TAG(RangedInt,int,Max) GETSET_TAG(RangedInt,bool,Periodic) , )
+GETSET_SPECIALIZATION(RangedInt,int, GETSET_TAG(RangedInt,int,Min) GETSET_TAG(RangedInt,int,Step) GETSET_TAG(RangedInt,int,Max) GETSET_TAG_BOOL(RangedInt,Periodic) , )
 
 /// A button that creates a GetSet change event when pressed.
 GETSET_SPECIALIZATION(Button,std::string,GETSET_BUTTON_CLASS_BODY, GETSET_BUTTON_KEY_BODY)
@@ -228,7 +228,7 @@ GETSET_SPECIALIZATION(ReadOnlyText,std::string, , )
 GETSET_SPECIALIZATION(Directory,std::string, , )
 
 /// A file (or multiple semicolon seperated files). Extensions is a string such as "Images (*.png *.xpm *.jpg);;All files (*)"
-GETSET_SPECIALIZATION(File,std::string, GETSET_TAG(File,std::string,Extensions) GETSET_TAG(File,bool, CreateNew) GETSET_TAG(File,bool, Multiple), )
+GETSET_SPECIALIZATION(File,std::string, GETSET_TAG(File,std::string,Extensions) GETSET_TAG_BOOL(File, CreateNew) GETSET_TAG_BOOL(File, Multiple), )
 
 #undef GETSET_ENUM_CLASS_BODY
 #undef GETSET_ENUM_KEY_BODY
