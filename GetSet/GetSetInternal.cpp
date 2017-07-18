@@ -69,7 +69,8 @@ namespace GetSetInternal {
 		// Delete all children
 		for (NodesByName::iterator it=children.begin();it!=children.end();++it)
 		{
-			dictionary.signal(*it->second,Dictionary::Signal::Destroy);
+			if (this!=&dictionary)
+				dictionary.signal(*it->second,Dictionary::Signal::Destroy);
 			delete it->second;
 		}
 		children.clear();
@@ -202,12 +203,14 @@ void GetSetHandler::ignoreNotifications(bool ignore)
 
 GetSetHandler::GetSetHandler(void (*change)(const GetSetInternal::Node&), const GetSetInternal::Dictionary& subject)
 	: GetSetInternal::Dictionary::Observer(subject)
+	, ignore_notify(false)
 	, change_handler_node(change)
 	, change_handler_section_key(0x0)
 {}
 
 GetSetHandler::GetSetHandler(void (*change)(const std::string& section, const std::string& key), const GetSetInternal::Dictionary& subject)
 	: GetSetInternal::Dictionary::Observer(subject)
+	, ignore_notify(false)
 	, change_handler_node(0x0)
 	, change_handler_section_key(change)
 {}

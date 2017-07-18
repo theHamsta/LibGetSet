@@ -23,6 +23,7 @@ void gui(const std::string& section, const std::string& key)
 		if (who_re_you.exec())
 			GetSet<int>("Input/Bla")=GetSet<int>("Number",who_re_you);
 
+		std::cout << GetSet<int>("Number",who_re_you) << std::endl;
 	}
 
 	g_app.saveSettings();

@@ -79,7 +79,8 @@ namespace GetSetGui
 			// Is this a section and is it even visible?
 			if (!it->second
 				|| it->second->getType()!="Section"
-				|| it->second->getAttribute<bool>("Hidden"))
+				|| it->second->getAttribute<bool>("Hidden")
+				|| it->second->name.empty())
 				continue;
 
 			GetSetWidget* tab=new GetSetWidget(GetSetGui::Section(it->second->path(), it->second->dictionary),m_tabWidget);
