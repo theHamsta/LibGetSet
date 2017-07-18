@@ -38,13 +38,14 @@
 
 #include <iostream>
 
+#define GETSET_GUI_IGNORE_SIGNAL_CHANGE(CMD) m_expectChange=true; CMD; m_expectChange=false; 
 
 namespace GetSetGui {
 
 	void GetSetWidget::trigger()
 	{
 		std::string key=sender()->objectName().toLatin1().data();
-		GetSetGui::Button(key,getSection()).trigger(); // signalChange(m_section,key);
+		GetSetGui::Button(key,getSection()).trigger();
 	}
 
 	void GetSetWidget::selectFile()
@@ -135,17 +136,15 @@ namespace GetSetGui {
 
 	void GetSetWidget::sliderMoved(int value)
 	{
-		if (m_expectChange) { m_expectChange=0; return; }
 		std::string key=sender()->objectName().toLatin1().data();
-		GetSetGui::Slider slider(key,getSection());
 		double	d=(double)value/1000.;
-		slider=d;
+		GETSET_GUI_IGNORE_SIGNAL_CHANGE(GetSet<double>(key,getSection())=d;);
 	}
 
 	void GetSetWidget::setValue(int value)
 	{
 		std::string key=sender()->objectName().toLatin1().data();
-		GetSet<std::string>(key,getSection())=toString(value);
+		GETSET_GUI_IGNORE_SIGNAL_CHANGE(GetSet<int>(key,getSection())=value);
 	}
 
 	void GetSetWidget::setRangeValue(double value)
@@ -163,7 +162,8 @@ namespace GetSetGui {
 			if (value<minv)
 				value=maxv-step;
 		}
-		item.setValue(value);
+		if (item.getValue()!=value)
+			item.setValue(value);
 	}
 
 	void GetSetWidget::setRangeValue(int value)
@@ -186,9 +186,13 @@ namespace GetSetGui {
 				if (value>maxv) value=maxv;
 				if (value<minv) value=minv;
 			}
-			item.setValue(value);
+			if (item.getValue()!=value)
+				item.setValue(value);
 		}
-		else GetSet<int>(key,getSection())=value;
+		else
+		{
+			GETSET_GUI_IGNORE_SIGNAL_CHANGE(GetSet<int>(key,getSection())=value;);
+		}
 	}
 
 	void GetSetWidget::setValue(const QString& value)
@@ -234,6 +238,7 @@ namespace GetSetGui {
 		, GetSetInternal::Dictionary::Observer(section.dictionary)
 		, m_dictionary(section.dictionary)
 		, m_section(section.path())
+		, m_expectChange(false)
 	{
 		init();
 	}
@@ -251,6 +256,8 @@ namespace GetSetGui {
 
 	 void GetSetWidget::notify(const GetSetInternal::Node& node, GetSetInternal::Dictionary::Signal signal)
 	 {
+		 // Ignore some expected change signals.
+		 if (m_expectChange && signal == GetSetInternal::Dictionary::Signal::Change) return;
 		 // Matters pertaining to my existence are handled immediately.
 		if (node.path()==m_section) {
 			GetSetGui::Section myself(getSection());
