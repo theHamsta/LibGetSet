@@ -92,7 +92,7 @@ namespace GetSetInternal {
 		new_node.setString(old_value);
 	}
 
-	std::string Section::getType() const {return "Section";}
+	std::string Section::getType() const { return "Section"; }
 
 	void Section::setString(const std::string& new_value) {}
 

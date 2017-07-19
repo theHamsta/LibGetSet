@@ -73,7 +73,7 @@ namespace GetSetGui {
 		/// This section will not be shown in GUI at all.
 		GETSET_TAG_BOOL( Section, Hidden )
 		/// Are contents of this section shown in a collapsible group box?
-		GETSET_TAG_BOOL( Section, Collapsible )
+		bool isCollapsible() const { return node.getAttributes().find("Collapsed")!=node.getAttributes().end(); }
 	};
 } // namespace GetSetGui
 

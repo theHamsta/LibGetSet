@@ -28,11 +28,12 @@ namespace GetSetInternal {
 		{
 			// Get path and type
 			const std::string& path(it->first);
+			std::string type;
 			auto type_it=it->second.find("Type");
 			// Silently ignore keys, for which the type is missing.
-			if (type_it==it->second.end()) continue;
+			if (type_it!=it->second.end()) type=type_it->second;
 			// Create Node and copy attributes
-			Node &node=section.createNode(it->first,type_it->second);
+			Node &node=section.createNode(it->first,type);
 			node.attributes=it->second;
 			// Set value and remove already handled attributes "Value" and "Type"
 			node.setString(node.attributes["Value"]);

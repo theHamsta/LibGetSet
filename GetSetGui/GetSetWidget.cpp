@@ -287,7 +287,7 @@ namespace GetSetGui {
 		{
 			GetSetGui::Section section(node.name,getSection());
 			if (section.getHidden()) return;
-			if (section.getGrouped())
+			if (section.getGrouped()||section.isCollapsible())
 			{
 				GetSetWidget *widget=new GetSetWidget(section, this);
 				widget->setObjectName("Collapsible");
@@ -296,8 +296,8 @@ namespace GetSetGui {
 				widget->setStyleSheet("#Collapsible {border: 1px solid gray}");
 				widget->setVisible(!section.getCollapsed());
 				widget->setEnabled(!section.getDisabled());
-				QPushButton *label=new QPushButton(section.getCollapsible()?(std::string("+ ")+node.name).c_str():node.name.c_str(),this);
-				label->setEnabled(section.getCollapsible());
+				QPushButton *label=new QPushButton(section.isCollapsible()?(std::string("+ ")+node.name).c_str():node.name.c_str(),this);
+				label->setEnabled(section.isCollapsible());
 				label->setFlat(true);
 				label->setObjectName(node.name.c_str());
 				label->setStyleSheet(
