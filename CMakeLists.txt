@@ -1,11 +1,15 @@
 cmake_minimum_required(VERSION 3.5.1)
 
-### PROJECT AND VERSION
 project(GetSet)
+
+### VERSION
+
 set(GETSET_VERSION_MAJOR 2)
-set(GETSET_VERSION_MINOR 5)
+set(GETSET_VERSION_MINOR 7)
 set(GETSET_VERSION_PATCH 0)
 set(GETSET_VERSION ${GETSET_VERSION_MAJOR}.${GETSET_VERSION_MINOR}.${GETSET_VERSION_PATCH} )
+
+### BUILD SETTINGS
 
 # Distinguish debug/realse binaries. And nothing else.
 set(CMAKE_DEBUG_POSTFIX "d")
@@ -41,11 +45,14 @@ find_package(Qt5OpenGL)
 set(CMAKE_AUTOMOC ON)
 
 ### SOURCE CODE
+
 add_subdirectory(GetSet)
 add_subdirectory(GetSetGui)
 
 # Utilities and tests
 add_subdirectory(Apps)
+
+### INSTALL / DEPLOY
 
 # Export all targets into the export set "GetSetExport".
 install(EXPORT GetSetExport DESTINATION cmake FILE GetSetTargets.cmake )
@@ -62,3 +69,5 @@ install(FILES License.txt DESTINATION . )
 install(FILES ./examples/README.txt DESTINATION examples/)
 install(FILES ./examples/console/CMakeLists.txt ./examples/console/simple.cpp DESTINATION examples/console)
 install(FILES ./examples/gui/README.txt ./examples/gui/CMakeLists.txt ./examples/gui/advanced.cpp DESTINATION examples/gui)
+
+

@@ -9,5 +9,11 @@ add_library(GetSet
 	GetSetScripting.cpp
 )
 set_target_properties(GetSet PROPERTIES VERSION ${GETSET_VERSION})
+
 install(FILES ${GETSET_HEADERS} DESTINATION include/GetSet)
 install(TARGETS GetSet EXPORT GetSetExport DESTINATION lib)
+
+if (WIN32)
+	install(FILES $<TARGET_FILE:GetSet> CONFIGURATIONS Debug   DESTINATION bin )
+	install(FILES $<TARGET_FILE:GetSet> CONFIGURATIONS Release DESTINATION bin )
+endif(WIN32)
