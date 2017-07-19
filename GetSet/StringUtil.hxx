@@ -55,11 +55,34 @@ template <typename T> inline T stringTo(const std::string& in)
 
 template <> inline std::string toString<>(const std::string& in) { return in; }
 template <> inline std::string stringTo<>(const std::string& in) { return in; }
+
+/// Right trim
+inline void rtrim(std::string &str , const std::string& t = " \t")
+{
+	str.erase(str.find_last_not_of(t)+1);
+}
+
+/// Left trim
+inline void ltrim(std::string& str, const std::string& t = " \t")
+{
+	str.erase(0,str.find_first_not_of(t));
+}
+
+/// Trim
+inline void trim(std::string& str, const std::string& t = " \t")
+{
+	rtrim(str,t);
+	ltrim(str,t);
+} 
+
 template <> inline std::string toString<>(const bool& in) { return in ? "true" : "false"; }
 template <> inline bool stringTo<>(const std::string& in)
 {
-	if (in=="" || in=="false" || in=="no") return false;
-	if (in=="true" || in=="yes") return true;
+	std::string s=in;
+	trim(s);
+	transform(s.begin(), s.end(), s.begin(), ::tolower);
+	if (s=="" || s=="false" || s=="no") return false;
+	if (s=="true" || s=="yes") return true;
 	return stringTo<int>(in)>0;
 }
 
@@ -96,25 +119,6 @@ _DEFINE_TYPE(std::string)
 // Specializations
 #define _DEFINE_TYPE(X)  template<> inline void reset<X>(X& v) {v=0;}
 #include "BaseTypes.hxx"
-
-/// Right trim
-inline void rtrim(std::string &str , const std::string& t = " \t")
-{
-	str.erase(str.find_last_not_of(t)+1);
-}
-
-/// Left trim
-inline void ltrim(std::string& str, const std::string& t = " \t")
-{
-	str.erase(0,str.find_first_not_of(t));
-}
-
-/// Trim
-inline void trim(std::string& str, const std::string& t = " \t")
-{
-	rtrim(str,t);
-	ltrim(str,t);
-} 
 
 /// Remove the part right of last occurence of delim and return it
 inline std::string splitRight(std::string& str, const std::string& delim)
