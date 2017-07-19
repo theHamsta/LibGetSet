@@ -267,9 +267,9 @@ namespace GetSetGui {
 		}
 		if (node.super_section!=m_section) return; // Wrong section. Do nothing.
 		switch (signal) {
-			case GetSetInternal::Dictionary::Signal::Create:  notifyCreate  (node);
-			case GetSetInternal::Dictionary::Signal::Change:  notifyChange  (node);
-			case GetSetInternal::Dictionary::Signal::Destroy: notifyDestroy (node);
+			case GetSetInternal::Dictionary::Signal::Create:  notifyCreate  (node); break;
+			case GetSetInternal::Dictionary::Signal::Change:  notifyChange  (node); break;
+			case GetSetInternal::Dictionary::Signal::Destroy: notifyDestroy (node); break;
 			default: notifyUpdateAttrib(node);
 		}
 	}

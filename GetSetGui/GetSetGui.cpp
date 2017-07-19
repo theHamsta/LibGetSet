@@ -194,8 +194,7 @@ namespace GetSetGui
 	int GetSetApplication::exec()
 	{
 		window().show();
-		return qt_app->exec();			
+		return qt_app->exec();
 	}
-
 
 } // namespace GetSetGui
