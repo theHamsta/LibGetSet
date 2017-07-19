@@ -494,7 +494,7 @@ namespace GetSetGui {
 			if (item)
 			{
 				item->blockSignals(true);
-				item->setText(GetSet<std::string>(node.name,getSection()).getString().c_str());
+				item->setText(node.getString().c_str());
 				item->blockSignals(false);
 			}
 		}

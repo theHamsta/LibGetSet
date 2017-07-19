@@ -69,9 +69,13 @@ namespace GetSetInternal {
 		// Delete all children
 		for (NodesByName::iterator it=children.begin();it!=children.end();++it)
 		{
+			Section* section=dynamic_cast<Section*>(it->second);
+			if (section) section->clear();
 			if (this!=&dictionary)
+			{
 				dictionary.signal(*it->second,Dictionary::Signal::Destroy);
-			delete it->second;
+				delete it->second;
+			}
 		}
 		children.clear();
 	}
@@ -82,7 +86,10 @@ namespace GetSetInternal {
 		// If an old node exists, store its value and destroy
 		std::string old_value;
 		if (it!=children.end()) {
-			old_value=it->second->getString();
+			Section * section=dynamic_cast<Section*>(it->second);
+			if (section)
+				section->clear();
+			else if (it->second) old_value=it->second->getString();
 			dictionary.signal(*it->second,Dictionary::Signal::Destroy);
 			delete it->second;
 			children.erase(it);

@@ -10,6 +10,8 @@
 
 #include <GetSetGui/GetSetScriptEdit.h>
 
+#include <GetSet/GetSetLog.hxx>
+
 //  #include <GetSetGui/GetSetMouseKeyboardInteraction.h>
 
 GetSetGui::GetSetApplication g_app("ExampleAdvanced");
@@ -24,10 +26,6 @@ void gui(const std::string& section, const std::string& key)
 			GetSetGui::Button("More/Do Something").trigger();
 		return;
 	}
-
-	std::string path=section+"/"+key;
-	std::cout << "Key \"" << key << "\" in section \"" << section << "\" has chaged to " << GetSet<>(path).getString() << std::endl;
-
 	// Make sure your value really is between 0 and 1
 	if (section=="Setup"&&key=="A Value between 0 and 1")
 	{
@@ -51,6 +49,9 @@ void gui(const std::string& section, const std::string& key)
 /// A typical main function using GetSet
 int main(int argc, char** argv)
 {
+	// Useful for debugging yout applications!
+	GetSetLog::debugSignals();
+
 	// Define some parameters with arbitrary types
 	GetSet<int>("Setup/Number Of Iterations")=123;
 	GetSet<double>("Setup/The Value of X")=123.456;

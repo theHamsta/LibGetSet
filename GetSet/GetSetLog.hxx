@@ -46,6 +46,7 @@ namespace GetSetInternal
 	};
 } // namespace GetSetInternal
 
+/// A utility class for creating log files. Also includes a SignalDebugger for detailed logs.
 class GetSetLog {
 	private:	
 	std::ofstream			log_file;
@@ -54,6 +55,19 @@ class GetSetLog {
 	GetSetInternal::teebuf	tee_buf_err;
 	GetSetInternal::teebuf	tee_buf_out;
 	public:
+
+	/// A utility class for debugging GetSet applications
+	class SignalDebugger : public GetSetInternal::Dictionary::Observer {
+	public:
+		SignalDebugger(const GetSetInternal::Dictionary& dict=GetSetInternal::Dictionary::global()) : GetSetInternal::Dictionary::Observer(dict) {}
+		void notify(const GetSetInternal::Node& node, GetSetInternal::Dictionary::Signal signal)
+		{
+			if (signal==GetSetInternal::Dictionary::Signal::Change)
+				std::cout << node.path() << " = " << node.getString() << std::endl;
+			else if (signal!=GetSetInternal::Dictionary::Signal::Attrib)
+				std::cout << (signal==GetSetInternal::Dictionary::Signal::Create?"+ Create ":"- Destroy") << "  (" << node.getType() << ")\t" << node.path() << std::endl;
+		}
+	};
 	
 	GetSetLog(const std::string& file) 
 	 : log_file(file)
@@ -74,7 +88,12 @@ class GetSetLog {
 		}
 	}
 	
-    ~GetSetLog()
+	static void debugSignals() {
+		static SignalDebugger* log=0x0;
+		if (!log) log=new SignalDebugger();
+	}
+
+	~GetSetLog()
 	{
 		if (cout_sbuf)
 		{

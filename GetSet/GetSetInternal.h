@@ -244,7 +244,6 @@ namespace GetSetInternal {
 
 	};
 
-
 } // namespace GetSetInternal
 
 /// A class which calls a function to handle change signals from GetSet (eg. GUI input)

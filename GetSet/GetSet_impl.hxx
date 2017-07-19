@@ -43,8 +43,9 @@ namespace GetSetGui {
 		KeyType* typed_node=dynamic_cast<KeyType*>(new_node);
 		if (typed_node) return *typed_node;
 		// if node exists and it is of type string, we would also like to forceType
-		if (!forceType&&new_node&&new_node->getType()==typeName<std::string>())
-			forceType=true;
+		if	( (!forceType&&new_node&&new_node->getType()==typeName<std::string>())
+			  ||(new_node&&new_node->getType()=="Section"))
+				forceType=true;
 		// Check if we need to create a new key
 		if (!new_node || (!typed_node && forceType))
 		{
