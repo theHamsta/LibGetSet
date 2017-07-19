@@ -183,21 +183,22 @@ namespace GetSetInternal {
 			auto path=stringToVector<>(relative_path,'/',true);
 			std::string key=path.back();
 			path.pop_back();
+			Section &section=createSection(path);
 			// Special GetSet types first (Button, Slider etc. are not defined in GetSetInternal but in GetSetGui.)
-			Node * new_node=createSpecialNode(*this,key,type);
+			Node * new_node=createSpecialNode(section,key,type);
 			if (new_node) return *new_node;
 			// This (ugly) code craetes a Key from a string for c-types, std::string and std::vectors of these
-			if (type=="vector<string>") new_node=new Key<std::vector<std::string> >(*this,key);
-			else if (type=="Section") new_node=new Section(*this,key);
-			#define _DEFINE_TYPE(X) else if (type==#X) new_node=new Key<X>(*this,key);
+			if (type=="vector<string>") new_node=new Key<std::vector<std::string> >(section,key);
+			else if (type=="Section") new_node=new Section(section,key);
+			#define _DEFINE_TYPE(X) else if (type==#X) new_node=new Key<X>(section,key);
 			#include "BaseTypes.hxx"
 			#undef _DEFINE_TYPE
-			#define _DEFINE_TYPE(X) else if (type=="vector<"#X">") new_node=new Key<std::vector<X> >(*this,key);
+			#define _DEFINE_TYPE(X) else if (type=="vector<"#X">") new_node=new Key<std::vector<X> >(section,key);
 			#include "BaseTypes.hxx"
 			#undef _DEFINE_TYPE
 			// For unknown types, std::string is assumed.
-			if (!new_node) new_node=new Key<std::string>(*this,key);
-			insertNode(*new_node);
+			if (!new_node) new_node=new Key<std::string>(section,key);
+			section.insertNode(*new_node);
 			return *new_node;
 		}
 

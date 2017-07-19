@@ -32,13 +32,23 @@ namespace GetSetInternal {
 			auto type_it=it->second.find("Type");
 			// Silently ignore keys, for which the type is missing.
 			if (type_it!=it->second.end()) type=type_it->second;
-			// Create Node and copy attributes
-			Node &node=section.createNode(it->first,type);
-			node.attributes=it->second;
-			// Set value and remove already handled attributes "Value" and "Type"
-			node.setString(node.attributes["Value"]);
-			node.attributes.erase("Type");
-			node.attributes.erase("Value");
+			Node *node=0x0;
+			// Create new node (section or key)
+			if (type=="Section")
+				node=&section.createSection(path);
+			else
+			{
+				node=section.nodeAt(path);
+				bool force_type=!type.empty() && type!="string";
+				if (!node || force_type) node=&section.createNode(path,type);
+			}
+			for (auto ait=it->second.begin();ait!=it->second.end();++ait)
+			{
+				const std::string& attrib=ait->first;
+				if (attrib=="Value") node->setString(ait->second);
+				else if (attrib=="Type") continue;
+				else node->attributes[attrib]=ait->second;
+			}
 		}
 	}
 
