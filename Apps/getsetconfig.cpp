@@ -3,6 +3,9 @@
 #include <GetSet/GetSet.hxx>
 #include <GetSet/GetSetIO.h>
 
+
+#include <GetSet/StringUtil.hxx>
+
 // #define HAS_RUN_VERB
 
 #ifdef HAS_RUN_VERB

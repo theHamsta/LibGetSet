@@ -8,7 +8,7 @@
 
 #include "../GetSet/GetSet.hxx"
 
-
+#include <fstream>
 
 namespace GetSetGui
 {
@@ -163,7 +163,10 @@ namespace GetSetGui
 			fileName = QFileDialog::getSaveFileName(this, tr("Save File"), (appname+".getset").c_str(), "GetSet scripts (*.getset);;All Files (*)").toStdString();
 
 		if (!fileName.empty())
-			fileWriteString(fileName, editor->toPlainText().toStdString());
+		{
+			std::ofstream file(fileName);
+			file << editor->toPlainText().toStdString() << std::endl;
+		}
 	}
 
 	void GetSetScriptEdit::closeEvent(QCloseEvent *event)

@@ -25,8 +25,8 @@
 #include <vector>
 #include <array>
 
-#include "StringUtil.hxx"
-#include "TypeString.hxx"
+#include "StringConversion.hxx"
+#include "StringType.hxx"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // GetSet internal -- Please refer to GetSet<T> in GetSet.hxx to use this framework.

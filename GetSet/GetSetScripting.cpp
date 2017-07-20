@@ -1,8 +1,11 @@
-
 #include "GetSetScripting.h"
+
+#include "StringUtil.hxx"
 
 #include "GetSet.hxx"
 #include "GetSetIO.h"
+
+#include <iostream>
 
 /// Local helper
 inline std::string rest_of_line(std::istream& script)

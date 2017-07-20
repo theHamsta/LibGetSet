@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 
-set(GETSET_HEADERS "BaseTypes.hxx;TypeString.hxx;StringUtil.hxx;GetSet.hxx;GetSet_impl.hxx;GetSetCmdLine.hxx;GetSetScripting.h;GetSetInternal.h;GetSetIO.h;GetSetLog.hxx")
+set(GETSET_HEADERS "BaseTypes.hxx;StringType.hxx;StringConversion.hxx;StringHexData.hxx;StringUtil.hxx;GetSet.hxx;GetSet_impl.hxx;GetSetObjects.hxx;GetSetScripting.h;GetSetInternal.h;GetSetIO.h;GetSetLog.hxx;GetSetCmdLine.hxx")
 
 add_library(GetSet
 	${GETSET_HEADERS}

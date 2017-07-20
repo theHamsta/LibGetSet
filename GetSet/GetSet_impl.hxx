@@ -50,8 +50,14 @@ namespace GetSetGui {
 		if (!new_node || (!typed_node && forceType))
 		{
 			// Get path to super section and key name
-			std::string path_to_super=relative_path;
-			std::string key=splitRight(path_to_super,"/");
+			std::string path_to_super, key;
+			// Split right
+			std::string::size_type loc=relative_path.find_last_of("/");
+			if (loc!=std::string::npos) {
+				key=relative_path.substr(loc+1,std::string::npos);
+				path_to_super=relative_path.substr(0,loc); // left
+			}
+			else key=relative_path;
 			// Find super section and insert new node
 			GetSetInternal::Section& super_section=node.createSection(path_to_super);
 			new_node=new KeyType(super_section,key);
@@ -187,7 +193,6 @@ GetSet<BasicType>::GetSet(GetSetInternal::Node& _node) : node(_node), typed_node
 	Button& setCallback(void (*c)(const std::string&, void*), const std::string& info, void* data)		\
 	{																									\
 		auto *exactlyTypedNode=dynamic_cast<GetSetInternal::KeyButton*>(&node);							\
-		if (!exactlyTypedNode) { std::cerr << "GetSetGui::Button Wrong key type.\n"; return *this;}		\
 		exactlyTypedNode->caller_info=info;																\
 		exactlyTypedNode->caller_data=data;																\
 		exactlyTypedNode->callback=exactlyTypedNode->caller_info.empty()?0x0:c;							\
@@ -196,7 +201,6 @@ GetSet<BasicType>::GetSet(GetSetInternal::Node& _node) : node(_node), typed_node
 	void trigger(bool signal_change=true)																\
 	{																									\
 		auto *exactlyTypedNode=dynamic_cast<GetSetInternal::KeyButton*>(&node);							\
-		if (!exactlyTypedNode) { std::cerr << "GetSetGui::Button Wrong key type.\n"; return;}			\
 		if (!exactlyTypedNode->caller_info.empty())														\
 			exactlyTypedNode->callback(																	\
 				exactlyTypedNode->caller_info,															\

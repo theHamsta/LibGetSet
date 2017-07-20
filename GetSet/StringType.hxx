@@ -17,8 +17,8 @@
 //  limitations under the License.
 //
 
-#ifndef __TypeString_hxx
-#define __TypeString_hxx
+#ifndef __string_type_hxx
+#define __string_type_hxx
 
 #include <string>
 #include <vector>
@@ -49,4 +49,4 @@ inline bool isTypeStr(const std::string& type)
 	return isType;
 }
 
-#endif // __TypeString_hxx
+#endif // __string_type_hxx

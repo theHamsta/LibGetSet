@@ -22,6 +22,10 @@
 
 #include "GetSet.hxx"
 
+#include "StringUtil.hxx"
+
+#include <iostream>
+
 namespace GetSetIO {
 	/// Set properties via command line.
 	class CmdLineParser {

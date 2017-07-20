@@ -1,5 +1,7 @@
 #include "GetSetIO.h"
 
+#include "StringUtil.hxx"
+
 #include <fstream>
 
 namespace GetSetInternal {
@@ -168,7 +170,7 @@ namespace GetSetIO {
 			getline(istr,line,'\n');
 			std::map<std::string,std::string> m;
 			// Parse XML attribute="value" style string
-			parseAttribs(line,m);
+			attrib_parse(line,m);
 			// Make sure that all entries contain the "Key" attribute, otherwise ignore that line.
 			if (m["Key"].empty()) continue;
 			contents[m["Key"]]=m;
@@ -182,11 +184,38 @@ namespace GetSetIO {
 		for (MapStrMapStrStr::const_iterator p=contents.begin();p!=contents.end();++p)
 		{
 			// Output all keys along with additional info (like GUI type etc.) in an XML attribute="value" style
-			ostr << std::string("Key=\"")+p->first+"\"";
-			for (MapStrStr::const_iterator attr=p->second.begin();attr!=p->second.end();++attr)
-				ostr << std::string(" ")+attr->first+"=\""+attr->second+"\"";
-			ostr << std::endl;
+			MapStrStr tmp=p->second;
+			tmp["Key"]=p->first;
+			ostr << attrib_list(tmp) << std::endl;
 		}
 	}
+
+	//
+	// SingleLine
+	//
+
+	InputOutput& SingleLine::loadStream(std::istream& istr)
+	{
+		std::string all;
+		getline(istr,all,'\0');
+		std::map<std::string,std::string> m;
+		// Parse XML attribute="value" style string
+		attrib_parse(all,m);
+		for (auto it=m.begin();it!=m.end();++it)
+			contents[it->first]["Value"]=it->second;
+		return *this;
+	}
+
+	void SingleLine::saveStream(std::ostream& ostr) const
+	{
+		std::map<std::string,std::string> tmp;
+		for (MapStrMapStrStr::const_iterator p=contents.begin();p!=contents.end();++p) {
+			auto it=p->second.find("Value");
+			if (it!=p->second.end())
+				tmp[p->first]=it->second;
+		}
+		ostr << attrib_list(tmp) << std::endl;
+	}
+
 
 } // namespace GetSetIO

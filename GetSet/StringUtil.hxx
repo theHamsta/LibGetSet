@@ -17,44 +17,17 @@
 //  limitations under the License.
 //
 
-#ifndef __StringUtil_hxx
-#define __StringUtil_hxx
+#ifndef __string_util_hxx
+#define __string_util_hxx
+
+#include "StringConversion.hxx"
+#include "StringType.hxx"
 
 #include <algorithm>
-#include <iostream>
-#include <iomanip>
 #include <sstream>
 #include <fstream>
 #include <vector>
-#include <array>
 #include <map>
-
-/// Reset value (call constructor or zeros c-types, see specializations)
-template <typename T> inline void reset(T& v)
-{
-	v=T();
-}
-
-// Type general conversion to string
-template <typename T> inline std::string toString(const T& in)
-{
-	std::ostringstream strstr;
-	strstr << in;
-	return strstr.str();
-}
-
-// General conversion from string to another type
-template <typename T> inline T stringTo(const std::string& in)
-{
-	T value;
-	reset(value);
-	std::istringstream strstr(in);
-	strstr >> value;
-	return value;
-}
-
-template <> inline std::string toString<>(const std::string& in) { return in; }
-template <> inline std::string stringTo<>(const std::string& in) { return in; }
 
 /// Right trim
 inline void rtrim(std::string &str , const std::string& t = " \t")
@@ -74,51 +47,6 @@ inline void trim(std::string& str, const std::string& t = " \t")
 	rtrim(str,t);
 	ltrim(str,t);
 } 
-
-template <> inline std::string toString<>(const bool& in) { return in ? "true" : "false"; }
-template <> inline bool stringTo<>(const std::string& in)
-{
-	std::string s=in;
-	trim(s);
-	transform(s.begin(), s.end(), s.begin(), ::tolower);
-	if (s=="" || s=="false" || s=="no") return false;
-	if (s=="true" || s=="yes") return true;
-	return stringTo<int>(in)>0;
-}
-
-// Conversion from vector of any type to string
-template <typename T> inline std::string vectorToString(const std::vector<T>& in, const std::string& delim=" ")
-{
-	if (in.empty()) return std::string();
-    typename std::vector<T>::const_iterator it=in.begin();
-	std::string ret=toString(*it);
-	for (++it;it!=in.end();++it)
-		ret+=delim+toString(*it);
-	return ret;
-}
-
-// Conversion of a string to a vector of any type
-template <typename T=std::string> inline std::vector<T> stringToVector(const std::string& in, const char delim=' ', bool multiple=false)
-{
-	std::string item;
-	std::vector<T> ret;
-	std::istringstream str(in);
-	for (;std::getline(str,item,delim);str&&!str.eof())
-		if (multiple||!item.empty())
-		ret.push_back(stringTo<T>(item));
-	return ret;
-}
-
-// Specializations of toString and stringTo for select vector-types assuming seperating semicolon
-#define _DEFINE_TYPE(TYPE) \
-	template <> inline std::string toString<>(const std::vector<TYPE>& in) {return vectorToString(in,";");} \
-	template <> inline std::vector<TYPE> stringTo<>(const std::string& in) {return stringToVector<TYPE>(in,';');}
-_DEFINE_TYPE(std::string)
-#include "BaseTypes.hxx"
-
-// Specializations
-#define _DEFINE_TYPE(X)  template<> inline void reset<X>(X& v) {v=0;}
-#include "BaseTypes.hxx"
 
 /// Remove the part right of last occurence of delim and return it
 inline std::string splitRight(std::string& str, const std::string& delim)
@@ -156,14 +84,6 @@ inline std::string splitLeft(std::string& str, const std::string& delim)
 	return left;
 }
 
-/// Overload of string conversion for specific lengths
-template <typename T> inline std::string toString(T in, int width, char fill='0')
-{
-	std::ostringstream strstr;
-	strstr << std::setfill(fill) << std::setw(width) << in;
-	return strstr.str();
-}
-
 /// write text to file
 inline bool fileWriteString(const std::string& filename, const std::string& contents)
 {
@@ -194,9 +114,98 @@ inline void normalize(std::string& name)
 	std::replace(name.begin(),name.end(),'/','-');
 }
 
-/// Parse XML-Style attributes into an std::map of strings
-inline void parseAttribs(const std::string& in, std::map<std::string,std::string>& out)
+namespace EscapeSequence {
+
+	/// Escape a list of characters in input string with escape sequence. By default uses typical backslash-escape.
+	inline std::string escape(const std::string& input, const std::map<unsigned char,unsigned char>& replace_characters, char escape_character)
+	{
+		std::string ret;
+		for (auto it=input.begin();it!=input.end();++it) {
+			auto replace=replace_characters.find(*it);
+			if (replace!=replace_characters.end()) ret+=std::string(1,escape_character)+std::string(1,replace->second);
+			else if (*it==escape_character) ret+= std::string(1,escape_character) + std::string(1,escape_character);
+			else ret+=std::string(1,*it);
+		}
+		return ret;
+	}
+
+	/// Removes escape sequence from a string. Invalid escape sequences expand to nothing, i.e. "\x" -> "" for unknown x and backslash escape character.
+	inline std::string unescape(const std::string& input, const std::map<unsigned char,unsigned char>& replace_characters, char escape_character)
+	{
+		std::string ret;
+		for (auto it=input.begin();it!=input.end();++it)
+			if (*it==escape_character)
+			{
+				if (++it==input.end()) break;
+				auto cit=replace_characters.find(*it);
+				if (cit!=replace_characters.end()) ret += std::string(1,cit->second);
+				else if (*it==escape_character) ret += std::string(1,escape_character);
+				// else: invalid escape sequence, ignored.
+			}
+			else ret += std::string(1,*it);
+		return ret;
+	}
+
+	/// Newlines are replaced by "\n"
+	inline std::string escape_newline(const std::string& input) {
+		std::map<unsigned char,unsigned char> escape_characters;
+		escape_characters['\n']='n';
+		return escape(input,escape_characters,'\\');
+	}
+
+	/// "\n" is replaced by newline character.
+	inline std::string unescape_newline(const std::string& input) {
+		std::map<unsigned char,unsigned char> escape_characters;
+		escape_characters['n']='\n';
+		return unescape(input,escape_characters,'\\');
+	}
+
+	/// whitespace to '_', underscore to "^u" double quotes to "^q", newlines to "^n", equals sign to "^e" and '^' to "^^".
+	inline std::string escape_attrib_key(const std::string& input) {
+		std::map<unsigned char,unsigned char> escape_characters;
+		escape_characters['\"']='q';
+		escape_characters['\n']='n';
+		escape_characters[ '=']='e';
+		escape_characters[ '_']='u';
+		std::string tmp=escape(input,escape_characters,'^');
+		std::replace(tmp.begin(),tmp.end(),' ','_');
+		return tmp;
+	}
+
+	/// Reverse of escape_attrib_key(...).
+	inline std::string unescape_attrib_key(const std::string& input) {
+		std::string tmp=input;
+		std::replace(tmp.begin(),tmp.end(),'_',' ');
+		std::map<unsigned char,unsigned char> escape_characters;
+		escape_characters['q']='\"';
+		escape_characters['n']='\n';
+		escape_characters['e']='=';
+		escape_characters['u']='_';
+		return unescape(tmp,escape_characters,'^');
+	}
+
+	/// double quotes to "^q", newlines to "^n" and '^' to "^^".
+	inline std::string escape_attrib_value(const std::string& input) {
+		std::map<unsigned char,unsigned char> escape_characters;
+		escape_characters['\"']='q';
+		escape_characters['\n']='n';
+		return escape(input,escape_characters,'^');
+	}
+	/// "^q" to ouble quote, "^n" to newlines and "^^" to '^'
+	inline std::string unescape_attrib_value(const std::string& input) {
+		std::map<unsigned char,unsigned char> escape_characters;
+		escape_characters['q']='\"';
+		escape_characters['n']='\n';
+		return unescape(input,escape_characters,'^');
+	}
+
+} // namespace EscapeSequence
+
+
+/// Parse XML-Style attributes into an std::map of strings. Attributes are added to the std::map of strings out.
+inline void attrib_parse(const std::string& in, std::map<std::string,std::string>& out)
 {
+	using namespace EscapeSequence;
 	size_t pos=0;
 	std::string key,value;
 	for (;;)
@@ -212,10 +221,23 @@ inline void parseAttribs(const std::string& in, std::map<std::string,std::string
 			value=in.substr(v1+1,v2-v1-1);
 			trim(key);
 			trim(value);
+			key=unescape_attrib_key(key);
+			value=unescape_attrib_value(value);
 			out[key]=value;
 			pos=v2+1;
 		}
 	}
 }
 
-#endif // __StringUtil_hxx
+/// Create a string with XML-Style attributes from a std::map of strings
+inline std::string attrib_list(const std::map<std::string,std::string>& in)
+{
+	using namespace EscapeSequence;
+	std::string ret;
+	for (auto it=in.begin();it!=in.end();++it)
+		ret += escape_attrib_key(it->first) + "=\""+escape_attrib_value(it->second)+"\" ";
+	return ret;
+}
+
+
+#endif // __string_util_hxx

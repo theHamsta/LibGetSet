@@ -12,6 +12,10 @@
 
 #include <GetSet/GetSetLog.hxx>
 
+#include <GetSet/GetSetObjects.hxx>
+
+#include <GetSet/StringHexData.hxx>
+
 //  #include <GetSetGui/GetSetMouseKeyboardInteraction.h>
 
 GetSetGui::GetSetApplication g_app("ExampleAdvanced");

@@ -33,6 +33,8 @@
 
 #include <QApplication>
 
+#include <iostream>
+
 // Minor leaks. FIXME
 
 /// Same as GetSetHandler, but keeps track of state changes

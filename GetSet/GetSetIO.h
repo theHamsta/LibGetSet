@@ -22,6 +22,8 @@
 
 #include "GetSet.hxx"
 
+#include <fstream>
+
 namespace GetSetInternal {
 	/// A simple representation of all the information in a property (sub-)tree
 	struct InputOutput{
@@ -94,6 +96,13 @@ namespace GetSetIO {
 		virtual InputOutput& loadStream(std::istream& istr);
 		virtual void saveStream(std::ostream& ostr) const ;
 	};
+	
+	/// A single line in format Key1="Value1" Key2="Value2" ...
+	struct SingleLine : public GetSetInternal::InputOutput {
+		virtual InputOutput& loadStream(std::istream& istr);
+		virtual void saveStream(std::ostream& ostr) const ;
+	};
+
 
 } // namespace GetSetIO
 
