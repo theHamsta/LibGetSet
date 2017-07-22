@@ -37,7 +37,7 @@ namespace GetSetGui
 	{
 		delete log;
 		if (callback) delete callback;
-		if (main_window) delete main_window;
+//		if (main_window) delete main_window; // Crashed on delete on windows (why?)
 //		if (qt_app) delete qt_app; // Crashed on delete on windows (why?)
 	}
 

@@ -27,8 +27,8 @@ namespace GetSetObjects {
 	/// Interface for a class which can be represented directly by a GetSet section.
 	class Configurable {
 	public:
-		virtual void gui_declare(GetSetGui::Section&) = 0;
-		virtual void gui_retreive_from(GetSetGui::Section&) = 0;
+		virtual void gui_declare_section(GetSetGui::Section&) = 0;
+		virtual void gui_retreive_section(GetSetGui::Section&) = 0;
 	};
 
 	/// An interface for objects, which store their settings in a specific Section and are notified for changes relative to that section only.
@@ -59,11 +59,11 @@ namespace GetSetObjects {
 		void notify(const GetSetInternal::Node& node, GetSetInternal::Dictionary::Signal signal) {
 			if (!ignore_notify && signal==GetSetInternal::Dictionary::Signal::Change)
 			{
-				// Is node located somewhere below out section? If so, not our business.
+				// Is node located somewhere below our section? If so, not our business.
 				if (node.super_section.size()<=path.size()) return; 
 				// check if the node is located in our section by checking is path is a prefix of the super_section
 				bool prefix_ok=true;
-				for (int i=0;i<(int)node.super_section.size();i++, prefix_ok)
+				for (int i=0;i<(int)path.size();i++, prefix_ok)
 					prefix_ok&=path[i]==node.super_section[i];
 				// If, so, we are hereby notified.
 				if (prefix_ok) gui_notify(node.super_section.substr(path.size()), node);
@@ -78,11 +78,16 @@ namespace GetSetObjects {
 		
 		Object(GetSetGui::Section& section)
 			: Resident(section)
-		{ gui_declare(section); }
+		{}
 		
-		void gui_retreive() {
-			gui_retreive_from(gui_section());
+		void gui_declare() {
+			gui_declare_section(gui_section());
 		}
+
+		void gui_retreive() {
+			gui_retreive_section(gui_section());
+		}
+
 	};
 
 } // namespace GetSetObjects

@@ -27,6 +27,14 @@
 class HexData : public std::vector<unsigned char> {
 public:
 
+	template <typename T>
+	static HexData object(const T& instance)
+	{
+		HexData ret;
+		ret.copy(instance);
+		return ret;
+	}
+
 	template <typename T=unsigned char>
 	T * raw() { return (T*)&this->front(); }
 
@@ -74,7 +82,7 @@ template <> inline std::string toString<>(const HexData& in)
 
 template <> inline HexData stringTo<>(const std::string& in)
 {
-	int N=in.size()/2;
+	int N=(int)in.size()/2;
 	HexData ret;
 	ret.resize(N);
 	char *raw=ret.raw<char>();
