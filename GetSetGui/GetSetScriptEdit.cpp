@@ -1,4 +1,23 @@
-﻿#include "GetSetScriptEdit.h"
+﻿//
+//  Library: GetSet
+//  c++ library for load/saving *typed* and *named* properties and automatic GUI.
+//  
+//  Copyright (c) by André Aichert (aaichert@gmail.com)
+//    
+//  Licensed under the Apache License, Version 2.0 (the "License");
+//  you may not use this file except in compliance with the License.
+//  You may obtain a copy of the License at
+//  
+//    http://www.apache.org/licenses/LICENSE-2.0
+//    
+//  Unless required by applicable law or agreed to in writing, software
+//  distributed under the License is distributed on an "AS IS" BASIS,
+//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//  See the License for the specific language governing permissions and
+//  limitations under the License.
+//
+
+#include "GetSetScriptEdit.h"
 
 #include <sstream>
 
@@ -223,7 +242,7 @@ namespace GetSetGui
 			{
 				std::string endcommand=std::string("end"+command);
 				int i=1;
-				while (i>0||block.eof())
+				while (i>0||block.eof() && block.good())
 				{
 					std::string input;
 					block >> input;
@@ -278,8 +297,8 @@ namespace GetSetGui
 	GetSetScriptSyntaxHighlighter::GetSetScriptSyntaxHighlighter(QTextDocument *parent)
 		: QSyntaxHighlighter(parent)
 	{
-		std::string keywords="\\b(?:help|call|concat|define|discard|print|eval|exit|file|for|if|input|set|while|who|with|enddefine|endfor|endif|endwhile)\\b";
-		std::string keywords_cosub="\\b(?:each|in|from|to|than|step|output|replace|append|and|ini\\s+(?:|load|save|get\\s+var|set\\s+key|remove\\s+key)|run|trigger)\\b";
+		std::string keywords="\\b(?:help|call|concat|define|discard|print|eval|exit|file|for|if|input|on|set|while|who|with|enddefine|endfor|endif|endwhile)\\b";
+		std::string keywords_cosub="\\b(?:each|in|from|to|than|step|output|replace|append|and|ini\\s+(?:|load|save|get\\s+var|set\\s+key|remove\\s+key)|run|trigger|change|do nothing)\\b";
 		std::string keywords_cmpar="\\b(?:not|strequal|numequal|gequal|lequal|greater|less)\\b";
 		std::string keywords_cmpop="\\b(?:plus|minus|times|over)\\b";
 

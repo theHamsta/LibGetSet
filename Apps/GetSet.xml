@@ -24,9 +24,9 @@
             <Keywords name="Folders in comment, open"></Keywords>
             <Keywords name="Folders in comment, middle"></Keywords>
             <Keywords name="Folders in comment, close"></Keywords>
-            <Keywords name="Keywords1">help who exit set function endfunction call with if endif while endwhile for endfor file input print eval discard</Keywords>
+            <Keywords name="Keywords1">help who exit set function endfunction call on with if endif while endwhile for endfor file input print eval discard</Keywords>
             <Keywords name="Keywords2">key var value</Keywords>
-            <Keywords name="Keywords3">each in from to than step output replace append and ini load save get remove run trigger</Keywords>
+            <Keywords name="Keywords3">each in from to than step output replace append and ini load save get remove run trigger change do nothing</Keywords>
             <Keywords name="Keywords4">not strequal numequal gequal lequal greater less plus minus times</Keywords>
             <Keywords name="Keywords5"></Keywords>
             <Keywords name="Keywords6"></Keywords>

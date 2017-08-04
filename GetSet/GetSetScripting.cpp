@@ -20,7 +20,8 @@ inline std::string rest_of_line(std::istream& script)
 //
 
 GetSetScriptParser::GetSetScriptParser(GetSetInternal::Dictionary& _subject)
-	: subject(_subject)
+	: GetSetInternal::Dictionary::Observer(_subject)
+	, subject(_subject)
 	, user_input(0x0)
 	, parse_error_occured(false)
 {}
@@ -41,9 +42,9 @@ bool GetSetScriptParser::good() const
 void GetSetScriptParser::prompt()
 {
 	printErr("GetSet scripting language \nhttps://sourceforge.net/p/getset/");
-	printErr("To leave prompt type:\n   set key Prompt value false");
-	GetSet<bool>("Prompt")=true;
-	while (GetSet<bool>("Prompt")) {
+	printErr("To leave prompt type:\n   set key prompt value false");
+	GetSet<bool>("prompt")=true;
+	while (GetSet<bool>("prompt")) {
 		std::string command=input();
 		parse(command);
 	}
@@ -133,12 +134,15 @@ std::string GetSetScriptParser::synopsis(const std::string& command, bool with_e
 		help    ["discard"] +="   discard key <key>\n";
 		help    ["discard"] +="   discard {var|function} <varname>\n";
 		examples["discard"] +="   discard key \"Personal/Last Name\"";
-		help    ["define"]  +="   define {var|function} <varname:function> ... endfunction\n";
+		help    ["define"]  +="   define {var|function} <varname:function> ... enddefine\n";
 		examples["define"]  +="   define function greetings\n";
 		examples["define"]  +="      print output value Hallo!\n";
 		examples["define"]  +="   enddefine\n";
 		help    ["call"]    +="   call function <varname:function>\n";
 		examples["call"]    +="   call function greetings\n";
+		help    ["on"  ]    +="   on change key <key> call function <varname:function>\n";
+		help    ["on"  ]    +="   on change key <key> do nothing\n";
+		examples["on"  ]    +="   on change key \"First Name\" call function greetings\n";
 		help    ["with"]    +="   with section <key:section>\n";
 		examples["with"]    +="   with section \"Personal\"\n";
 		examples["with"]    +="   set key \"First Name\" to value \"John\"\n";
@@ -232,22 +236,23 @@ void GetSetScriptParser::parse_commands(const std::string& commands, const std::
 			rest_of_line(script); // ignore rest of line
 			continue;
 		}
-		else if (command == "help") parse_help(script);
-		else if (command == "call") parse_call(script);
-		else if (command == "concat") parse_concat(script);
-		else if (command == "define") parse_define(script);
+		else if (command == "help")    parse_help(script);
+		else if (command == "call")    parse_call(script);
+		else if (command == "on")      parse_on(script);
+		else if (command == "concat")  parse_concat(script);
+		else if (command == "define")  parse_define(script);
 		else if (command == "discard") parse_discard(script);
-		else if (command == "print") parse_print(script);
-		else if (command == "eval") parse_eval(script);
-		else if (command == "exit") parse_exit(script);
-		else if (command == "file") parse_file(script);
-		else if (command == "for") parse_for(script);
-		else if (command == "if") parse_if(script);
-		else if (command == "input") parse_input(script);
-		else if (command == "set") parse_set(script);
-		else if (command == "while") parse_while(script);
-		else if (command == "who") parse_who(script);
-		else if (command == "with") parse_with(script);
+		else if (command == "print")   parse_print(script);
+		else if (command == "eval")    parse_eval(script);
+		else if (command == "exit")    parse_exit(script);
+		else if (command == "file")    parse_file(script);
+		else if (command == "for")     parse_for(script);
+		else if (command == "if")      parse_if(script);
+		else if (command == "input")   parse_input(script);
+		else if (command == "set")     parse_set(script);
+		else if (command == "while")   parse_while(script);
+		else if (command == "who")     parse_who(script);
+		else if (command == "with")    parse_with(script);
 		else parse_error(command,"Unknown command.");
 	}
 	if (parse_error_occured)
@@ -274,6 +279,24 @@ std::string GetSetScriptParser::location(std::istream& script)
 	int line_number=(int)std::count(commands.begin(),commands.begin()+pos,'\n') ;
 	std::string location=std::string("line: ")+toString(line_number)+ " ch:" +toString(pos);
 	return location;
+}
+
+void GetSetScriptParser::notify(const GetSetInternal::Node& node, GetSetInternal::Dictionary::Signal signal)
+{
+	if (signal!=GetSetInternal::Dictionary::Signal::Change) return;
+	static std::set<std::string> active_functions;
+	if (event_handlers.find(node.path())==event_handlers.end()) return;
+	// Remember which functions are being called and do not allow simultaneous execution of the same function.
+	if (active_functions.find(event_handlers[node.path()])!=active_functions.end())
+		parse_error(std::string("event handler"),"Potential recursion. Interrupt.\nkey: "+node.path()+"\n");
+	active_functions.insert(event_handlers[node.path()]);
+	// call
+	std::string varname=event_handlers[node.path()];
+	if (variables.find(varname)==variables.end())
+		parse_error("event handler", varname + " variable undefined.");
+	else
+		parse_commands(variables[varname], std::string("event handler ")+varname);
+	active_functions.erase(event_handlers[node.path()]);
 }
 
 bool GetSetScriptParser::get_token_string(std::istream& script, std::string& token)
@@ -343,7 +366,7 @@ void GetSetScriptParser::parse_help(std::istream& script)
 void GetSetScriptParser::parse_call(std::istream& script)
 {
 	std::stringstream line(rest_of_line(script));
-	if (expect_keyword(line,"call","var;function")<0) return;
+	if (expect_keyword(line,"call","function")<0) return;
 	std::string varname;
 	expect_token_string(line,"call",varname);
 	if (!expect_end_of_line(line,"call")) return;
@@ -351,6 +374,32 @@ void GetSetScriptParser::parse_call(std::istream& script)
 		parse_error("call", varname + " variable undefined.");
 	else
 		parse_commands(variables[varname], std::string("function ")+varname);
+}
+
+void GetSetScriptParser::parse_on(std::istream& script)
+{
+	std::stringstream line(rest_of_line(script));
+	if (expect_keyword(line,"on","change")<0) return;
+	if (expect_keyword(line,"on","key")<0) return;
+	std::string keyname;
+	if (!expect_token_key(line,"on",keyname)) return;
+	int call=expect_keyword(line,"on","do;call");
+	if (call)
+	{
+		if (expect_keyword(line,"on","function")<0) return;
+		std::string varname;
+		if (!expect_token_string(line,"on",varname)) return;
+		if (!expect_end_of_line(line,"on")) return;
+		event_handlers[keyname]=varname;
+	}
+	else
+	{
+		if (expect_keyword(line,"on","nothing")<0) return;
+		if (!expect_end_of_line(line,"on")) return;
+		auto it=event_handlers.find(keyname);
+		if (it!=event_handlers.end())
+			event_handlers.erase(it);
+	}
 }
 
 void GetSetScriptParser::parse_concat(std::istream& script)

@@ -26,7 +26,7 @@
 #include "GetSetInternal.h"
 
 /// Parse a script line-by-line. Language is not context free. See ScriptSyntax.txt for more info.
-class GetSetScriptParser
+class GetSetScriptParser : public GetSetInternal::Dictionary::Observer
 {
 public:
 	GetSetScriptParser(GetSetInternal::Dictionary& _subject=GetSetInternal::Dictionary::global());
@@ -64,11 +64,17 @@ public:
 	/// Figure out current location within a stringstream
 	static std::string location(std::istream& script);
 
+	/// Calls registered event handlers. Recursion is not allowed.
+	void notify(const GetSetInternal::Node& node, GetSetInternal::Dictionary::Signal signal);
+
+	/// Registered script functions called on signals
+	std::map<std::string, std::string> event_handlers;
+
 	/// Callback for user input
 	std::string (*user_input)();
 
 	/// Map of temporary variables and command functions (i.e. subroutines)
-	std::map<std::string,std::string> variables;
+	std::map<std::string, std::string> variables;
 
 protected:
 
@@ -125,8 +131,10 @@ protected:
 
 	/// help [<command>]
 	void parse_help(std::istream& script);
-	/// call <varname>
+	/// call function <varname:function>
 	void parse_call(std::istream& script);
+	/// on [change|create|destroy] key <key> call function <varname:function>>
+	void parse_on(std::istream& script);
 	/// concat var <varname> from <value> [and <value>]+
 	void parse_concat(std::istream& script);
 	/// define function <varname> ... enddefine
@@ -157,6 +165,7 @@ protected:
 	void parse_who(std::istream& script);
 	/// with <section> ... endwith, where section has same format as <key>
 	void parse_with(std::istream& script);
+
 
 	/// Make sure end of line or end of file is reached
 	bool expect_end_of_line(std::istream& script, const std::string& fn_name);

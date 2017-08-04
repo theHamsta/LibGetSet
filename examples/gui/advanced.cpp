@@ -53,8 +53,9 @@ void gui(const std::string& section, const std::string& key)
 /// A typical main function using GetSet
 int main(int argc, char** argv)
 {
+
 	// Useful for debugging yout applications!
-	GetSetLog::debugSignals();
+//	GetSetLog::debugSignals();
 
 	// Define some parameters with arbitrary types
 	GetSet<int>("Setup/Number Of Iterations")=123;
