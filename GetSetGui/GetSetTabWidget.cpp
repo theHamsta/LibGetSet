@@ -35,6 +35,9 @@
 
 #include <iostream>
 
+#include "GetSetProgressWindow.h"
+#include "../GetSet/StringUtil.hxx"
+
 // Minor leaks. FIXME
 
 /// Same as GetSetHandler, but keeps track of state changes
@@ -237,9 +240,12 @@ namespace GetSetGui
 	
 	void GetSetTabWidget::script_run_default()
 	{
+		GetSetProgressWindow *progress=new GetSetProgressWindow();
+		progress->setAttribute(Qt::WA_DeleteOnClose);
 		std::string appname=GetSet<>("Application");
-		std::cout << "Running script " << appname << ".getset" << std::endl;
-		GetSetScriptParser::global().parse(std::string("file run ")+appname+".getset");
+		std::cout << "Running script " << appname + ".getset" << std::endl;
+		std::string script=fileReadString(appname + ".getset");
+		GetSetScriptParser::global().parse(script,appname+".getset",progress);
 	}
 
 	GetSetTabWidget::~GetSetTabWidget()

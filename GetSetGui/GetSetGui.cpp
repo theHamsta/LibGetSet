@@ -162,34 +162,29 @@ namespace GetSetGui
 	void GetSetApplication::progressStart(const std::string& name, const std::string& info, int maximum, bool *cancel_clicked)
 	{
 		window().hide();
-		progress().start(name,info,maximum,cancel_clicked);
+		progress().progressStart(name,info,maximum,cancel_clicked);
 	}
 
 	void GetSetApplication::progressUpdate(int i)
 	{
-		progress().progress_bar->setValue(i);
-		progress().progress_bar->show();
-		QApplication::processEvents();
+		progress().progressUpdate(i);
 	}
 
 	void GetSetApplication::progressEnd()
 	{
-		progress().hide();
-		progress().progress_bar->hide();
+		progress().progressEnd();
 		window().show();
 	}
 
 	void GetSetApplication::info(const std::string& who, const std::string& what, bool show_dialog)
 	{
-		if (show_dialog)
-			QMessageBox::information(0x0,who.c_str(),what.c_str(),QMessageBox::Ok);
+		progress().info(who, what, show_dialog);
+		std::cout << who << ": " << what << std::endl;
 	}
 
-	void GetSetApplication::warn(const std::string& who, const std::string& what, bool show_dialog)
+	void GetSetApplication::warn(const std::string& who, const std::string& what, bool non_fatal)
 	{
-		if (show_dialog)
-			QMessageBox::warning(0x0,who.c_str(),what.c_str(),QMessageBox::Ok);
-		else std::cerr << who << ": " << what << std::endl;
+		progress().warn(who, what, non_fatal);
 	}
 
 	void GetSetApplication::saveSettings() const
@@ -206,7 +201,7 @@ namespace GetSetGui
 	{
 		GetSetScriptParser parser(dict);
 		parser.addErrorCallback(0x0,gui_update);
-		parser.parse(script);
+		parser.parse(script,"Script",this);
 		return parser.good();
 	}
 

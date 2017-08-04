@@ -50,10 +50,10 @@ void GetSetScriptParser::prompt()
 	}
 }
 
-bool GetSetScriptParser::parse(const std::string& commands, const std::string& scriptname)
+bool GetSetScriptParser::parse(const std::string& commands, const std::string& scriptname, ProgressInterface* p)
 {
 	parse_error_occured=false;
-	parse_commands(commands, scriptname);
+	parse_commands(commands, scriptname, p);
 	return !parse_error_occured;
 }
 
@@ -220,15 +220,27 @@ std::string GetSetScriptParser::state()
 	return ret;
 }
 
-void GetSetScriptParser::parse_commands(const std::string& commands, const std::string& file_or_function_name)
+void GetSetScriptParser::parse_commands(const std::string& commands, const std::string& file_or_function_name, ProgressInterface* p)
 {
+	int total_number_of_lines=(int)std::count(commands.begin(),commands.end(),'\n') ;
+	bool cancel_clicked=false;
 	std::string current_location;
 	std::istringstream script(commands);
+	if (p) p->progressStart(file_or_function_name, "Parsing...",total_number_of_lines,&cancel_clicked);
 	while (!parse_error_occured && !script.eof())
 	{
 		std::string command;
 		script >> std::ws;
-		current_location=location(script);
+		auto loc=location(script);
+		current_location=loc.second;
+		if (p) {
+			p->info(file_or_function_name,loc.second);
+			p->progressUpdate(loc.first);
+		}
+		if (cancel_clicked) {
+			printErr("User interrupt!");
+			break;
+		}
 		printErr(std::string("@")+file_or_function_name+" "+current_location);
 		script >> command;
 		if (command.empty() || command[0]=='#')
@@ -255,6 +267,7 @@ void GetSetScriptParser::parse_commands(const std::string& commands, const std::
 		else if (command == "with")    parse_with(script);
 		else parse_error(command,"Unknown command.");
 	}
+	if (p) p->progressEnd();
 	if (parse_error_occured)
 		printErr(std::string("   called from ") + file_or_function_name + " @" + current_location);
 	else
@@ -268,17 +281,17 @@ void GetSetScriptParser::parse_error(const std::string& fn_name, const std::stri
 	parse_error_occured=true;
 }
 
-std::string GetSetScriptParser::location(std::istream& script)
+std::pair<int,std::string> GetSetScriptParser::location(std::istream& script)
 {
 	auto pos=script.tellg();
-	if (pos<0) return "end of file";
+	if (pos<0) return std::make_pair<int,std::string>(-1,"end of file");
 	script.seekg(0,script.beg);
 	std::string commands;
 	getline(script,commands,'\0');
 	script.seekg(pos);
 	int line_number=(int)std::count(commands.begin(),commands.begin()+pos,'\n') ;
 	std::string location=std::string("line: ")+toString(line_number)+ " ch:" +toString(pos);
-	return location;
+	return std::make_pair(line_number,location);
 }
 
 void GetSetScriptParser::notify(const GetSetInternal::Node& node, GetSetInternal::Dictionary::Signal signal)
@@ -433,9 +446,9 @@ void GetSetScriptParser::parse_define(std::istream& script)
 	expect_token_string(line,"define",varname);
 	expect_end_of_line(line,"define");
 	auto pos_start=script.tellg();
-	std::string block_start=location(script);
+	std::pair<int,std::string> block_start=location(script);
 	std::string function_block=get_block(script,"define");
-	std::string thisblock=std::string("# function ")+ varname + " (at " + block_start + " to " + location(script)+")";
+	std::string thisblock=std::string("# function ")+ varname + " (at " + block_start.second + " to " + location(script).second+")";
 	if (!parse_error_occured)
 		variables[varname]=thisblock+"\n"+function_block;
 }
@@ -572,7 +585,7 @@ void GetSetScriptParser::parse_if(std::istream& script)
 	if (negate) result=!result;
 	expect_end_of_line(line,"if");
 	auto pos_start=script.tellg();
-	std::string block_start=location(script);
+	std::string block_start=location(script).second;
 	std::string if_block=get_block(script,"if");
 	auto pos_end=script.tellg();
 	std::string thisblock=std::string("if block (at ") + block_start + " + " + toString(pos_end-pos_start)+")";
@@ -718,7 +731,7 @@ void GetSetScriptParser::parse_for(std::istream& script)
 	}
 	expect_end_of_line(line,"for");
 	auto pos_start=script.tellg();
-	std::string block_start=location(script);
+	std::string block_start=location(script).second;
 	std::string foreach_block=get_block(script,"for");
 	auto pos_end=script.tellg();
 	std::string thisblock=std::string("for block (at ") + block_start + " + " + toString(pos_end-pos_start)+")";
@@ -778,7 +791,7 @@ void GetSetScriptParser::parse_while(std::istream& script)
 	expect_token_string(line,"while",varname);
 	if (!expect_end_of_line(line,"while")) return;
 	auto pos_start=script.tellg();
-	std::string block_start=location(script);
+	std::string block_start=location(script).second;
 	std::string while_block=get_block(script,"while");
 	auto pos_end=script.tellg();
 	std::string thisblock=std::string("while block (at ") + block_start + " + " + toString(pos_end-pos_start)+")";

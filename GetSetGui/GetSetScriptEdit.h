@@ -27,6 +27,8 @@
 #include <QTextEdit>
 #include <QTextCharFormat>
 #include <QSyntaxHighlighter>
+#include <QProgressBar>
+#include <QLabel>
 
 #include "../GetSet/GetSetScripting.h"
 
@@ -37,7 +39,7 @@ namespace GetSetGui
 {
 	class GetSetScriptSyntaxHighlighter;
 
-	class GetSetScriptEdit : public QMainWindow
+	class GetSetScriptEdit : public QMainWindow, public ProgressInterface
 	{
 		Q_OBJECT
 
@@ -67,10 +69,20 @@ namespace GetSetGui
 
 		QTextEdit			*editor;
 		GetSetScriptParser	parser;
+		QLabel				*m_location;
 		QTextEdit			*m_statusMsg;
 		QTextEdit			*m_outputMsg;
+		QProgressBar		*m_progress;
 		GetSetScriptSyntaxHighlighter *highlighter;
 		QList<QTextEdit::ExtraSelection> extraSelections;
+
+		// A little progressbar in the status bar.
+		virtual void progressStart(const std::string& progress, const std::string& info, int maximum, bool *cancel_clicked);
+		virtual void progressUpdate(int i);
+		virtual void progressEnd();
+		virtual void info(const std::string& who, const std::string& what, bool show_dialog=false);
+		virtual void warn(const std::string& who, const std::string& what, bool only_inormative=true);
+
 	};
 
 	class GetSetScriptSyntaxHighlighter : public QSyntaxHighlighter

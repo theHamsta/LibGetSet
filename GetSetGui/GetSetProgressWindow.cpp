@@ -25,6 +25,8 @@
 #include <QPushButton>
 
 #include <QVBoxLayout>
+#include <QCoreApplication>
+#include <QMessageBox>
 
 namespace GetSetGui {
 
@@ -36,13 +38,12 @@ namespace GetSetGui {
 		std::string text_on_button=sender()->objectName().toStdString();
 		if (callback) callback(window,text_on_button);
 		if (cancel_clicked) *cancel_clicked=true;
-		
 	}
 
 	GetSetProgressWindow::GetSetProgressWindow(void (*handler)(const std::string&, const std::string&))
 		: QDialog()
 		, layout(0x0)
-		, info(0x0)
+		, label(0x0)
 		, progress_bar(0x0)
 		, button(0x0)
 		, callback(handler)
@@ -50,35 +51,36 @@ namespace GetSetGui {
 	{
 		layout=new QVBoxLayout(this);
 		setLayout(layout);
-		info=new QLabel(this);
+		label=new QLabel(this);
 		progress_bar=new QProgressBar(this);
 		button=new QPushButton(this);
 		button->setText("Cancel");
 		button->setDefault(true);
 		connect(button, SIGNAL(clicked()), this, SLOT(trigger()));
-		layout->addWidget(info);
+		layout->addWidget(label);
 		layout->addWidget(progress_bar);
 		layout->addWidget(button);
 		progress_bar->hide();
-		info->hide();
+		label->hide();
 	}
 
-	void GetSetProgressWindow::start(const std::string& title, const std::string& text, int max, bool *_cancel_clicked)
+
+	void GetSetProgressWindow::progressStart(const std::string& title, const std::string& info, int maximum, bool *_cancel_clicked)
 	{
 		setWindowTitle(title.c_str());
 		cancel_clicked=_cancel_clicked;
-		if (text.empty())
-			info->hide();
+		if (info.empty())
+			label->hide();
 		else
 		{
-			info->setText(text.c_str());
-			info->show();
+			label->setText(info.c_str());
+			label->show();
 		}
 		progress_bar->show();
-		if (max<0)
+		if (maximum<0)
 			progress_bar->setRange(0,0);
 		else
-			progress_bar->setRange(0,max);
+			progress_bar->setRange(0,maximum);
 		if (_cancel_clicked)
 		{
 			button->show();
@@ -86,8 +88,41 @@ namespace GetSetGui {
 		}
 		else
 			button->hide();
-		progress_bar->setValue(0);
+		progress_bar->setValue(-1);
 		show();
+	}
+
+	void GetSetProgressWindow::progressUpdate(int i) {
+		progress_bar->setValue(i);
+		QCoreApplication::processEvents();
+	}
+
+	void GetSetProgressWindow::progressEnd() {
+		close();
+	}
+
+	void GetSetProgressWindow::info(const std::string& who, const std::string& what, bool show_dialog) {
+		if (what.empty())
+			label->hide();
+		else
+		{
+			if (show_dialog)
+				QMessageBox::information(0x0,who.c_str(),what.c_str(),QMessageBox::Ok);
+			else
+			{ 
+				label->show();
+				label->setText(what.c_str());
+			}
+		}
+	}
+
+	void GetSetProgressWindow::warn(const std::string& who, const std::string& what, bool only_inormative) {
+		QMessageBox::warning(0x0,who.c_str(),what.c_str(),QMessageBox::Ok);
+		if (!only_inormative) {
+			std::cerr << who << ": " << what << std::endl << "Exitting...\n";
+			exit(1);
+		}
+
 	}
 
 } // namespace GetSetGui

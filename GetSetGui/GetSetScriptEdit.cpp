@@ -29,6 +29,8 @@
 
 #include <fstream>
 
+#include "GetSetProgressWindow.h"
+
 namespace GetSetGui
 {
 	void GetSetScriptEdit::setOutputPane(const std::string& text, void* instance)
@@ -43,8 +45,7 @@ namespace GetSetGui
 		using GetSetGui::GetSetScriptEdit;
 		GetSetScriptEdit* se=static_cast<GetSetScriptEdit*>(instance);
 		if (!se || text.empty()) return;
-		if (text.front()=='@')
-			se->statusBar()->showMessage(text.c_str());
+		if (text.front()=='@') se->m_location->setText(text.c_str());
 		else se->m_statusMsg->setText(se->m_statusMsg->toPlainText() +"\n"+ text.c_str());
 		QApplication::processEvents();
 	}
@@ -65,6 +66,13 @@ namespace GetSetGui
 
 		parser.addOutputCallback((void*)this,GetSetScriptEdit::setOutputPane);
 		parser.addErrorCallback((void*)this,GetSetScriptEdit::setStatusPane);
+
+		m_progress=new QProgressBar(this);
+		m_progress->setFixedWidth(300);
+		this->statusBar()->addWidget(m_progress);
+		m_location=new QLabel(this);
+		this->statusBar()->addWidget(m_location);
+		m_progress->setVisible(false);
 
 		QDockWidget *outputMsg = new QDockWidget(this);
 		outputMsg->setWindowFlags(Qt::WindowTitleHint | Qt::WindowMinimizeButtonHint);
@@ -101,10 +109,10 @@ namespace GetSetGui
 		// This is reidiculously slow. whatever: scripts are not supoosed to be very long...
 		std::istringstream file(editor->toPlainText().toStdString());
 		file.seekg(editor->textCursor().position());
-		std::string location=GetSetScriptParser::location(file);
+		std::pair<int,std::string> location=GetSetScriptParser::location(file);
 
 		editor->setExtraSelections(extraSelections);
-		statusBar()->showMessage(location.c_str());
+		m_location->setText(location.second.c_str());
 	}
 
 	void GetSetScriptEdit::setupEditor()
@@ -195,6 +203,13 @@ namespace GetSetGui
 			saveFile();
 	}
 
+	// Some magic to make the little progress bar work.
+	void GetSetScriptEdit::progressStart(const std::string& progress, const std::string& info, int maximum, bool *cancel_clicked) { m_progress->setRange(0,maximum);  m_progress->setValue(-1); m_progress->setVisible(true);}
+	void GetSetScriptEdit::progressUpdate(int i) {m_progress->setValue(i);}
+	void GetSetScriptEdit::progressEnd() {m_progress->setVisible(false);}
+	void GetSetScriptEdit::info(const std::string& who, const std::string& what, bool show_dialog)     {}
+	void GetSetScriptEdit::warn(const std::string& who, const std::string& what, bool only_inormative) {}
+
 	void GetSetScriptEdit::help()
 	{
 		m_statusMsg->setText(parser.synopsis(editor->textCursor().selectedText().toStdString(),true).c_str());
@@ -205,7 +220,7 @@ namespace GetSetGui
 		m_outputMsg->setText("");
 		m_statusMsg->setText("");
 		std::string script=editor->toPlainText().toStdString();
-		parser.parse(script);
+		parser.parse(script,"Script",this);
 		editor->setExtraSelections(QList<QTextEdit::ExtraSelection>());
 	}
 
