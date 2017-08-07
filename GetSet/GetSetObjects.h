@@ -38,56 +38,28 @@ namespace GetSetObjects {
 		const std::string           path;
 		bool ignore_notify;
 	public:
-		Resident(GetSetInternal::Section& section)
-			: GetSetInternal::Dictionary::Observer(section.dictionary)
-			, dictionary(section.dictionary)
-			, path(section.path())
-			, ignore_notify(false)
-		{}
+		Resident(GetSetInternal::Section& section);
 
 		/// The section where we store our parameters.
-		GetSetGui::Section gui_section() {return GetSetGui::Section(path,dictionary);}
-
+		GetSetGui::Section gui_section();
+		
 		/// A node in our gui_section() has changed its value. The relative path to where the node resides is passed in section.
 		virtual void gui_notify(const std::string& section, const GetSetInternal::Node&) = 0;
 
 		/// Temporarily ignore notifications
-		void gui_ignore_notify(bool ignore=true) { ignore_notify=ignore; }
+		void gui_ignore_notify(bool ignore=true);
 
 	private:
 		/// Check if this notification concerns a node in gui_section()
-		void notify(const GetSetInternal::Node& node, GetSetInternal::Dictionary::Signal signal) {
-			if (!ignore_notify && signal==GetSetInternal::Dictionary::Signal::Change)
-			{
-				// Is node located somewhere below our section? If so, not our business.
-				if (node.super_section.size()<=path.size()) return; 
-				// check if the node is located in our section by checking is path is a prefix of the super_section
-				bool prefix_ok=true;
-				for (int i=0;i<(int)path.size();i++, prefix_ok)
-					prefix_ok&=path[i]==node.super_section[i];
-				// If, so, we are hereby notified.
-				if (prefix_ok) gui_notify(node.super_section.substr(path.size()), node);
-			}
-
-		}
+		void notify(const GetSetInternal::Node& node, GetSetInternal::Dictionary::Signal signal);
 	};
 
 	/// Interface for a class which stores and retreives all of its information via GetSet
 	class Object : public Configurable, public Resident {
 	public:
-		
-		Object(GetSetGui::Section& section)
-			: Resident(section)
-		{}
-		
-		void gui_declare() {
-			gui_declare_section(gui_section());
-		}
-
-		void gui_retreive() {
-			gui_retreive_section(gui_section());
-		}
-
+		Object(GetSetGui::Section& section);
+		void gui_declare();
+		void gui_retreive();
 	};
 
 } // namespace GetSetObjects

@@ -12,7 +12,7 @@
 
 #include <GetSet/GetSetLog.hxx>
 
-#include <GetSet/GetSetObjects.hxx>
+#include <GetSet/GetSetObjects.h>
 
 #include <GetSet/StringHexData.hxx>
 
