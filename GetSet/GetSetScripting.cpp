@@ -50,7 +50,7 @@ void GetSetScriptParser::prompt()
 	}
 }
 
-bool GetSetScriptParser::parse(const std::string& commands, const std::string& scriptname, ProgressInterface* p)
+bool GetSetScriptParser::parse(const std::string& commands, const std::string& scriptname, GetSetGui::ProgressInterface* p)
 {
 	parse_error_occured=false;
 	parse_commands(commands, scriptname, p);
@@ -220,7 +220,7 @@ std::string GetSetScriptParser::state()
 	return ret;
 }
 
-void GetSetScriptParser::parse_commands(const std::string& commands, const std::string& file_or_function_name, ProgressInterface* p)
+void GetSetScriptParser::parse_commands(const std::string& commands, const std::string& file_or_function_name, GetSetGui::ProgressInterface* p)
 {
 	int total_number_of_lines=(int)std::count(commands.begin(),commands.end(),'\n') ;
 	bool cancel_clicked=false;

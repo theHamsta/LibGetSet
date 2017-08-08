@@ -26,7 +26,7 @@
 #include "GetSetInternal.h"
 
 // 2do possibly move to GetSet
-#include "../GetSetGui/ProgressInterface.hxx"
+#include "ProgressInterface.hxx"
 
 /// Parse a script line-by-line. Language is not context free. See ScriptSyntax.txt for more info.
 class GetSetScriptParser : public GetSetInternal::Dictionary::Observer
@@ -44,7 +44,7 @@ public:
 	void prompt();
 
 	/// Parse the scrip provided by text
-	bool parse(const std::string& commands, const std::string& scriptname="script", ProgressInterface* p=0x0);
+	bool parse(const std::string& commands, const std::string& scriptname="script", GetSetGui::ProgressInterface* p=0x0);
 
 	/// Force stop execution
 	void force_stop();
@@ -107,7 +107,7 @@ protected:
 	bool parse_error_occured;
 	
 	/// Parse the scrip provided by text
-	void parse_commands(const std::string& script, const std::string& file_or_function_name, ProgressInterface* p=0x0);
+	void parse_commands(const std::string& script, const std::string& file_or_function_name, GetSetGui::ProgressInterface* p=0x0);
 
 	/// Report a parse error
 	void parse_error(const std::string& where, const std::string& why);

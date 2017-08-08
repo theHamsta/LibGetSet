@@ -6,7 +6,7 @@
 
 #include <QDialog>
 
-#include "ProgressInterface.hxx"
+#include "../GetSet/ProgressInterface.hxx"
 
 class QLayout;
 class QLabel;

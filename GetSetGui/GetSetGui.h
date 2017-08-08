@@ -22,7 +22,7 @@
 
 #include "../GetSet/GetSetCmdLine.hxx"
 
-#include "ProgressInterface.hxx"
+#include "../Getset/ProgressInterface.hxx"
 
 class QApplication;
 class GetSetLog;
@@ -32,17 +32,17 @@ namespace GetSetGui
 	class GetSetTabWidget;
 	class GetSetProgressWindow;
 
-
+	/// The "default" application with one settings window.
 	class GetSetApplication : public ProgressInterface
 	{
 	protected:
-		GetSetInternal::Dictionary&		dict;
-		GetSetIO::CmdLineParser	cmd;
-		QApplication			*qt_app;
-		GetSetHandler			*callback;
-		GetSetTabWidget			*main_window;
-		GetSetProgressWindow	*progress_window;
-		GetSetLog				*log;
+		GetSetInternal::Dictionary&	dict;
+		GetSetIO::CmdLineParser		cmd;
+		QApplication				*qt_app;
+		GetSetHandler				*callback;
+		GetSetTabWidget				*main_window;
+		GetSetProgressWindow		*progress_window;
+		GetSetLog					*log;
 
 	public:
 		GetSetApplication(std::string _appname, GetSetInternal::Dictionary& _dict = GetSetInternal::Dictionary::global());
@@ -60,7 +60,6 @@ namespace GetSetGui
 
 		/// Parse command line and load settings. Must be called before exec!
 		bool init(int &argc, char **argv, void (*gui)(const std::string&, const std::string&));
-
 
 		/// Access underlying dictionary
 		const GetSetInternal::Dictionary& dictionary() {return dict;}
@@ -113,8 +112,6 @@ namespace GetSetGui
 
 		/// Ignores notifications temporarily
 		void ignoreNotifications(bool ignore);
-		
-
 
 	};
 
