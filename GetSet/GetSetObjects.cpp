@@ -2,18 +2,19 @@
 
 namespace GetSetObjects {
 	
-	Resident::Resident(GetSetInternal::Section& section)
+	Object::Object(GetSetInternal::Section& section, GetSetGui::ProgressInterface& _app)
 		: GetSetInternal::Dictionary::Observer(section.dictionary)
+		, app(_app)
 		, dictionary(section.dictionary)
 		, path(section.path())
 		, ignore_notify(false)
 	{}
 
-	GetSetGui::Section Resident::gui_section() { return GetSetGui::Section(path,dictionary); }
+	GetSetGui::Section Object::gui_section() { return GetSetGui::Section(path,dictionary); }
 
-	void Resident::gui_ignore_notify(bool ignore) { ignore_notify=ignore; }
+	void Object::gui_ignore_notify(bool ignore) { ignore_notify=ignore; }
 	
-	void Resident::notify(const GetSetInternal::Node& node, GetSetInternal::Dictionary::Signal signal)
+	void Object::notify(const GetSetInternal::Node& node, GetSetInternal::Dictionary::Signal signal)
 	{
 		if (!ignore_notify && signal==GetSetInternal::Dictionary::Signal::Change)
 		{
@@ -26,18 +27,6 @@ namespace GetSetObjects {
 			// If, so, we are hereby notified.
 			if (prefix_ok) gui_notify(node.super_section.substr(path.size()), node);
 		}
-	}
-
-	Object::Object(GetSetGui::Section& section)
-		: Resident(section)
-	{}
-	
-	void Object::gui_declare() {
-		gui_declare_section(gui_section());
-	}
-
-	void Object::gui_retreive() {
-		gui_retreive_section(gui_section());
 	}
 
 } // namespace GetSetObjects

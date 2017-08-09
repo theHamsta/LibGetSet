@@ -21,6 +21,7 @@
 #define __getset_object_hxx
 
 #include "GetSet.hxx"
+#include "ProgressInterface.hxx"
 
 namespace GetSetObjects {
 
@@ -32,13 +33,14 @@ namespace GetSetObjects {
 	};
 
 	/// An interface for objects, which store their settings in a specific Section and are notified for changes relative to that section only.
-	class Resident : public GetSetInternal::Dictionary::Observer {
+	class Object : public GetSetInternal::Dictionary::Observer {
 	protected:
-		GetSetInternal::Dictionary& dictionary;
-		const std::string           path;
+		GetSetInternal::Dictionary&   dictionary;
+		GetSetGui::ProgressInterface& app;
+		const std::string             path;
 		bool ignore_notify;
 	public:
-		Resident(GetSetInternal::Section& section);
+		Object(GetSetInternal::Section& section, GetSetGui::ProgressInterface& app);
 
 		/// The section where we store our parameters.
 		GetSetGui::Section gui_section();
@@ -52,14 +54,6 @@ namespace GetSetObjects {
 	private:
 		/// Check if this notification concerns a node in gui_section()
 		void notify(const GetSetInternal::Node& node, GetSetInternal::Dictionary::Signal signal);
-	};
-
-	/// Interface for a class which stores and retreives all of its information via GetSet
-	class Object : public Configurable, public Resident {
-	public:
-		Object(GetSetGui::Section& section);
-		void gui_declare();
-		void gui_retreive();
 	};
 
 } // namespace GetSetObjects
