@@ -208,19 +208,19 @@ void GetSetHandler::ignoreNotifications(bool ignore)
 	ignore_notify=ignore;
 }
 
-GetSetHandler::GetSetHandler(void (*change)(const GetSetInternal::Node&), const GetSetInternal::Dictionary& subject)
+GetSetHandler::GetSetHandler(void (*change)(const std::string& section, const std::string& key), const GetSetInternal::Dictionary& subject)
 	: GetSetInternal::Dictionary::Observer(subject)
+	, ignore_notify(false)
+	, change_handler_section_key(change)
+{}
+
+GetSetHandler::GetSetHandler(std::function<void(const GetSetInternal::Node&)>           change , const GetSetInternal::Dictionary& subject)
+: GetSetInternal::Dictionary::Observer(subject)
 	, ignore_notify(false)
 	, change_handler_node(change)
 	, change_handler_section_key(0x0)
 {}
 
-GetSetHandler::GetSetHandler(void (*change)(const std::string& section, const std::string& key), const GetSetInternal::Dictionary& subject)
-	: GetSetInternal::Dictionary::Observer(subject)
-	, ignore_notify(false)
-	, change_handler_node(0x0)
-	, change_handler_section_key(change)
-{}
 
 void GetSetHandler::notify(const GetSetInternal::Node& node, GetSetInternal::Dictionary::Signal signal)
 {

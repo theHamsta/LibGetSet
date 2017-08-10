@@ -246,18 +246,21 @@ namespace GetSetInternal {
 
 } // namespace GetSetInternal
 
+
+#include <functional>
+
 /// A class which calls a function to handle change signals from GetSet (eg. GUI input)
 class GetSetHandler : public GetSetInternal::Dictionary::Observer
 {
 public:
 	void ignoreNotifications(bool ignore);
 	GetSetHandler(void (*change)(const std::string& section, const std::string& key), const GetSetInternal::Dictionary& subject = GetSetInternal::Dictionary::global());
-	GetSetHandler(void (*change)(const GetSetInternal::Node&), const GetSetInternal::Dictionary& subject = GetSetInternal::Dictionary::global());
+	GetSetHandler(std::function<void(const GetSetInternal::Node&)>           change , const GetSetInternal::Dictionary& subject = GetSetInternal::Dictionary::global());
 protected:
 	bool ignore_notify;
 	virtual void notify(const GetSetInternal::Node& node, GetSetInternal::Dictionary::Signal signal);
 	void (*change_handler_section_key)(const std::string&,const std::string&);
-	void (*change_handler_node)(const GetSetInternal::Node&);
+	std::function<void(const GetSetInternal::Node&)>           change_handler_node;
 };
 
 #endif // __GetSetInternal_h

@@ -29,6 +29,13 @@
 #include <vector>
 #include <map>
 
+/// Test a string for a prefix
+inline bool hasPrefix(const std::string& str, const std::string& prefix)
+{
+	if (str.length()<prefix.length()) return false;
+	return std::mismatch(prefix.begin(), prefix.end(), str.begin()).first == prefix.end();
+}
+
 /// Right trim
 inline void rtrim(std::string &str , const std::string& t = " \t")
 {
