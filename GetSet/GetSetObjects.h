@@ -101,10 +101,18 @@ namespace GetSetObjects {
 #define GETSET_OBJECT_DECLARE(CLASS_NAME) template<> inline std::string typeName<CLASS_NAME>() { return #CLASS_NAME; }
 
 // If you want your GetSetObjects::Object CLASS_NAME registered with the factory, put this in your c++ file.
-#define GETSET_OBJECT_REGISTER(CLASS_NAME)                                                                           \
-	CLASS_NAME * factory_create##CLASS_NAME(const GetSetGui::Section&, GetSetGui::ProgressInterface& )               \
-	{ CLASS_NAME * obj=new CLASS_NAME(section); obj->gui_init(); return obj; }                                       \
-	FactoryRegistration<CLASS_NAME> factory_register##CLASS_NAME(factory_create##CLASS_NAME);
+#define GETSET_OBJECT_REGISTER(CLASS_NAME)                                                                                   \
+	GetSetObjects::Object * factory_create##CLASS_NAME(const GetSetGui::Section& section, GetSetGui::ProgressInterface& app) \
+	{ CLASS_NAME * obj=new CLASS_NAME(section,&app); obj->gui_init(); return obj; }                                          \
+	GetSetObjects::FactoryRegistration<CLASS_NAME> factory_register##CLASS_NAME(factory_create##CLASS_NAME);
+
+// Same as GETSET_OBJECT_DECLARE, except that for typedef GetSetObjects::Struct<CLASS_NAME> ##CLASS_NAMEGui
+#define GETSET_OBJECT_STRUCT_DECLARE(CLASS_NAME)                                                                     \
+	typedef GetSetObjects::Struct<CLASS_NAME> ##CLASS_NAME##Gui;                                                       \
+	GETSET_OBJECT_DECLARE(##CLASS_NAME##Gui)
+
+// Same as GETSET_OBJECT_REGISTER, except with ##CLASS_NAMEGui.
+#define GETSET_OBJECT_STRUCT_REGISTER(CLASS_NAME) GETSET_OBJECT_REGISTER(##CLASS_NAME##Gui)
 
 namespace GetSetObjects {
 	/// Set the default ProgressInterface which GetSetTypes use.
@@ -132,8 +140,7 @@ namespace GetSetObjects {
 	template <class GetSetObject>
 	struct FactoryRegistration {
 		FactoryRegistration(Object* (*instantiate)(const GetSetGui::Section&, GetSetGui::ProgressInterface&))
-		                       {register_type(typeName<GetSetObject>(),instantiate,this);}
-		~FactoryRegistration() {register_type(typeName<GetSetObject>(),0x0        ,this);}
+		                       {factory_register_type(typeName<GetSetObject>(),instantiate);}
 	};
 
 } // namespace GetSetObjects

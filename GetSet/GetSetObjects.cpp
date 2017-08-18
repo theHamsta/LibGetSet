@@ -74,8 +74,11 @@ namespace GetSetObjects {
 	void factory_register_type(const std::string& class_name, Object* (*instantiate)(const GetSetGui::Section&, GetSetGui::ProgressInterface&))
 	{
 		// Make sure that the type class_name is unambigous
-		if (factory_registration.find(class_name)!=factory_registration.end())
-			throw std::runtime_error ( std::string(__FUNCTION__ " : The specified type ") + class_name + " has already been registered!");
+		if (factory_registration.find(class_name)!=factory_registration.end()) {
+			if (!instantiate) factory_registration.erase(factory_registration.find(class_name));
+			else throw std::runtime_error ( std::string(__FUNCTION__ " : The specified type ") + class_name + " has already been registered!");
+		}
+		else
 		// Then just register
 		factory_registration[class_name]=instantiate;
 	}

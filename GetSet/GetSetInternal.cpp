@@ -18,7 +18,7 @@ namespace GetSetInternal {
 		return super_section.empty()?name:super_section+"/"+name;
 	}
 
-	Section& Node::super()
+	Section& Node::super() const
 	{
 		Section *super=dynamic_cast<Section*>(dictionary.nodeAt(super_section));
 		return super?*super:dictionary;
@@ -208,17 +208,10 @@ void GetSetHandler::ignoreNotifications(bool ignore)
 	ignore_notify=ignore;
 }
 
-GetSetHandler::GetSetHandler(void (*change)(const std::string& section, const std::string& key), const GetSetInternal::Dictionary& subject)
-	: GetSetInternal::Dictionary::Observer(subject)
-	, ignore_notify(false)
-	, change_handler_section_key(change)
-{}
-
 GetSetHandler::GetSetHandler(std::function<void(const GetSetInternal::Node&)>           change , const GetSetInternal::Dictionary& subject)
 : GetSetInternal::Dictionary::Observer(subject)
 	, ignore_notify(false)
 	, change_handler_node(change)
-	, change_handler_section_key(0x0)
 {}
 
 
@@ -228,8 +221,6 @@ void GetSetHandler::notify(const GetSetInternal::Node& node, GetSetInternal::Dic
 	if (ignore_notify) return;
 	// Always ignore signals other than Change.
 	if (signal != GetSetInternal::Dictionary::Change) return;
-	// Choose correct callback function. Legacy code uses this one:
-	if (change_handler_section_key) change_handler_section_key(node.super_section,node.name);
-	// This is the preferred version...
+	// Callback
 	if (change_handler_node) change_handler_node(node);
 }

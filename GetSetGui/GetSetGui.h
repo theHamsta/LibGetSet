@@ -20,6 +20,8 @@
 #ifndef __GetSetGui_h
 #define __GetSetGui_h
 
+#include "../GetSet/GetSetObjects.h"
+
 #include "../GetSet/GetSetCmdLine.hxx"
 
 #include "../Getset/ProgressInterface.hxx"
@@ -33,7 +35,7 @@ namespace GetSetGui
 	class GetSetProgressWindow;
 
 	/// The "default" application with one settings window.
-	class GetSetApplication : public ProgressInterface
+	class Application : public ProgressInterface
 	{
 	protected:
 		GetSetInternal::Dictionary&	dict;
@@ -45,8 +47,23 @@ namespace GetSetGui
 		GetSetLog					*log;
 
 	public:
-		GetSetApplication(std::string _appname, GetSetInternal::Dictionary& _dict = GetSetInternal::Dictionary::global());
-		~GetSetApplication();
+
+		/// Running a stand-alone application from a GetSet Object.
+		template <class GetSetObject>
+		static int exec() {
+			using namespace std::placeholders;
+			std::string type_name=typeName<GetSetObject>();
+			int argc=1;
+			char *argv[]={&type_name[0],0x0};
+			Application  app(type_name);
+			GetSetObject obj(GetSetGui::Section(type_name),&app);
+			obj.gui_init();
+			app.init(argc,argv,std::bind(&Application::saveSettings, &app));
+			return app.exec();
+		}
+
+		Application(std::string _appname, GetSetInternal::Dictionary& _dict = GetSetInternal::Dictionary::global());
+		~Application();
 
 		/// Define how to handle command line arguments
 		GetSetIO::CmdLineParser& commandLine();
@@ -59,7 +76,7 @@ namespace GetSetGui
 		int exec();
 
 		/// Parse command line and load settings. Must be called before exec!
-		bool init(int &argc, char **argv, void (*gui)(const std::string&, const std::string&));
+		bool init(int &argc, char **argv, std::function<void(const GetSetInternal::Node&)> gui);
 
 		/// Access underlying dictionary
 		const GetSetInternal::Dictionary& dictionary() {return dict;}

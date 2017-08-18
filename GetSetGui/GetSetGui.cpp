@@ -39,7 +39,7 @@ void gui_update(const std::string&, void*)
 namespace GetSetGui
 {
 
-	GetSetApplication::GetSetApplication(std::string _appname, GetSetInternal::Dictionary& _dict)
+	Application::Application(std::string _appname, GetSetInternal::Dictionary& _dict)
 		: dict(_dict)
 		, cmd(dict)
 		, qt_app(0x0)
@@ -52,7 +52,7 @@ namespace GetSetGui
 		GetSet<>("ini-File",dict)=_appname+".ini";
 	}
 
-	GetSetApplication::~GetSetApplication()
+	Application::~Application()
 	{
 		delete log;
 		if (callback) delete callback;
@@ -60,12 +60,12 @@ namespace GetSetGui
 //		if (qt_app) delete qt_app; // Crashed on delete on windows (why?)
 	}
 
-	GetSetIO::CmdLineParser& GetSetApplication::commandLine()
+	GetSetIO::CmdLineParser& Application::commandLine()
 	{
 		return cmd;
 	}
 
-	bool GetSetApplication::init(int &argc, char **argv, void (*gui)(const std::string&, const std::string&))
+	bool Application::init(int &argc, char **argv, std::function<void(const GetSetInternal::Node&)> gui)
 	{
 		std::string appname=GetSet<>("Application",dict);
 		qt_app=new QApplication(argc,argv);
@@ -91,7 +91,7 @@ namespace GetSetGui
 			if (ext=="ini")
 				GetSet<>("ini-File",dict)=argv[1];
 			loadSettings();
-			callback=new GetSetHandler(gui,dict);
+			callback=gui?new GetSetHandler(gui,dict):0x0;
 			// Run script
 			if (ext=="getset")
 			{
@@ -129,27 +129,26 @@ namespace GetSetGui
 				return false;
 			}
 		}
-
-		window().setMenuCallBack(gui);
 		return true;
 	}
 
-	void GetSetApplication::ignoreNotifications(bool ignore)
+	void Application::ignoreNotifications(bool ignore)
 	{
 		if (callback) callback->ignoreNotifications(ignore);
 	}
 		
-	GetSetTabWidget& GetSetApplication::window()
+	GetSetTabWidget& Application::window()
 	{
 		if (!main_window)
 		{
 			main_window=new GetSetTabWidget(0x0,dict);
 			main_window->setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::CustomizeWindowHint | Qt::WindowSystemMenuHint);
+			main_window->addDefaultFileMenu();
 		}
 		return *main_window;
 	}
 
-	GetSetProgressWindow& GetSetApplication::progress()
+	GetSetProgressWindow& Application::progress()
 	{
 		if (!progress_window)
 		{
@@ -159,45 +158,45 @@ namespace GetSetGui
 		return *progress_window;
 	}
 
-	void GetSetApplication::progressStart(const std::string& name, const std::string& info, int maximum, bool *cancel_clicked)
+	void Application::progressStart(const std::string& name, const std::string& info, int maximum, bool *cancel_clicked)
 	{
 		window().hide();
 		progress().progressStart(name,info,maximum,cancel_clicked);
 	}
 
-	void GetSetApplication::progressUpdate(int i)
+	void Application::progressUpdate(int i)
 	{
 		progress().progressUpdate(i);
 	}
 
-	void GetSetApplication::progressEnd()
+	void Application::progressEnd()
 	{
 		progress().progressEnd();
 		window().show();
 	}
 
-	void GetSetApplication::info(const std::string& who, const std::string& what, bool show_dialog)
+	void Application::info(const std::string& who, const std::string& what, bool show_dialog)
 	{
 		progress().info(who, what, show_dialog);
 		std::cout << who << ": " << what << std::endl;
 	}
 
-	void GetSetApplication::warn(const std::string& who, const std::string& what, bool non_fatal)
+	void Application::warn(const std::string& who, const std::string& what, bool non_fatal)
 	{
 		progress().warn(who, what, non_fatal);
 	}
 
-	void GetSetApplication::saveSettings() const
+	void Application::saveSettings() const
 	{
 		GetSetIO::save<GetSetIO::IniFile>(GetSet<>("ini-File",dict));
 	}
 
-	void GetSetApplication::loadSettings()
+	void Application::loadSettings()
 	{
 		GetSetIO::load<GetSetIO::IniFile>(GetSet<>("ini-File",dict));		
 	}
 
-	bool GetSetApplication::parseScript(const std::string& script)
+	bool Application::parseScript(const std::string& script)
 	{
 		GetSetScriptParser parser(dict);
 		parser.addErrorCallback(0x0,gui_update);
@@ -205,8 +204,14 @@ namespace GetSetGui
 		return parser.good();
 	}
 
-	int GetSetApplication::exec()
+	int Application::exec()
 	{
+		if (!qt_app) {
+			std::string appname=GetSet<>("Application",dict);
+			int argc=1;
+			char *argv[]={&appname[0],0x0};
+			qt_app=new QApplication(argc,argv);
+		}
 		window().show();
 		return qt_app->exec();
 	}

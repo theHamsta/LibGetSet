@@ -64,7 +64,7 @@ namespace GetSetInternal {
 		std::string path() const;
 
 		// Section containing this node. Returns dictionary if no such section exists.
-		Section& super();
+		Section& super() const;
 
 		/// Set value of this node by string. (Does not apply to Sections)
 		virtual void        setString(const std::string& new_value)       = 0;
@@ -254,12 +254,10 @@ class GetSetHandler : public GetSetInternal::Dictionary::Observer
 {
 public:
 	void ignoreNotifications(bool ignore);
-	GetSetHandler(void (*change)(const std::string& section, const std::string& key), const GetSetInternal::Dictionary& subject = GetSetInternal::Dictionary::global());
-	GetSetHandler(std::function<void(const GetSetInternal::Node&)>           change , const GetSetInternal::Dictionary& subject = GetSetInternal::Dictionary::global());
+	GetSetHandler(std::function<void(const GetSetInternal::Node&)> change, const GetSetInternal::Dictionary& subject = GetSetInternal::Dictionary::global());
 protected:
 	bool ignore_notify;
 	virtual void notify(const GetSetInternal::Node& node, GetSetInternal::Dictionary::Signal signal);
-	void (*change_handler_section_key)(const std::string&,const std::string&);
 	std::function<void(const GetSetInternal::Node&)>           change_handler_node;
 };
 

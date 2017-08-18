@@ -38,7 +38,7 @@
 #include "GetSetProgressWindow.h"
 #include "../GetSet/StringUtil.hxx"
 
-// Minor leaks. FIXME
+// FIXME DICTIONARY NOT SET CORRECTLY
 
 /// Same as GetSetHandler, but keeps track of state changes
 class GetSetScriptRecorder : public GetSetInternal::Dictionary::Observer
@@ -115,10 +115,6 @@ namespace GetSetGui
 		create(section);
 	}
 
-	void GetSetTabWidget::setMenuCallBack(void (*gui)(const std::string& sender, const std::string& action))
-	{
-		m_menu_callback=gui;
-	}
 
 	QAction* GetSetTabWidget::addMenuItem(const std::string& menu, const std::string& action, const std::string& shortcut)
 	{
@@ -190,7 +186,10 @@ namespace GetSetGui
 	{
 		std::string who=windowTitle().toStdString();
 		std::string what=sender()->objectName().toStdString();
-		if (m_menu_callback) m_menu_callback(who,what);
+		
+		GetSetGui::Section menu(who);
+		menu.setHidden(true);
+		GetSetGui::Button(what,menu).trigger();
 	}
 
 	void GetSetTabWidget::about()

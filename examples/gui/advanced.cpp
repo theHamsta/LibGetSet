@@ -18,11 +18,14 @@
 
 //  #include <GetSetGui/GetSetMouseKeyboardInteraction.h>
 
-GetSetGui::GetSetApplication g_app("ExampleAdvanced");
+GetSetGui::Application g_app("ExampleAdvanced");
 
 /// Handle all kinds of input
-void gui(const std::string& section, const std::string& key)
+void gui(const GetSetInternal::Node& node)
 {
+	const std::string& section(node.super_section);
+	const std::string& key(node.name);
+
 	// Window title indicates either a button or a menu item
 	if (section=="ExampleAdvanced")
 	{

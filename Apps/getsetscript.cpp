@@ -6,11 +6,11 @@
 #include <iostream>
 #include <string>
 
-GetSetGui::GetSetApplication g_app("GetSetScript");
+GetSetGui::Application g_app("GetSetScript");
 
-void gui(const std::string& section, const std::string& key)
+void gui(const GetSetInternal::Node& node)
 {
-	std::cout << "Changed: " << section << " -> " << key << std::endl;
+	std::cout << "Changed: " << node.super_section << " -> " << node.name << std::endl;
 	g_app.saveSettings();
 }
 

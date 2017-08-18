@@ -416,7 +416,7 @@ namespace GetSetGui {
 			QLineEdit* item=new QLineEdit(node.getString().c_str(),this);
 			m_owned[node.name]=item;
 			item->setObjectName(node.name.c_str());
-			item->setEnabled(false);
+			item->setReadOnly(true);
 			m_layout->addRow(node.name.c_str(),item);
 		}
 		else
