@@ -29,8 +29,8 @@
 // See also: Special GetSet types defined in namespace GetSetGui (below)
 
 // A macro to reduce the amount of code needed to describe attributes.
-#define GETSET_TAG(CLASS,TYPE,TAG)																	\
-	CLASS& set##TAG(const TYPE& value)       {node.setAttribute<TYPE>(#TAG,value);return *this;}	\
+#define GETSET_TAG(CLASS,TYPE,TAG)																			\
+	CLASS& set##TAG(const TYPE& value)       {node.setAttribute<TYPE>(#TAG,value);return *this;}			\
 	TYPE   get##TAG()                  const {return node.getAttribute<TYPE>(#TAG);}
 
 // A macro to reduce the amount of code needed to describe attributes. Special case of booleans, which default to true, once called.
@@ -38,26 +38,26 @@
 	CLASS& set##TAG(const bool& value = true)       {node.setAttribute<bool>(#TAG,value);return *this;}		\
 	bool   get##TAG()                         const {return node.getAttribute<bool>(#TAG);}
 
-/// Access a section other than global dictionary. Destroys everything in the way of creating relative_path.
 namespace GetSetGui {
-	/// A Section which contains other Sections or Keys.
+
+	/// Access a section other than global dictionary. Destroys everything in the way of creating relative_path.
 	class Section
 	{
-		GetSetInternal::Section& node;
+		mutable GetSetInternal::Section& node;
 	public:
 		Section(GetSetInternal::Section& _section=GetSetInternal::Dictionary::global()) : node(_section) {}
-		inline Section(const std::string& relative_path, GetSetInternal::Section& super_section=Section());
+		inline Section(const std::string& relative_path, GetSetGui::Section super_section=Section());
 
 		/// Create new Key or replace an already existing one if it is a string or forceType is set.
 		/// Most of the time, just return a pointer to an existing node.
-		template <typename GetSetKey>
-		GetSetInternal::Node& declare(const std::string& relative_path, bool forceType) const;
+		template <typename GetSetKey, typename BasicType>
+		GetSetInternal::Node& declare(const std::string& relative_path, bool forceType, const BasicType& default_value) const;
 
 		/// Implicit cast to GetSetInternal::Section& for construction of GetSet<...>(key,section)
-		operator GetSetInternal::Section& () { return node; }
+		operator GetSetInternal::Section& () const { return node; }
 
 		/// Access (or make) a subsection of this section
-		Section subsection(const std::string& name) { return Section(name, *this); }
+		Section subsection(const std::string& name) const { return Section(name, *this); }
 
 		/// Discard this property. Do NOT use this instance again after a call to discard.
 		virtual void discard() { node.super().removeNode(node.name); }
@@ -75,6 +75,7 @@ namespace GetSetGui {
 		/// Are contents of this section shown in a collapsible group box?
 		bool isCollapsible() const { return node.getAttributes().find("Collapsed")!=node.getAttributes().end(); }
 	};
+
 } // namespace GetSetGui
 
 
@@ -83,13 +84,13 @@ template <typename BasicType=std::string>
 class GetSet
 {
 public:
-	/// Access a GetSet property by by absolute path to its key (or optionally a relative path to a key within the given section)
-	GetSet(const std::string& key, const GetSetGui::Section& section = GetSetGui::Section());
+	/// Access a GetSet property by absolute path to its key (or optionally a relative path to a key within the given section)
+	GetSet(const std::string& key, const GetSetGui::Section& section = GetSetGui::Section(), const BasicType& default_value=default_value<BasicType>());
 
 	/// Set the value of a GetSet property (same as: assigment operator)
 	GetSet<BasicType>& setValue(const BasicType& v);
 	/// Get the value of a GetSet property (same as: cast operator)
-	const BasicType getValue() const;
+	BasicType getValue() const;
 
 	/// Set the value of this property from a string
 	virtual GetSet<BasicType>& setString(const std::string& value);

@@ -26,10 +26,7 @@
 #include <vector>
 
 /// Reset value (call constructor or zeros c-types, see specializations)
-template <typename T> inline void reset(T& v)
-{
-	v=T();
-}
+template <typename T> inline T default_value() { T v; return v; }
 
 // Type general conversion to string
 template <typename T> inline std::string toString(const T& in)
@@ -42,8 +39,7 @@ template <typename T> inline std::string toString(const T& in)
 // General conversion from string to another type
 template <typename T> inline T stringTo(const std::string& in)
 {
-	T value;
-	reset(value);
+	T value=default_value<T>();
 	std::istringstream strstr(in);
 	strstr >> value;
 	return value;
@@ -95,7 +91,7 @@ _DEFINE_TYPE(std::string)
 #include "BaseTypes.hxx"
 
 // Specializations
-#define _DEFINE_TYPE(X)  template<> inline void reset<X>(X& v) {v=0;}
+#define _DEFINE_TYPE(X)  template<> inline X default_value<X>() { return 0; }
 #include "BaseTypes.hxx"
 
 /// Overload of string conversion for specific lengths

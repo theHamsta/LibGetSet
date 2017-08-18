@@ -6,7 +6,6 @@
 
 namespace GetSetGui {
 
-	#include <iostream>
 	class ProgressInterface {
 		public:
 			virtual void progressStart(const std::string& progress, const std::string& info, int maximum, bool *cancel_clicked)

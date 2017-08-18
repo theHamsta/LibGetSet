@@ -28,14 +28,14 @@
 
 namespace GetSetGui {
 
-	Section::Section(const std::string& relative_path,  GetSetInternal::Section& super_section)
-		: node(super_section.createSection(relative_path))
+	Section::Section(const std::string& relative_path, GetSetGui::Section super_section)
+		: node(((GetSetInternal::Section&)super_section).createSection(relative_path))
 	{}
 				
 	/// Create new Key or replace an already existing node if it is a string or forceType is set.
 	/// Most of the time, just return a pointer to an existing node.
-	template <typename KeyType>
-	GetSetInternal::Node& Section::declare(const std::string& relative_path, bool forceType) const
+	template <typename KeyType, typename BasicType>
+	GetSetInternal::Node& Section::declare(const std::string& relative_path, bool forceType, const BasicType& default_value) const
 	{
 		// See if a node at absolute_path exists
 		GetSetInternal::Node* new_node=node.nodeAt(relative_path);
@@ -60,7 +60,7 @@ namespace GetSetGui {
 			else key=relative_path;
 			// Find super section and insert new node
 			GetSetInternal::Section& super_section=node.createSection(path_to_super);
-			new_node=new KeyType(super_section,key);
+			new_node=new KeyType(super_section,key,default_value);
 			super_section.insertNode(*new_node);
 		}
 		return *new_node;
@@ -73,8 +73,8 @@ namespace GetSetGui {
 //
 
 template <typename BasicType>
-GetSet<BasicType>::GetSet(const std::string& key, const GetSetGui::Section& section)
-	: node(section.declare<GetSetInternal::Key<BasicType> >(key,false))
+GetSet<BasicType>::GetSet(const std::string& key, const GetSetGui::Section& section, const BasicType& default_value)
+	: node(section.declare<GetSetInternal::Key<BasicType>, BasicType>(key,false,default_value))
 	, typed_node(dynamic_cast<GetSetInternal::Key<BasicType>*>(&node))
 {}
 
@@ -87,7 +87,7 @@ GetSet<BasicType>& GetSet<BasicType>::setValue(const BasicType& v)
 }
 
 template <typename BasicType>
-const BasicType GetSet<BasicType>::getValue() const
+BasicType GetSet<BasicType>::getValue() const
 {
 	if (typed_node) return typed_node->getValue();
 	else return stringTo<BasicType>(node.getString());
@@ -126,8 +126,9 @@ GetSet<BasicType>::GetSet(GetSetInternal::Node& _node) : node(_node), typed_node
 		class Key##SPECIAL_TYPE : public GetSetInternal::Key<BASE_TYPE>									\
 		{																								\
 		public:																							\
-			Key##SPECIAL_TYPE(Section& _section, const std::string& _key)								\
-				: Key<BASE_TYPE>(_section,_key) {}														\
+			Key##SPECIAL_TYPE(Section& _section, const std::string& _key,								\
+							  const BASE_TYPE& dflt_val=default_value<BASE_TYPE>())						\
+				: Key<BASE_TYPE>(_section,_key,dflt_val) {}												\
 			virtual std::string getType() const { return #SPECIAL_TYPE; }								\
 			KEY_BODY																					\
 		};																								\
@@ -137,8 +138,9 @@ GetSet<BasicType>::GetSet(GetSetInternal::Node& _node) : node(_node), typed_node
 		class SPECIAL_TYPE : public GetSet<BASE_TYPE>													\
 		{																								\
 		public:																							\
-			SPECIAL_TYPE(const std::string& k, const GetSetGui::Section& s = GetSetGui::Section())		\
-				: GetSet<BASE_TYPE>(s.declare<GetSetInternal::Key##SPECIAL_TYPE>(k,true))				\
+			SPECIAL_TYPE(const std::string& k, const GetSetGui::Section& s = GetSetGui::Section(),		\
+						 const BASE_TYPE& v=default_value<BASE_TYPE>())									\
+				: GetSet<BASE_TYPE>(s.declare<GetSetInternal::Key##SPECIAL_TYPE,BASE_TYPE>(k,true,v))	\
 			{																							\
 				typed_node=static_cast<GetSetInternal::Key<BASE_TYPE>*>(&node);							\
 			}																							\

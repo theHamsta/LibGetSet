@@ -88,7 +88,7 @@ void GetSetScriptParser::printOut(const std::string& text)
 void GetSetScriptParser::printErr(const std::string& text)
 {
 	// The identifier 0x0 is used as a special callback which only forces a GUI update
-	// It is set by GetSetApplication by default.
+	// It is set by Application by default.
 	if (user_err.empty()||(user_err.size()==1 && user_err.find(0x0)!=user_err.end()))
 	{
 		if (!text.empty() && text.front()!='@')

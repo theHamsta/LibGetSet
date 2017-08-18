@@ -104,8 +104,8 @@ namespace GetSetInternal {
 	template <typename T>
 	class Key : public Node {
 	public:
-		Key(Section& _section, const std::string& _name)
-			: Node(_section, _name) { reset(value); }
+		Key(Section& _section, const std::string& _name, const T& default_value=default_value<T>())
+			: Node(_section, _name), value(default_value) {}
 		virtual void        setString(const std::string& v)       { value=stringTo<T>(v); signalChange(); }
 		virtual std::string getString()                     const { return toString(value); }
 		virtual void        setValue (const T& v)                 { value=v; signalChange(); }
