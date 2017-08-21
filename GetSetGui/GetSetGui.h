@@ -47,7 +47,6 @@ namespace GetSetGui
 		GetSetLog					*log;
 
 	public:
-
 		/// Running a stand-alone application from a GetSet Object.
 		template <class GetSetObject>
 		static int exec() {

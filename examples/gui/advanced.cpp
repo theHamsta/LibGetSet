@@ -12,8 +12,6 @@
 
 #include <GetSet/GetSetLog.hxx>
 
-#include <GetSet/GetSetGui.h>
-
 #include <GetSet/StringHexData.hxx>
 
 //  #include <GetSetGui/GetSetMouseKeyboardInteraction.h>

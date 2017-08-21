@@ -64,13 +64,13 @@ namespace GetSetGui {
 		mutable bool                          ignore_notify;
 
 	public:
-		/// Contructor for all objects. For default ProgressInterface, see factory_use_progress_interface.
+		/// Contructor for all objects. For default ProgressInterface, see factory_use_progress_interface.See also: gui_init()
 		Object(const GetSetGui::Section& section, GetSetGui::ProgressInterface *app=0x0);
 
 		/// The section where we store our parameters.
 		GetSetGui::Section gui_section() const;
 		
-		/// Two-stage construction. By default, tries to cast to Configurable and call gui_declare.
+		/// Two-stage construction. By default, tries to cast to Configurable and call gui_declare. Calls gui_ignore_notify(false);
 		virtual void gui_init();
 
 		/// A node in our gui_section() has changed its value. The relative path to where the node resides is passed in section.

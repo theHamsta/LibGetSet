@@ -19,13 +19,15 @@ namespace GetSetGui {
 		, app(_app?*_app:default_progress_interface())
 		, dictionary(((GetSetInternal::Section&)section).dictionary)
 		, path(((GetSetInternal::Section&)section).path())
-		, ignore_notify(false)
+		, ignore_notify(true)
 	{}
 
 	Section Object::gui_section() const { return Section(path,dictionary); }
 
 	void Object::gui_init() {
-		auto *obj=dynamic_cast<Configurable*>(this); if (obj) obj->gui_declare_section(gui_section());
+		auto *obj=dynamic_cast<Configurable*>(this);
+		if (obj) obj->gui_declare_section(gui_section());
+		gui_ignore_notify(false);
 	}
 
 	void Object::gui_ignore_notify(bool ignore) const { ignore_notify=ignore; }
