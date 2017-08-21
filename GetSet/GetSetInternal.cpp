@@ -176,18 +176,20 @@ namespace GetSetInternal {
 	{
 		// Disable observers.
 		for (auto it=registered_observers.begin();it!=registered_observers.end();++it)
-			(*it)->dictionary=0x0;
+			if (*it) (*it)->dictionary=0x0;
 	}
 
-	Dictionary::Observer::Observer(const Dictionary& dict) : dictionary(&dict)
-	{
-		dictionary->registered_observers.insert(this);
+	Dictionary::Observer::Observer(const Dictionary& dict) : dictionary(0x0) { attachTo(&dict); }
+
+	void Dictionary::Observer::attachTo(const Dictionary* new_dict) {
+		if (new_dict!=dictionary && dictionary)
+			dictionary->registered_observers.erase(this);
+		dictionary=new_dict;
+		if (new_dict)
+			dictionary->registered_observers.insert(this);
 	}
 
-	Dictionary::Observer::~Observer()
-	{
-		if (dictionary) dictionary->registered_observers.erase(this);
-	}
+	Dictionary::Observer::~Observer() { attachTo(0x0); }
 
 	Dictionary& Dictionary::global() {
 		/// The instance that holds the global() dictionary. Used whenever a Dictionary is not explicitly specified.
@@ -198,8 +200,9 @@ namespace GetSetInternal {
 
 	void Dictionary::signal(const GetSetInternal::Node& node, Dictionary::Signal signal)
 	{
-		for (auto it=registered_observers.begin();it!=registered_observers.end();++it)
-			if (*it) (*it)->notify(node,signal);
+		if (registered_observers.size()>0)
+			for (auto it=registered_observers.begin();it!=registered_observers.end();++it)
+				if (*it) (*it)->notify(node,signal);
 	}
 
 } // namespace GetSetInternal
@@ -209,12 +212,11 @@ void GetSetHandler::ignoreNotifications(bool ignore)
 	ignore_notify=ignore;
 }
 
-GetSetHandler::GetSetHandler(std::function<void(const GetSetInternal::Node&)>           change , const GetSetInternal::Dictionary& subject)
+GetSetHandler::GetSetHandler(std::function<void(const GetSetInternal::Node&)> change , const GetSetInternal::Dictionary& subject)
 : GetSetInternal::Dictionary::Observer(subject)
 	, ignore_notify(false)
 	, change_handler_node(change)
 {}
-
 
 void GetSetHandler::notify(const GetSetInternal::Node& node, GetSetInternal::Dictionary::Signal signal)
 {

@@ -204,7 +204,6 @@ namespace GetSetInternal {
 
 	};
 	
-
 	/// The root of a propetry tree. Access only via GetSet&lt;BasicType&gt;, see also: GetSet.hxx
 	class Dictionary : public GetSetInternal::Section
 	{
@@ -223,6 +222,7 @@ namespace GetSetInternal {
 		struct Observer {
 			friend class Dictionary;
 			Observer(const Dictionary& dict);
+			void attachTo(const Dictionary*);
 			virtual ~Observer();
 			virtual void notify(const GetSetInternal::Node& node, Signal signal)=0;
 		private:

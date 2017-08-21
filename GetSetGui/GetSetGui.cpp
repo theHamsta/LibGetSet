@@ -192,7 +192,7 @@ namespace GetSetGui
 
 	void Application::loadSettings()
 	{
-		GetSetIO::load<GetSetIO::IniFile>(GetSet<>("ini-File",dict));		
+		GetSetIO::load<GetSetIO::IniFile>(GetSet<>("ini-File",dict));
 	}
 
 	bool Application::parseScript(const std::string& script)
@@ -211,6 +211,7 @@ namespace GetSetGui
 			char *argv[]={&appname[0],0x0};
 			qt_app=new QApplication(argc,argv);
 		}
+		window().resize(window().sizeHint());
 		window().show();
 		return qt_app->exec();
 	}
