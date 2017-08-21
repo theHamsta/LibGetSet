@@ -6,15 +6,15 @@
 #include <type_traits>
 #include <stdexcept>
 
-namespace GetSetObjects {
+namespace GetSetGui {
 	
-	GetSetGui::ProgressInterface& default_progress_interface() {
-		static GetSetGui::ProgressInterface progress;
+	ProgressInterface& default_progress_interface() {
+		static ProgressInterface progress;
 		return progress;
 	}
 	
 	// This is the only place we need direct access to GetSetInternal things. Subclasses need not be aware.
-	Object::Object(const GetSetGui::Section& section, GetSetGui::ProgressInterface *_app)
+	Object::Object(const Section& section, ProgressInterface *_app)
 		: GetSetInternal::Dictionary::Observer(((GetSetInternal::Section&)section).dictionary)
 		, app(_app?*_app:default_progress_interface())
 		, dictionary(((GetSetInternal::Section&)section).dictionary)
@@ -22,7 +22,7 @@ namespace GetSetObjects {
 		, ignore_notify(false)
 	{}
 
-	GetSetGui::Section Object::gui_section() const { return GetSetGui::Section(path,dictionary); }
+	Section Object::gui_section() const { return Section(path,dictionary); }
 
 	void Object::gui_init() {
 		auto *obj=dynamic_cast<Configurable*>(this); if (obj) obj->gui_declare_section(gui_section());
@@ -39,39 +39,19 @@ namespace GetSetObjects {
 				gui_notify(path==node.super_section?"":node.super_section.substr(path.size()+1), node);
 		}
 	}
+	
+} // namespace GetSetGui
+
 
 // 
 // Object Factory (use is optional)
 // 
 
-	/// Default ProgressInterface istance and pointer
-	GetSetGui::ProgressInterface  default_interface;
-	GetSetGui::ProgressInterface *default_interface_ptr=&default_interface;
-
-	void factory_progress_set_default_interface(GetSetGui::ProgressInterface& app) {
-		default_interface_ptr=&app;
-	}
-
-	GetSetGui::ProgressInterface& factory_progress_default_interface() {
-		return *default_interface_ptr;
-	}
-
+namespace GetSetInternal {
 	/// Instance which holds all known objects.
-	std::map<std::string, Object* (*)(const GetSetGui::Section&, GetSetGui::ProgressInterface&)> factory_registration;
+	std::map<std::string, GetSetGui::Object* (*)(const GetSetGui::Section&, GetSetGui::ProgressInterface&)> factory_registration;
 
-	std::set<std::string> factory_known_types() {
-		std::set<std::string> ret;
-		for (auto it=factory_registration.begin();it!=factory_registration.end();++it)
-			ret.insert(it->first);
-		return ret;
-	}
-
-	Object* factory_create(const std::string& class_name, const GetSetGui::Section& section, GetSetGui::ProgressInterface& progress_interface) {
-		auto   it=factory_registration.find(class_name);
-		return it==factory_registration.end() ? 0x0 : it->second(section, progress_interface);
-	}
-	
-	void factory_register_type(const std::string& class_name, Object* (*instantiate)(const GetSetGui::Section&, GetSetGui::ProgressInterface&))
+	void factory_register_type(const std::string& class_name, GetSetGui::Object* (*instantiate)(const GetSetGui::Section&, GetSetGui::ProgressInterface&))
 	{
 		// Make sure that the type class_name is unambigous
 		if (factory_registration.find(class_name)!=factory_registration.end()) {
@@ -83,5 +63,32 @@ namespace GetSetObjects {
 		factory_registration[class_name]=instantiate;
 	}
 
+} // namespace GetSetInternal
 
-} // namespace GetSetObjects
+namespace GetSetGui {
+	
+	/// Default ProgressInterface istance and pointer
+	ProgressInterface  default_interface;
+	ProgressInterface *default_interface_ptr=&default_interface;
+
+	void progress_set_default_interface(ProgressInterface& app) {
+		default_interface_ptr=&app;
+	}
+
+	ProgressInterface& progress_default_interface() {
+		return *default_interface_ptr;
+	}
+
+	std::set<std::string> factory_known_types() {
+		std::set<std::string> ret;
+		for (auto it=GetSetInternal::factory_registration.begin();it!=GetSetInternal::factory_registration.end();++it)
+			ret.insert(it->first);
+		return ret;
+	}
+
+	GetSetGui::Object* factory_create(const std::string& class_name, const Section& section, ProgressInterface& progress_interface) {
+		auto   it=GetSetInternal::factory_registration.find(class_name);
+		return it==GetSetInternal::factory_registration.end() ? 0x0 : it->second(section, progress_interface);
+	}
+	
+} // namespace GetSetGui

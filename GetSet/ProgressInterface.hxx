@@ -21,6 +21,6 @@ namespace GetSetGui {
 
 	};
 
-} // namespace GetSet
+} // namespace GetSetGui
 
 #endif // __progress_interface

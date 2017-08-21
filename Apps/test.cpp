@@ -5,7 +5,7 @@
 GetSetGui::Application g_app("Test");
 
 
-struct Address : public GetSetObjects::Configurable {
+struct Address : public GetSetGui::Configurable {
 	
 	std::string street       ="Mittelweg";
 	int         house_number =51;
@@ -39,7 +39,7 @@ int main(int argc, char **argv)
 {
 	GetSetInternal::Dictionary::global().clear();
 
-	auto types=GetSetObjects::factory_known_types();
+	auto types=GetSetGui::factory_known_types();
 	GetSetGui::Enum("Factory/Known Types").setChoices(std::vector<std::string>(types.begin(),types.end()));
 
 	g_app.init(argc,argv,gui);

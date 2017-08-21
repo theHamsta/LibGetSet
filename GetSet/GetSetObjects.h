@@ -27,14 +27,16 @@
 #include <set>
 #include <sstream>
 
-namespace GetSetObjects {
+namespace GetSetGui {
 	
 	/// Interface for a class which can be represented directly by a GetSet Section.
 	struct Configurable {
 	public:
-		virtual void gui_declare_section (const GetSetGui::Section& ) = 0;
-		virtual void gui_retreive_section(const GetSetGui::Section& ) = 0;
-
+		/// Declare types and default values for all properties.
+		virtual void gui_declare_section (const GetSetGui::Section& section) = 0;
+		/// Retreive current values from GUI
+		virtual void gui_retreive_section(const GetSetGui::Section& section) = 0;
+		
 		/// Load this object from an ini-File
 		inline bool gui_load(const std::string& file) {
 			GetSetInternal::Dictionary dict;
@@ -91,7 +93,7 @@ namespace GetSetObjects {
 		Struct(const GetSetGui::Section& section, GetSetGui::ProgressInterface *app=0x0) : Object(section, app) {}
 	};
 
-} // namespace GetSetObjects
+} // namespace GetSetGui
 
 // 
 // Object Factory (use is optional)
@@ -100,49 +102,51 @@ namespace GetSetObjects {
 // For Human-readable object names across compiliation units and compilers put this in your header.
 #define GETSET_OBJECT_DECLARE(CLASS_NAME) template<> inline std::string typeName<CLASS_NAME>() { return #CLASS_NAME; }
 
-// If you want your GetSetObjects::Object CLASS_NAME registered with the factory, put this in your c++ file.
+// If you want your GetSetGui::Object CLASS_NAME registered with the factory, put this in your c++ file.
 #define GETSET_OBJECT_REGISTER(CLASS_NAME)                                                                                   \
-	GetSetObjects::Object * factory_create##CLASS_NAME(const GetSetGui::Section& section, GetSetGui::ProgressInterface& app) \
+	GetSetGui::Object * factory_create##CLASS_NAME(const GetSetGui::Section& section, GetSetGui::ProgressInterface& app)     \
 	{ CLASS_NAME * obj=new CLASS_NAME(section,&app); obj->gui_init(); return obj; }                                          \
-	GetSetObjects::FactoryRegistration<CLASS_NAME> factory_register##CLASS_NAME(factory_create##CLASS_NAME);
+	GetSetInternal::FactoryRegistration<CLASS_NAME> factory_register##CLASS_NAME(factory_create##CLASS_NAME);
 
-// Same as GETSET_OBJECT_DECLARE, except that for typedef GetSetObjects::Struct<CLASS_NAME> ##CLASS_NAMEGui
-#define GETSET_OBJECT_STRUCT_DECLARE(CLASS_NAME)                                                                     \
-	typedef GetSetObjects::Struct<CLASS_NAME> ##CLASS_NAME##Gui;                                                       \
+// Same as GETSET_OBJECT_DECLARE, except that for typedef GetSetGui::Struct<CLASS_NAME> ##CLASS_NAME##Gui
+#define GETSET_OBJECT_STRUCT_DECLARE(CLASS_NAME)               \
+	typedef GetSetGui::Struct<CLASS_NAME> ##CLASS_NAME##Gui;   \
 	GETSET_OBJECT_DECLARE(##CLASS_NAME##Gui)
 
 // Same as GETSET_OBJECT_REGISTER, except with ##CLASS_NAMEGui.
 #define GETSET_OBJECT_STRUCT_REGISTER(CLASS_NAME) GETSET_OBJECT_REGISTER(##CLASS_NAME##Gui)
 
-namespace GetSetObjects {
+namespace GetSetGui {
 	/// Set the default ProgressInterface which GetSetTypes use.
-	void factory_progress_set_default_interface(GetSetGui::ProgressInterface&);
+	void progress_set_default_interface(GetSetGui::ProgressInterface&);
 
 	/// Set the default ProgressInterface which GetSetTypes use.
-	GetSetGui::ProgressInterface& factory_progress_default_interface();
+	GetSetGui::ProgressInterface& progress_default_interface();
 
 	/// A set of known types. To register a type, use GETSET_OBJECT_REGISTER(CLASS_NAME) in your c++ file.
 	std::set<std::string> factory_known_types();
 
 	/// Try to create an object of a specified type. Returns null for unknown types.
 	Object* factory_create(const std::string& class_name, const GetSetGui::Section& section,
-		GetSetGui::ProgressInterface& progress_interface=factory_progress_default_interface());
+		GetSetGui::ProgressInterface& progress_interface=progress_default_interface());
 
 	/// Try to create an object of a specified type. Returns null for unknown types.
 	inline Object* factory_create(const std::string& class_name) { factory_create(class_name,class_name); }
 
-	// 
-	// Please do not use the following factory_register_type and FactoryRegistration directly.
-	// Instead, use GETSET_OBJECT_REGISTER(CLASS_NAME) in your c++ file.
-	// 
+} // namespace GetSetGui
 
-	void factory_register_type(const std::string&, Object* (*)(const GetSetGui::Section&, GetSetGui::ProgressInterface&));
+// 
+// Please do not use the following factory_register_type and FactoryRegistration directly.
+// Instead, use GETSET_OBJECT_REGISTER(CLASS_NAME) in your c++ file.
+// 
+
+namespace GetSetInternal {
+	void factory_register_type(const std::string&, GetSetGui::Object* (*)(const GetSetGui::Section&, GetSetGui::ProgressInterface&));
 	template <class GetSetObject>
 	struct FactoryRegistration {
-		FactoryRegistration(Object* (*instantiate)(const GetSetGui::Section&, GetSetGui::ProgressInterface&))
-		                       {factory_register_type(typeName<GetSetObject>(),instantiate);}
+		FactoryRegistration(GetSetGui::Object* (*instantiate)(const GetSetGui::Section&, GetSetGui::ProgressInterface&))
+								{factory_register_type(typeName<GetSetObject>(),instantiate);}
 	};
-
-} // namespace GetSetObjects
+}
 
 #endif // __getset_object_hxx
