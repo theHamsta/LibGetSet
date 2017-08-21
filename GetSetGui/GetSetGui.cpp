@@ -143,7 +143,6 @@ namespace GetSetGui
 		{
 			main_window=new GetSetTabWidget(0x0,dict);
 			main_window->setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::CustomizeWindowHint | Qt::WindowSystemMenuHint);
-			main_window->addDefaultFileMenu();
 		}
 		return *main_window;
 	}
