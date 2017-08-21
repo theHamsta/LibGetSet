@@ -96,7 +96,8 @@ namespace GetSetInternal {
 		}
 		children[new_node.name]=&new_node;
 		dictionary.signal(new_node, Dictionary::Signal::Create);
-		new_node.setString(old_value);
+		if (!old_value.empty())
+			new_node.setString(old_value);
 	}
 
 	std::string Section::getType() const { return "Section"; }
