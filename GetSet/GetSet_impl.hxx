@@ -165,11 +165,13 @@ GetSet<BasicType>::GetSet(GetSetInternal::Node& _node) : node(_node), typed_node
 	{																									\
 		auto choices=getAttribute<std::vector<std::string> >("Choices");								\
 		int index=getValue();																			\
+		if (choices.empty()) toString(index);															\
 		if (index<0||index>=(int)choices.size()) return toString(index); else return choices[index];	\
 	}																									\
 	virtual void setString(const std::string& in)														\
 	{																									\
 		auto choices=getAttribute<std::vector<std::string> >("Choices");								\
+		if (choices.empty()) setValue(stringTo<int>(in));												\
 		for (int i=0;i<(int)choices.size();i++) if (choices[i]==in) { setValue(i); return; }			\
 		setValue(stringTo<int>(in));																	\
 	}
