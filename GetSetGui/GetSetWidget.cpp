@@ -557,7 +557,7 @@ namespace GetSetGui {
 			item->setMaximum(is_periodic?maxv+1:maxv);
 		}
 		w->blockSignals(false);
-
+		resize(m_content->minimumSize());
 	}
 
 

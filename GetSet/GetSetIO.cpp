@@ -4,58 +4,6 @@
 
 #include <fstream>
 
-namespace GetSetInternal {
-
-	InputOutput& InputOutput::retreive(const Section& section, const std::string& path_prefix)
-	{
-		const auto& keys=section.getChildren();
-		for (auto it=keys.begin();it!=keys.end();++it)
-		{
-			std::string path=path_prefix.empty()?it->first:path_prefix+"/"+it->first;
-			auto& attribs=contents[path];
-			attribs=it->second->attributes;
-			// Add an attribute for Type
-			attribs["Type"]=it->second->getType();
-			Section* section=dynamic_cast<Section*>(it->second);
-			// And add an attribute for value
-			if (section) retreive(*section, path);
-			else attribs["Value"]=it->second->getString();
-		}
-		return *this;
-	}
-
-	void InputOutput::restore(Section& section) const
-	{
-		for (auto it=contents.begin();it!=contents.end();++it)
-		{
-			// Get path and type
-			const std::string& path(it->first);
-			std::string type;
-			auto type_it=it->second.find("Type");
-			// Silently ignore keys, for which the type is missing.
-			if (type_it!=it->second.end()) type=type_it->second;
-			Node *node=0x0;
-			// Create new node (section or key)
-			if (type=="Section")
-				node=&section.createSection(path);
-			else
-			{
-				node=section.nodeAt(path);
-				bool force_type=!type.empty() && type!="string";
-				if (!node || force_type) node=&section.createNode(path,type);
-			}
-			for (auto ait=it->second.begin();ait!=it->second.end();++ait)
-			{
-				const std::string& attrib=ait->first;
-				if (attrib=="Value") node->setString(ait->second);
-				else if (attrib=="Type") continue;
-				else node->attributes[attrib]=ait->second;
-			}
-		}
-	}
-
-} // namespace GetSetInternal
-
 namespace GetSetIO {
 
 	//

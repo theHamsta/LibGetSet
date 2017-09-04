@@ -62,6 +62,7 @@ namespace GetSetGui {
 		layout->addWidget(button);
 		progress_bar->hide();
 		label->hide();
+		setWindowFlags(Qt::WindowStaysOnTopHint);
 	}
 
 

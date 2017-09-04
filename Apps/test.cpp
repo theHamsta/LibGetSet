@@ -2,6 +2,8 @@
 
 #include <GetSetGui/GetSetGui.h>
 
+#include <GetSetGui/GetSetTabWidget.h>
+
 GetSetGui::Application g_app("Test");
 
 
@@ -31,7 +33,15 @@ struct Address : public GetSetGui::Configurable {
 GETSET_OBJECT_STRUCT_DECLARE (Address)
 GETSET_OBJECT_STRUCT_REGISTER(Address)
 
-void gui(const GetSetInternal::Node& node) {
+void gui(const GetSetInternal::Node& node)
+{
+
+	if (node.name=="Bla")
+	{
+		Address().gui_declare_section(GetSetGui::Section("Addresses/Some/Home"));
+		Address().gui_declare_section(GetSetGui::Section("Addresses/Some/Work"));
+		Address().gui_declare_section(GetSetGui::Section("Addresses/Some/Vacation"));
+	}
 	g_app.saveSettings();
 }
 
@@ -39,8 +49,8 @@ int main(int argc, char **argv)
 {
 	GetSetInternal::Dictionary::global().clear();
 
-	auto types=GetSetGui::factory_known_types();
-	GetSetGui::Enum("Factory/Known Types").setChoices(std::vector<std::string>(types.begin(),types.end()));
+	GetSetGui::Button("Addresses/Some/Bla")="Blubb";
+	GetSetGui::Section("Addresses/Some").setGrouped();
 
 	g_app.init(argc,argv,gui);
 	return g_app.exec();

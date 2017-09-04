@@ -40,7 +40,7 @@ int main(int argc, char** argv)
 	//// Your simple algorithm would go here
 
 	GetSetIO::TxtDetailed io;
-	io.retreive();
+	io.retreive(GetSetGui::Section());
 	io.saveStream(std::cout);
 	return 0;
 }

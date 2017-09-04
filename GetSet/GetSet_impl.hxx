@@ -31,9 +31,11 @@ namespace GetSetGui {
 	Section::Section(const std::string& relative_path, GetSetGui::Section super_section)
 		: node(((GetSetInternal::Section&)super_section).createSection(relative_path))
 	{}
-				
-	/// Create new Key or replace an already existing node if it is a string or forceType is set.
-	/// Most of the time, just return a pointer to an existing node.
+
+	bool Section::isCollapsible() const { return node.getAttribute<bool>("Collapsed") || node.getAttribute<bool>("Collapsible") ;}
+	
+	Section& Section::setCollapsible(bool collapsible) { node.setAttribute<bool>("Collapsible",collapsible); if (!collapsible) node.setAttribute<bool>("Collapsed",false); return *this;}
+
 	template <typename KeyType, typename BasicType>
 	GetSetInternal::Node& Section::declare(const std::string& relative_path, bool forceType, const BasicType& default_value) const
 	{

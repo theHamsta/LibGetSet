@@ -24,6 +24,7 @@
 #include <sstream>
 #include <iomanip>
 #include <vector>
+#include <set>
 
 /// Reset value (call constructor or zeros c-types, see specializations)
 template <typename T> inline T default_value() { T v; return v; }
@@ -80,6 +81,28 @@ template <typename T=std::string> inline std::vector<T> stringToVector(const std
 	for (;std::getline(str,item,delim);str&&!str.eof())
 		if (multiple||!item.empty())
 		ret.push_back(stringTo<T>(item));
+	return ret;
+}
+
+// Conversion from set of any type to string
+template <typename T> inline std::string setToString(const std::set<T>& in, const std::string& delim=" ")
+{
+	if (in.empty()) return std::string();
+    typename std::set<T>::const_iterator it=in.begin();
+	std::string ret=toString(*it);
+	for (++it;it!=in.end();++it)
+		ret+=delim+toString(*it);
+	return ret;
+}
+
+// Conversion of a string to a set of any type
+template <typename T=std::string> inline std::set<T> stringToSet(const std::string& in, const char delim=' ')
+{
+	std::string item;
+	std::set<T> ret;
+	std::istringstream str(in);
+	for (;std::getline(str,item,delim);str&&!str.eof())
+		ret.insert(stringTo<T>(item));
 	return ret;
 }
 

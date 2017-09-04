@@ -24,28 +24,12 @@
 
 #include <fstream>
 
-namespace GetSetInternal {
+namespace GetSetIO {
 	/// A simple representation of all the information in a property (sub-)tree
-	struct InputOutput{
-		typedef std::map<std::string, std::string> MapStrStr;
-		typedef std::map<std::string, std::map<std::string, std::string> > MapStrMapStrStr;
-		std::map<std::string, std::map<std::string, std::string> > contents;
-
-		/// Retreive information in this object from a Section or Dictionary. path_prefix is used for recursion and empty by default.
-		InputOutput& retreive(const Section& section=Dictionary::global(), const std::string& path_prefix="");
-
-		/// Create Section from information in this object
-		void restore(Section& section=Dictionary::global()) const;
-
+	struct InputOutput : public GetSetInternal::StringRepresentation {
 		virtual InputOutput& loadStream(std::istream& istr) = 0;
 		virtual void saveStream(std::ostream& ostr) const = 0;
 	};
-
-} // namespace GetSetInternal
-
-namespace GetSetIO {
-
-	using GetSetInternal::InputOutput;
 
 	/// Utility function to read GetSet properties from file
 	template <typename InputOutputType=IniFile>
@@ -75,34 +59,32 @@ namespace GetSetIO {
 	template <typename InputOutputType=TxtKeyValue>
 	inline void debug_print(const GetSetInternal::Section& section=GetSetGui::Section())
 	{
-		InputOutputType().retreive(section).saveStream(std::cout);
+		InputOutputType(section).saveStream(std::cout);
 	}
-	
 
 	/// A simple text file with one property per line in "section/key=value" format
-	struct TxtKeyValue : public GetSetInternal::InputOutput {
+	struct TxtKeyValue : public InputOutput {
 		virtual InputOutput& loadStream(std::istream& istr);
 		virtual void saveStream(std::ostream& ostr) const ;
 	};
 
 	/// An ini-File in "[Section.Subsection] Key=Value" format
-	struct IniFile : public GetSetInternal::InputOutput {
+	struct IniFile : public InputOutput {
 		virtual InputOutput& loadStream(std::istream& istr);
 		virtual void saveStream(std::ostream& ostr) const ;
 	};
 
 	/// A text file with one property per line containing all information (Key, Value, Type and additional info) in attribute="value" format
-	struct TxtDetailed : public GetSetInternal::InputOutput {
+	struct TxtDetailed : public InputOutput {
 		virtual InputOutput& loadStream(std::istream& istr);
 		virtual void saveStream(std::ostream& ostr) const ;
 	};
 	
 	/// A single line in format Key1="Value1" Key2="Value2" ...
-	struct SingleLine : public GetSetInternal::InputOutput {
+	struct SingleLine : public InputOutput {
 		virtual InputOutput& loadStream(std::istream& istr);
 		virtual void saveStream(std::ostream& ostr) const ;
 	};
-
 
 } // namespace GetSetIO
 
