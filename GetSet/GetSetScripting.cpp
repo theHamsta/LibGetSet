@@ -464,8 +464,10 @@ void GetSetScriptParser::parse_discard(std::istream& script)
 	else if (type==0)
 	{
 		GetSetInternal::Node* node=subject.nodeAt(var_or_key_name);
-		GetSetInternal::Section& section=GetSetGui::Section(node->super_section,subject);
-		section.removeNode(var_or_key_name);
+		if(node) {
+			GetSetInternal::Section& section=GetSetGui::Section(node->super_section,subject);
+			section.removeNode(node->name);
+		}
 	}
 	else
 	{

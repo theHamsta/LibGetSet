@@ -188,7 +188,7 @@ namespace GetSetGui
 		std::string what=sender()->objectName().toStdString();
 		
 		GetSetGui::Section menu(who);
-		menu.setHidden(true);
+		if (!menu.getHidden()) menu.setHidden(true);
 		GetSetGui::Button(what,menu).trigger();
 	}
 
@@ -277,7 +277,7 @@ namespace GetSetGui
 		if (node.super_section!=m_path) return;
 		if (dynamic_cast<const GetSetInternal::Section*>(&node)==0x0) return;
 		// Update our tabs.
-		create(GetSetGui::Section(node.path(),node.dictionary));
+		create(GetSetGui::Section(m_path,node.dictionary));
 	}
 
 

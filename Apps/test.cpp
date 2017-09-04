@@ -36,7 +36,7 @@ GETSET_OBJECT_STRUCT_REGISTER(Address)
 void gui(const GetSetInternal::Node& node)
 {
 
-	if (node.name=="Bla")
+	if (node.name=="Bla...")
 	{
 		Address().gui_declare_section(GetSetGui::Section("Addresses/Some/Home"));
 		Address().gui_declare_section(GetSetGui::Section("Addresses/Some/Work"));
@@ -53,5 +53,7 @@ int main(int argc, char **argv)
 	GetSetGui::Section("Addresses/Some").setGrouped();
 
 	g_app.init(argc,argv,gui);
+	g_app.window().addDefaultFileMenu();
+	g_app.window().addMenuItem("Edit","Bla...");
 	return g_app.exec();
 }

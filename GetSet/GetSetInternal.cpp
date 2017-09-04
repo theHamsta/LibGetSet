@@ -59,9 +59,10 @@ namespace GetSetInternal {
 		path.pop_back();
 		Section& super_section=createSection(path);
 		auto it=super_section.children.find(key_name);
-		dictionary.signal(*it->second,Dictionary::Signal::Destroy);
-		delete it->second;
+		Node *victim=it->second;
 		super_section.children.erase(it);
+		dictionary.signal(*victim,Dictionary::Signal::Destroy);
+		delete victim;
 	}
 
 	void Section::clear()

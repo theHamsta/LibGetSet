@@ -65,7 +65,6 @@ namespace GetSetGui {
 		setWindowFlags(Qt::WindowStaysOnTopHint);
 	}
 
-
 	void GetSetProgressWindow::progressStart(const std::string& title, const std::string& info, int maximum, bool *_cancel_clicked)
 	{
 		setWindowTitle(title.c_str());
