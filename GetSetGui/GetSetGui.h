@@ -24,7 +24,7 @@
 
 #include "../GetSet/GetSetCmdLine.hxx"
 
-#include "../Getset/ProgressInterface.hxx"
+#include "../GetSet/ProgressInterface.hxx"
 
 class QApplication;
 class GetSetLog;

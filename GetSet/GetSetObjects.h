@@ -58,10 +58,10 @@ namespace GetSetGui {
 	/// An interface for objects, which store their settings in a specific Section and are notified for changes relative to that section only.
 	class Object : public GetSetInternal::Dictionary::Observer {
 	protected:
-		GetSetInternal::Dictionary&           dictionary;
-		const std::string                     path;
-		mutable GetSetGui::ProgressInterface& app;
-		mutable bool                          ignore_notify;
+		GetSetInternal::Dictionary&           dictionary;    //< 
+		const std::string                     path;          //< 
+		mutable GetSetGui::ProgressInterface *app;           //< For user info. Not part of object state, hence mutable.
+		mutable bool                          ignore_notify; //< 
 
 	public:
 		/// Contructor for all objects. For default ProgressInterface, see factory_use_progress_interface.See also: gui_init()
@@ -100,21 +100,21 @@ namespace GetSetGui {
 // 
 
 // For Human-readable object names across compiliation units and compilers put this in your header.
-#define GETSET_OBJECT_DECLARE(CLASS_NAME) template<> inline std::string typeName<CLASS_NAME>() { return #CLASS_NAME; }
+#define GETSET_OBJECT_DECLARE(CLASS_NAME) template<> inline std::string typeName< CLASS_NAME >() { return #CLASS_NAME; }
 
 // If you want your GetSetGui::Object CLASS_NAME registered with the factory, put this in your c++ file.
 #define GETSET_OBJECT_REGISTER(CLASS_NAME)                                                                                   \
 	GetSetGui::Object * factory_create##CLASS_NAME(const GetSetGui::Section& section, GetSetGui::ProgressInterface& app)     \
 	{ CLASS_NAME * obj=new CLASS_NAME(section,&app); obj->gui_init(); return obj; }                                          \
-	GetSetInternal::FactoryRegistration<CLASS_NAME> factory_register##CLASS_NAME(factory_create##CLASS_NAME);
+	GetSetInternal::FactoryRegistration< CLASS_NAME > factory_register##CLASS_NAME(factory_create##CLASS_NAME);
 
-// Same as GETSET_OBJECT_DECLARE, except that for typedef GetSetGui::Struct<CLASS_NAME> ##CLASS_NAME##Gui
+// Same as GETSET_OBJECT_DECLARE, except that for typedef GetSetGui::Struct< CLASS_NAME > CLASS_NAME##Gui
 #define GETSET_OBJECT_STRUCT_DECLARE(CLASS_NAME)               \
-	typedef GetSetGui::Struct<CLASS_NAME> ##CLASS_NAME##Gui;   \
-	GETSET_OBJECT_DECLARE(##CLASS_NAME##Gui)
+	typedef GetSetGui::Struct< CLASS_NAME > CLASS_NAME##Gui;   \
+	GETSET_OBJECT_DECLARE(CLASS_NAME##Gui)
 
-// Same as GETSET_OBJECT_REGISTER, except with ##CLASS_NAMEGui.
-#define GETSET_OBJECT_STRUCT_REGISTER(CLASS_NAME) GETSET_OBJECT_REGISTER(##CLASS_NAME##Gui)
+// Same as GETSET_OBJECT_REGISTER, except with CLASS_NAME##Gui.
+#define GETSET_OBJECT_STRUCT_REGISTER(CLASS_NAME) GETSET_OBJECT_REGISTER(CLASS_NAME##Gui)
 
 namespace GetSetGui {
 	/// Set the default ProgressInterface which GetSetTypes use.

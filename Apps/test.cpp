@@ -57,3 +57,5 @@ int main(int argc, char **argv)
 	g_app.window().addMenuItem("Edit","Bla...");
 	return g_app.exec();
 }
+
+

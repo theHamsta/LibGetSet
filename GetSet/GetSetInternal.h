@@ -48,7 +48,7 @@ namespace GetSetInternal {
 	class Node {
 		friend struct StringRepresentation; //< Only i/o shall be able to access private members.
 	protected:
-		Node::Node(Section& _section, const std::string& _name);
+		Node(Section& _section, const std::string& _name);
 		std::map<std::string,std::string> attributes;
 		/// Signals sent to dictionaries when values change.
 		void signalCreate();
@@ -85,15 +85,7 @@ namespace GetSetInternal {
 
 		/// Set an attribute of this Node.
 		template <typename T=std::string>
-		void setAttribute(const std::string attrib, const T& value) {
-			// Set new value
-			attributes[attrib]=toString(value);
-			// If, however, the value is empty or default, remove attrib altogether.
-			if (value==stringTo<T>("") || attributes[attrib].empty())
-				attributes.erase(attributes.find(attrib));
-			// Let the observer know that we have changed attributes
-			dictionary.signal(*this, Dictionary::Signal::Attrib);
-		}
+		void setAttribute(const std::string attrib, const T& value); 
 
 		/// Signals sent to dictionaries when values change.
 		void signalChange();
@@ -150,7 +142,7 @@ namespace GetSetInternal {
 		void clear();
 
 		/// Insert a new node into this section.
-		void Section::insertNode(Node& new_node);
+		void insertNode(Node& new_node);
 
 		//
 		// Node implementation
@@ -318,7 +310,21 @@ public:
 protected:
 	bool ignore_notify;
 	virtual void notify(const GetSetInternal::Node& node, GetSetInternal::Dictionary::Signal signal);
-	std::function<void(const GetSetInternal::Node&)>           change_handler_node;
+	std::function<void(const GetSetInternal::Node&)> change_handler_node;
 };
+
+// Implementation of Node::setAttribute
+namespace GetSetInternal {
+	template <typename T>
+	void Node::setAttribute(const std::string attrib, const T& value) {
+		// Set new value
+		attributes[attrib]=toString(value);
+		// If, however, the value is empty or default, remove attrib altogether.
+		if (value==stringTo<T>("") || attributes[attrib].empty())
+			attributes.erase(attributes.find(attrib));
+		// Let the observer know that we have changed attributes
+		dictionary.signal(*this, Dictionary::Signal::Attrib);
+	}
+} // namespace GetSetInternal
 
 #endif // __GetSetInternal_h

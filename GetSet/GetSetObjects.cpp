@@ -16,7 +16,7 @@ namespace GetSetGui {
 	// This is the only place we need direct access to GetSetInternal things. Subclasses need not be aware.
 	Object::Object(const Section& section, ProgressInterface *_app)
 		: GetSetInternal::Dictionary::Observer(((GetSetInternal::Section&)section).dictionary)
-		, app(_app?*_app:default_progress_interface())
+		, app(_app?_app:&default_progress_interface())
 		, dictionary(((GetSetInternal::Section&)section).dictionary)
 		, path(((GetSetInternal::Section&)section).path())
 		, ignore_notify(true)
@@ -58,7 +58,10 @@ namespace GetSetInternal {
 		// Make sure that the type class_name is unambigous
 		if (factory_registration.find(class_name)!=factory_registration.end()) {
 			if (!instantiate) factory_registration.erase(factory_registration.find(class_name));
-			else throw std::runtime_error ( std::string(__FUNCTION__ " : The specified type ") + class_name + " has already been registered!");
+			else {
+                std::string s=std::string(__FUNCTION__) + " : The specified type " + class_name + " has already been registered!";
+                throw std::runtime_error( s);
+            }
 		}
 		else
 		// Then just register

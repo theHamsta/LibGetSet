@@ -23,8 +23,14 @@
 #include "GetSet.hxx"
 
 #include <fstream>
+#include <iostream>
 
 namespace GetSetIO {
+
+    /// Predeclaration of default IO types
+    struct IniFile;
+    struct TxtKeyValue;
+
 	/// A simple representation of all the information in a property (sub-)tree
 	struct InputOutput : public GetSetInternal::StringRepresentation {
 		virtual InputOutput& loadStream(std::istream& istr) = 0;

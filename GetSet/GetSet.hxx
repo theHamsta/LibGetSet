@@ -43,7 +43,7 @@ namespace GetSetGui {
 	/// Access a section other than global dictionary. Destroys everything in the way of creating relative_path.
 	class Section
 	{
-		mutable GetSetInternal::Section& node;
+		GetSetInternal::Section& node;
 	public:
 		Section(GetSetInternal::Section& _section=GetSetInternal::Dictionary::global()) : node(_section) {}
 		inline Section(const std::string& relative_path, GetSetGui::Section super_section=Section());
