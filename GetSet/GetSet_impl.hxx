@@ -109,6 +109,9 @@ template <typename BasicType>
 inline void GetSet<BasicType>::discard() { node.super().removeNode(node.name); }
 
 template <typename BasicType>
+inline GetSetGui::Section GetSet<BasicType>::supersection() const { return GetSetGui::Section(node.super_section, node.dictionary); }
+
+template <typename BasicType>
 inline GetSet<BasicType>& GetSet<BasicType>::operator=(const BasicType& v) { setValue(v); return *this; }
 
 template <typename BasicType>

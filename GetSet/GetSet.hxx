@@ -59,6 +59,16 @@ namespace GetSetGui {
 		/// Access (or make) a subsection of this section
 		Section subsection(const std::string& name) const { return Section(name, *this); }
 
+		/// Access section where this section resides. Returns itself in case of root dictionary. 
+		Section supersection() const {
+			return Section(node.super_section, node.dictionary);
+		}
+
+		/// Returns true if this section represents the root dictionary.
+		bool isRootDictionary() const {
+			return node.super_section.empty();
+		}
+
 		/// Discard this property. Do NOT use this instance again after a call to discard.
 		virtual void discard() { node.super().removeNode(node.name); }
 
@@ -102,6 +112,9 @@ public:
 	/// Discard this property. Do NOT use this instance again after a call to discard.
 	virtual void discard();
 	
+	/// Access section where this key resides.
+	GetSetGui::Section supersection() const;
+
 	/// Set the value of a GetSet property directly via assignment operator
 	inline GetSet<BasicType>& operator=(const BasicType& v);
 	/// Cast operator directly to BasicType (behaves almost like a c++ variable of BasicType)
