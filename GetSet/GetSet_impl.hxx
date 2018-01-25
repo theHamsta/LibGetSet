@@ -27,15 +27,13 @@
 // 
 
 namespace GetSetGui {
+	
+	Section::Section(GetSetInternal::Section& _section) : node(_section) {}
 
 	Section::Section(const std::string& relative_path, GetSetGui::Section super_section)
 		: node(((GetSetInternal::Section&)super_section).createSection(relative_path))
 	{}
-
-	bool Section::isCollapsible() const { return node.getAttribute<bool>("Collapsed") || node.getAttribute<bool>("Collapsible") ;}
-	
-	Section& Section::setCollapsible(bool collapsible) { node.setAttribute<bool>("Collapsible",collapsible); if (!collapsible) node.setAttribute<bool>("Collapsed",false); return *this;}
-
+		
 	template <typename KeyType, typename BasicType>
 	GetSetInternal::Node& Section::declare(const std::string& relative_path, bool forceType, const BasicType& default_value) const
 	{
@@ -67,6 +65,31 @@ namespace GetSetGui {
 		}
 		return *new_node;
 	}
+
+	Section::operator GetSetInternal::Section& () const { return node; }
+
+	Section Section::subsection(const std::string& name) const { return Section(name, *this); }
+
+	Section Section::supersection() const {
+		return Section(node.super_section, node.dictionary);
+	}
+
+	bool Section::isRootDictionary() const {
+		return node.super_section.empty();
+	}
+
+	std::string Section::name() const {
+		return node.name;
+	}
+
+	/// Use discouraged. 
+	std::string Section::path() const {
+		return node.super_section.empty()?node.name:node.super_section+"name";
+	}
+
+	bool Section::isCollapsible() const { return node.getAttribute<bool>("Collapsed") || node.getAttribute<bool>("Collapsible") ;}
+	
+	Section& Section::setCollapsible(bool collapsible) { node.setAttribute<bool>("Collapsible",collapsible); if (!collapsible) node.setAttribute<bool>("Collapsed",false); return *this;}
 
 } // namespace GetSetGui
 
@@ -112,6 +135,9 @@ template <typename BasicType>
 inline GetSetGui::Section GetSet<BasicType>::supersection() const { return GetSetGui::Section(node.super_section, node.dictionary); }
 
 template <typename BasicType>
+inline std::string  GetSet<BasicType>::name() const { return node.name; }
+
+template <typename BasicType>
 inline GetSet<BasicType>& GetSet<BasicType>::operator=(const BasicType& v) { setValue(v); return *this; }
 
 template <typename BasicType>
@@ -124,37 +150,34 @@ GetSet<BasicType>::GetSet(GetSetInternal::Node& _node) : node(_node), typed_node
 // DEFINITION OF SPECIAL TYPES Enum, Button, File, ect.
 //
 
-/// Specializations for GUI representations
-#define GETSET_SPECIALIZATION(SPECIAL_TYPE,BASE_TYPE,CLASS_BODY,KEY_BODY)								\
-	namespace GetSetInternal																			\
+/// Specializations for GUI representations. Internal representation
+#define GETSET_SPECIALIZATION_INTERNAL(SPECIAL_TYPE,BASE_TYPE,KEY_BODY)									\
+	class Key##SPECIAL_TYPE : public Key<BASE_TYPE>														\
 	{																									\
-		class Key##SPECIAL_TYPE : public GetSetInternal::Key<BASE_TYPE>									\
-		{																								\
-		public:																							\
-			Key##SPECIAL_TYPE(Section& _section, const std::string& _key,								\
-							  const BASE_TYPE& dflt_val=default_value<BASE_TYPE>())						\
-				: Key<BASE_TYPE>(_section,_key,dflt_val) {}												\
-			virtual std::string getType() const { return #SPECIAL_TYPE; }								\
-			KEY_BODY																					\
-		};																								\
-	}																									\
-	namespace GetSetGui																					\
+	public:																								\
+		Key##SPECIAL_TYPE(Section& _section, const std::string& _key,									\
+							const BASE_TYPE& dflt_val=default_value<BASE_TYPE>())						\
+			: Key<BASE_TYPE>(_section,_key,dflt_val) {}													\
+		virtual std::string getType() const { return #SPECIAL_TYPE; }									\
+		KEY_BODY																						\
+	};
+/// Specializations for GUI representations. View for user.
+#define GETSET_SPECIALIZATION_GUI(SPECIAL_TYPE,BASE_TYPE,CLASS_BODY)									\
+	class SPECIAL_TYPE : public GetSet<BASE_TYPE>														\
 	{																									\
-		class SPECIAL_TYPE : public GetSet<BASE_TYPE>													\
+	public:																								\
+		SPECIAL_TYPE(const std::string& k, const GetSetGui::Section& s = GetSetGui::Section(),			\
+						const BASE_TYPE& v=default_value<BASE_TYPE>())									\
+			: GetSet<BASE_TYPE>(s.declare<GetSetInternal::Key##SPECIAL_TYPE,BASE_TYPE>(k,true,v))		\
 		{																								\
-		public:																							\
-			SPECIAL_TYPE(const std::string& k, const GetSetGui::Section& s = GetSetGui::Section(),		\
-						 const BASE_TYPE& v=default_value<BASE_TYPE>())									\
-				: GetSet<BASE_TYPE>(s.declare<GetSetInternal::Key##SPECIAL_TYPE,BASE_TYPE>(k,true,v))	\
-			{																							\
-				typed_node=static_cast<GetSetInternal::Key<BASE_TYPE>*>(&node);							\
-			}																							\
-			GetSet<BASE_TYPE>& operator=(const BASE_TYPE& v) { typed_node->setValue(v); return *this; }	\
-			operator BASE_TYPE() const { return typed_node->getValue(); }								\
-			CLASS_BODY																					\
-		};																								\
-	}
-// end of GETSET_SPECIALIZATION
+			typed_node=static_cast<GetSetInternal::Key<BASE_TYPE>*>(&node);								\
+		}																								\
+		GetSet<BASE_TYPE>& operator=(const BASE_TYPE& v) { typed_node->setValue(v); return *this; }		\
+		operator BASE_TYPE() const { return typed_node->getValue(); }									\
+		CLASS_BODY																						\
+	};
+
+// end of GETSET_SPECIALIZATION *
 
 // Use pre-processor to define several specialized GetSetGui:: and GetInternal::Key types.
 // Each of these classes had between 50 and 100 LOC if expanded and formatted.
@@ -217,38 +240,45 @@ GetSet<BasicType>::GetSet(GetSetInternal::Node& _node) : node(_node), typed_node
 		if (signal_change) node.signalChange();															\
 	}
 
-/// A pulldown menu with a number of choices.
-GETSET_SPECIALIZATION(Enum,int,GETSET_ENUM_CLASS_BODY, GETSET_ENUM_KEY_BODY)
+namespace GetSetInternal {
+	GETSET_SPECIALIZATION_INTERNAL(Enum,int, GETSET_ENUM_KEY_BODY)
+	GETSET_SPECIALIZATION_INTERNAL(Slider,double, )
+	GETSET_SPECIALIZATION_INTERNAL(RangedDouble,double, )
+	GETSET_SPECIALIZATION_INTERNAL(RangedInt,int, )
+	GETSET_SPECIALIZATION_INTERNAL(Button,std::string, GETSET_BUTTON_KEY_BODY)
+	GETSET_SPECIALIZATION_INTERNAL(StaticText,std::string, )
+	GETSET_SPECIALIZATION_INTERNAL(ReadOnlyText,std::string, )
+	GETSET_SPECIALIZATION_INTERNAL(Directory,std::string, )
+	GETSET_SPECIALIZATION_INTERNAL(File,std::string, )
+} // namespace GetSetInternal 
 
-/// A GetSet&lt;double&gt; with additional range information, so that it could be represented as a slider
-GETSET_SPECIALIZATION(Slider,double, GETSET_TAG(Slider,double,Min) GETSET_TAG(Slider,double,Max), )
-
-/// A GetSet&lt;double&gt; with additional range information, so that it could be represented as a SpinBox
-GETSET_SPECIALIZATION(RangedDouble,double, GETSET_TAG(RangedDouble,double,Min) GETSET_TAG(RangedDouble,double,Step) GETSET_TAG(RangedDouble,double,Max) GETSET_TAG_BOOL(RangedDouble,Periodic) , )
-
-/// A GetSet&lt;int&gt; with additional range information, so that it could be represented as a SpinBox
-GETSET_SPECIALIZATION(RangedInt,int, GETSET_TAG(RangedInt,int,Min) GETSET_TAG(RangedInt,int,Step) GETSET_TAG(RangedInt,int,Max) GETSET_TAG_BOOL(RangedInt,Periodic) , )
-
-/// A button that creates a GetSet change event when pressed.
-GETSET_SPECIALIZATION(Button,std::string,GETSET_BUTTON_CLASS_BODY, GETSET_BUTTON_KEY_BODY)
-
-/// A static text with some information. StaticTexts are not included in ini-Files (user-info in GUI)
-GETSET_SPECIALIZATION(StaticText,std::string, , )
-
-/// An edit field, but read-only. Intended for output-values that the user can select and copy to clipboard.
-GETSET_SPECIALIZATION(ReadOnlyText,std::string, , )
-
-/// A directory
-GETSET_SPECIALIZATION(Directory,std::string, , )
-
-/// A file (or multiple semicolon seperated files). Extensions is a string such as "Images (*.png *.xpm *.jpg);;All files (*)"
-GETSET_SPECIALIZATION(File,std::string, GETSET_TAG(File,std::string,Extensions) GETSET_TAG_BOOL(File, CreateNew) GETSET_TAG_BOOL(File, Multiple), )
+namespace GetSetGui {
+	/// A pulldown menu with a number of choices.
+	GETSET_SPECIALIZATION_GUI(Enum,int,GETSET_ENUM_CLASS_BODY)
+	/// A GetSet&lt;double&gt; with additional range information, so that it could be represented as a slider
+	GETSET_SPECIALIZATION_GUI(Slider,double, GETSET_TAG(Slider,double,Min) GETSET_TAG(Slider,double,Max))
+	/// A GetSet&lt;double&gt; with additional range information, so that it could be represented as a SpinBox
+	GETSET_SPECIALIZATION_GUI(RangedDouble,double, GETSET_TAG(RangedDouble,double,Min) GETSET_TAG(RangedDouble,double,Step) GETSET_TAG(RangedDouble,double,Max) GETSET_TAG_BOOL(RangedDouble,Periodic))
+	/// A GetSet&lt;int&gt; with additional range information, so that it could be represented as a SpinBox
+	GETSET_SPECIALIZATION_GUI(RangedInt,int, GETSET_TAG(RangedInt,int,Min) GETSET_TAG(RangedInt,int,Step) GETSET_TAG(RangedInt,int,Max) GETSET_TAG_BOOL(RangedInt,Periodic))
+	/// A button that creates a GetSet change event when pressed.
+	GETSET_SPECIALIZATION_GUI(Button,std::string,GETSET_BUTTON_CLASS_BODY)
+	/// A static text with some information. StaticTexts are not included in ini-Files (user-info in GUI)
+	GETSET_SPECIALIZATION_GUI(StaticText,std::string, )
+	/// An edit field, but read-only. Intended for output-values that the user can select and copy to clipboard.
+	GETSET_SPECIALIZATION_GUI(ReadOnlyText,std::string, )
+	/// A directory
+	GETSET_SPECIALIZATION_GUI(Directory,std::string, )
+	/// A file (or multiple semicolon seperated files). Extensions is a string such as "Images (*.png *.xpm *.jpg);;All files (*)"
+	GETSET_SPECIALIZATION_GUI(File,std::string, GETSET_TAG(File,std::string,Extensions) GETSET_TAG_BOOL(File, CreateNew) GETSET_TAG_BOOL(File, Multiple))
+}
 
 #undef GETSET_ENUM_CLASS_BODY
 #undef GETSET_ENUM_KEY_BODY
 #undef GETSET_BUTTON_CLASS_BODY
 #undef GETSET_BUTTON_KEY_BODY
-#undef GETSET_SPECIALIZATION
+#undef GETSET_SPECIALIZATION_INTERNAL
+#undef GETSET_SPECIALIZATION_GUI
 
 // 
 // createSpecialNode

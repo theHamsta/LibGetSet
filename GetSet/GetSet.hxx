@@ -45,29 +45,34 @@ namespace GetSetGui {
 	{
 		GetSetInternal::Section& node;
 	public:
-		Section(GetSetInternal::Section& _section=GetSetInternal::Dictionary::global()) : node(_section) {}
+		/// Create a view on an existing internal Section or Disctionary.
+		inline Section(GetSetInternal::Section& _section=GetSetInternal::Dictionary::global());
+		
+		/// Create a section from a path within another section
 		inline Section(const std::string& relative_path, GetSetGui::Section super_section=Section());
 
 		/// Create new Key or replace an already existing one if it is a string or forceType is set.
 		/// Most of the time, just return a pointer to an existing node.
 		template <typename GetSetKey, typename BasicType>
-		GetSetInternal::Node& declare(const std::string& relative_path, bool forceType, const BasicType& default_value) const;
-
+		inline GetSetInternal::Node& declare(const std::string& relative_path, bool forceType, const BasicType& default_value) const;
+	
 		/// Implicit cast to GetSetInternal::Section& for construction of GetSet<...>(key,section)
-		operator GetSetInternal::Section& () const { return node; }
+		inline operator GetSetInternal::Section& () const;
 
 		/// Access (or make) a subsection of this section
-		Section subsection(const std::string& name) const { return Section(name, *this); }
+		inline Section subsection(const std::string& name) const;
 
 		/// Access section where this section resides. Returns itself in case of root dictionary. 
-		Section supersection() const {
-			return Section(node.super_section, node.dictionary);
-		}
+		inline Section supersection() const;
 
 		/// Returns true if this section represents the root dictionary.
-		bool isRootDictionary() const {
-			return node.super_section.empty();
-		}
+		inline bool isRootDictionary() const;
+
+		/// Return the name of the current Section
+		inline std::string name() const;
+
+		/// Use discouraged. 
+		inline std::string path() const;
 
 		/// Discard this property. Do NOT use this instance again after a call to discard.
 		virtual void discard() { node.super().removeNode(node.name); }
@@ -114,6 +119,9 @@ public:
 	
 	/// Access section where this key resides.
 	GetSetGui::Section supersection() const;
+
+	/// Return the name of the current Section
+	std::string name() const;
 
 	/// Set the value of a GetSet property directly via assignment operator
 	inline GetSet<BasicType>& operator=(const BasicType& v);
