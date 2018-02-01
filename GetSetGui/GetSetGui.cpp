@@ -107,7 +107,7 @@ namespace GetSetGui
 				else return parseScript(script);
 			}
 			else
-				single_unhandled_arg=ext=="ini";
+				single_unhandled_arg=ext!="ini";
 		}
 
 		// We have multiple command line args or we did not understand the first one.
