@@ -77,7 +77,7 @@ namespace GetSetGui {
 		virtual void gui_notify(const std::string& relative_section, const GetSetInternal::Node& node) {}
 
 		/// Temporarily ignore notifications
-		void gui_ignore_notify(bool ignore=true) const ;
+		virtual void gui_ignore_notify(bool ignore=true) const ;
 
 		/// Dynamic cast to a specific type
 		template <class Derived> Derived* cast() {return dynamic_cast<Derived*>(this);}

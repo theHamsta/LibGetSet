@@ -65,7 +65,9 @@ namespace GetSetIO {
 	template <typename InputOutputType=TxtKeyValue>
 	inline void debug_print(const GetSetInternal::Section& section=GetSetGui::Section())
 	{
-		InputOutputType(section).saveStream(std::cout);
+		InputOutputType io;
+		io.retreive(section);
+		io.saveStream(std::cout);
 	}
 
 	/// A simple text file with one property per line in "section/key=value" format
