@@ -52,6 +52,15 @@ int main(int argc, char **argv)
 	GetSetGui::Button("Addresses/Some/Bla")="Blubb";
 	GetSetGui::Section("Addresses/Some").setGrouped();
 
+	std::vector<std::string> keys;
+	keys.push_back("A");
+	keys.push_back("B");
+	keys.push_back("C");
+	GetSetGui::Section("Bla").setMultipleKeys(keys,keys," value");
+
+	auto values=GetSetGui::Section("Bla").getMultipleKeys<std::string>(keys," value");
+
+
 	g_app.init(argc,argv,gui);
 	g_app.window().addDefaultFileMenu();
 	g_app.window().addMenuItem("Edit","Bla...");

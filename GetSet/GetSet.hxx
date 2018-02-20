@@ -77,6 +77,27 @@ namespace GetSetGui {
 		/// Discard this property. Do NOT use this instance again after a call to discard.
 		virtual void discard() { node.super().removeNode(node.name); }
 
+		
+		/// Access multiple keys in this section at once. Optionally add a postfix to all strings in keys.
+		template <typename T>
+		inline std::vector<T> getMultipleKeys(const std::vector<std::string>& keys, const std::string& postfix=0)
+		{
+			std::vector<T> values(keys.size());
+			for (int i=0;i<(int)keys.size();i++)
+				values[i]=GetSet<T>(keys[i]+postfix,*this);
+			return values;
+		}
+
+		/// Access multiple keys in this section at once. Optionally add a postfix to all strings in keys.
+		template <typename T>
+		inline Section& setMultipleKeys(const std::vector<T>& values, const std::vector<std::string>& keys, const std::string& postfix=0)
+		{
+			for (int i=0;i<(int)keys.size();i++)
+				GetSet<T>(keys[i]+postfix,*this)=values[i];
+			return *this;
+		}
+
+
 		/// Set a brief description for this Section.
 		GETSET_TAG( Section, std::string, Description )
 		/// Contents of this section will not be modifiable in GUI.
