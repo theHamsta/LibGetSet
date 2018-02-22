@@ -45,11 +45,14 @@ namespace GetSetGui {
 	{
 		GetSetInternal::Section& node;
 	public:
-		/// Create a view on an existing internal Section or Disctionary.
+		/// Allows implicit construction from plain strings like "Properties" in case of global dictionary.
+		inline Section(const char* absolute_path);
+
+		/// Create a view on an existing internal Section or Dictionary.
 		inline Section(GetSetInternal::Section& _section=GetSetInternal::Dictionary::global());
 		
 		/// Create a section from a path within another section
-		inline Section(const std::string& relative_path, GetSetGui::Section super_section=Section());
+		inline Section(const std::string& relative_path, GetSetGui::Section super_section=GetSetGui::Section());
 
 		/// Create new Key or replace an already existing one if it is a string or forceType is set.
 		/// Most of the time, just return a pointer to an existing node.
@@ -80,7 +83,7 @@ namespace GetSetGui {
 		
 		/// Access multiple keys in this section at once. Optionally add a postfix to all strings in keys.
 		template <typename T>
-		inline std::vector<T> getMultipleKeys(const std::vector<std::string>& keys, const std::string& postfix=0)
+		inline std::vector<T> getMultipleKeys(const std::vector<std::string>& keys, const std::string& postfix="")
 		{
 			std::vector<T> values(keys.size());
 			for (int i=0;i<(int)keys.size();i++)
@@ -90,13 +93,12 @@ namespace GetSetGui {
 
 		/// Access multiple keys in this section at once. Optionally add a postfix to all strings in keys.
 		template <typename T>
-		inline Section& setMultipleKeys(const std::vector<T>& values, const std::vector<std::string>& keys, const std::string& postfix=0)
+		inline Section& setMultipleKeys(const std::vector<T>& values, const std::vector<std::string>& keys, const std::string& postfix="")
 		{
 			for (int i=0;i<(int)keys.size();i++)
 				GetSet<T>(keys[i]+postfix,*this)=values[i];
 			return *this;
 		}
-
 
 		/// Set a brief description for this Section.
 		GETSET_TAG( Section, std::string, Description )

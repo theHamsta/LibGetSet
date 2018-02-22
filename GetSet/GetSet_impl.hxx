@@ -28,6 +28,8 @@
 
 namespace GetSetGui {
 	
+	Section::Section(const char* absolute_path) : node( GetSetInternal::Dictionary::global().createSection(absolute_path) ) {}
+
 	Section::Section(GetSetInternal::Section& _section) : node(_section) {}
 
 	Section::Section(const std::string& relative_path, GetSetGui::Section super_section)
@@ -89,7 +91,7 @@ namespace GetSetGui {
 
 	bool Section::isCollapsible() const { return node.getAttribute<bool>("Collapsed") || node.getAttribute<bool>("Collapsible") ;}
 	
-	Section& Section::setCollapsible(bool collapsible) { node.setAttribute<bool>("Collapsible",collapsible); if (!collapsible) node.setAttribute<bool>("Collapsed",false); return *this;}
+	Section& Section::setCollapsible(bool collapsible=true) { node.setAttribute<bool>("Collapsible",collapsible); if (!collapsible) node.setAttribute<bool>("Collapsed",false); return *this;}
 
 } // namespace GetSetGui
 
