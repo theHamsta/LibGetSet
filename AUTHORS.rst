@@ -2,4 +2,4 @@
 Developers
 ==========
 
-* Stephan Seitz <stephan.lauf@yahoo.de>
+* André Aichert <andre.aichert@fau.de>
