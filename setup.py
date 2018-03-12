@@ -17,43 +17,43 @@ import os
 import subprocess
 
 
-class my_build_ext(build_ext):
+# class my_build_ext(build_ext):
 
-    # extra compile args
-    copt = {'msvc': ['/EHsc'],
-            'unix': ['-ggdb'],
-            'mingw32': [],
-            }
-    # extra link args
-    lopt = {
-        'msvc': [],
-        'unix': [],
-        'mingw32': [],
-    }
+#     # extra compile args
+#     copt = {'msvc': ['/EHsc'],
+#             'unix': ['-ggdb'],
+#             'mingw32': [],
+#             }
+#     # extra link args
+#     lopt = {
+#         'msvc': [],
+#         'unix': [],
+#         'mingw32': [],
+#     }
 
-    def initialize_options(self, *args):
-        """omit -Wstrict-prototypes from CFLAGS since its only valid for C code."""
-        import distutils.sysconfig
-        cfg_vars = distutils.sysconfig.get_config_vars()
+#     def initialize_options(self, *args):
+#         """omit -Wstrict-prototypes from CFLAGS since its only valid for C code."""
+#         import distutils.sysconfig
+#         cfg_vars = distutils.sysconfig.get_config_vars()
 
-        build_ext.initialize_options(self)
+#         build_ext.initialize_options(self)
 
-    def _set_cflags(self):
-        # set compiler flags
-        c = self.compiler.compiler_type
-        if c in self.copt:
-            for e in self.extensions:
-                e.extra_compile_args = self.copt[c]
-        if c in self.lopt:
-            for e in self.extensions:
-                e.extra_link_args = self.lopt[c]
+#     def _set_cflags(self):
+#         # set compiler flags
+#         c = self.compiler.compiler_type
+#         if c in self.copt:
+#             for e in self.extensions:
+#                 e.extra_compile_args = self.copt[c]
+#         if c in self.lopt:
+#             for e in self.extensions:
+#                 e.extra_link_args = self.lopt[c]
 
-    def build_extensions(self):
-        self._set_cflags()
-        print("Building")
+#     def build_extensions(self):
+#         self._set_cflags()
+#         print("Building")
 
-        # has to be last call
-        build_ext.build_extensions(self)
+#         # has to be last call
+#         build_ext.build_extensions(self)
 
 
 class install(_install):
@@ -81,8 +81,10 @@ def setup_package():
     sphinx = ['sphinx'] if needs_sphinx else []
     setup(setup_requires=['six', 'pyscaffold>=2.5a0,<2.6a0'] + sphinx,
           use_pyscaffold=True,
-          cmdclass={'build_ext': my_build_ext,
-                    'install': install})
+          packages=['epipolar_consistency', 'EpipolarConsietency'
+                    ],
+          cmdclass={
+        'install': install})
 
 
 if __name__ == "__main__":
