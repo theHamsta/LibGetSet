@@ -308,4 +308,24 @@ namespace GetSetInternal {
 	}
 }
 
+namespace GetSetGui {
+
+	template <typename T>
+	std::vector<T> Section::getMultipleKeys(const std::vector<std::string>& keys, const std::string& postfix)
+	{
+		std::vector<T> values(keys.size());
+		for (int i=0;i<(int)keys.size();i++)
+			values[i]=GetSet<T>(keys[i]+postfix,*this);
+		return values;
+	}
+
+	template <typename T>
+	Section& Section::setMultipleKeys(const std::vector<T>& values, const std::vector<std::string>& keys, const std::string& postfix)
+	{
+		for (int i=0;i<(int)keys.size();i++)
+			GetSet<T>(keys[i]+postfix,*this)=values[i];
+		return *this;
+	}
+} // namespace getSetGui
+
 #endif // __GetSetSpecial_hxx
