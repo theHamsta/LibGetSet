@@ -1,0 +1,3 @@
+[submodule "EpipolarConsietency"]
+	path = EpipolarConsietency
+	url = git@git5.cs.fau.de:recon/EpipolarConsietency.git
