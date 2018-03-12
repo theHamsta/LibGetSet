@@ -65,7 +65,7 @@ class install(_install):
             except Exception:
                 pass
             os.chdir('build_dir')
-            subprocess.call(['cmake', '../EpipolarConsietency',
+            subprocess.call(['cmake', '../EpipolarConsistency',
                              '-DCMAKE_BUILD_TYPE=Release'])
             subprocess.call(['make', '-j8'])
             os.chdir(previous_working_dir)
@@ -81,7 +81,7 @@ def setup_package():
     sphinx = ['sphinx'] if needs_sphinx else []
     setup(setup_requires=['six', 'pyscaffold>=2.5a0,<2.6a0'] + sphinx,
           use_pyscaffold=True,
-          packages=['epipolar_consistency', 'EpipolarConsietency'
+          packages=['epipolar_consistency', 'EpipolarConsistency'
                     ],
           cmdclass={
         'install': install})
