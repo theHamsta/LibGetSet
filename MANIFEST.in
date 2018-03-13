@@ -1,1 +1,5 @@
-recursive-include    EpipolarConsietency/*
+global-include CMakeLists.txt *.cmake
+recursive-include    EpipolarConsistency *
+recursive-include    epipolar_consistency *
+recursive-include    epipolar_consistency/build_dir *
+recursive-include    EpipolarConsistencyPythonBindings *
