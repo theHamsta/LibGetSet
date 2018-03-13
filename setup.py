@@ -65,8 +65,8 @@ class install(_install):
             except Exception:
                 pass
             os.chdir('build_dir')
-            subprocess.call(['cmake', '../EpipolarConsistency',
-                             '-DCMAKE_BUILD_TYPE=Release'])
+            subprocess.call(['cmake', '..',
+                             '-DCMAKE_BUILD_TYPE=Release', '-DBUILD_SHARED_LIBS=OFF'])
             subprocess.call(['make', '-j8'])
             os.chdir(previous_working_dir)
 
