@@ -1,3 +1,6 @@
 [submodule "EpipolarConsistency"]
 	path = EpipolarConsistency
 	url = https://github.com/aaichert/EpipolarConsistency.git
+[submodule "EpipolarConsistencyPythonBindings/pybind11"]
+	path = EpipolarConsistencyPythonBindings/pybind11
+	url = https://github.com/pybind/pybind11.git
