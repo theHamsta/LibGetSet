@@ -16,8 +16,8 @@ namespace py = pybind11;
 
 
 PYBIND11_MODULE(_epipolar_consistency, m) {
-    m.def("makeProjectionMatrix", &Geometry::makeProjectionMatrix, "Makes a projections matrix.");
-    m.def("makeCalibrationMatrix", &Geometry::makeCalibrationMatrix, "Makes a calibration matrix.");
+    m.def("make_projection_matrix", &Geometry::makeProjectionMatrix, "Makes a projections matrix.");
+    m.def("make_calibration_matrix", &Geometry::makeCalibrationMatrix, "Makes a calibration matrix.");
 }
 
 
