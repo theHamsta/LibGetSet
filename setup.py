@@ -19,43 +19,6 @@ import subprocess
 from distutils.version import LooseVersion
 
 
-# class my_build_ext(build_ext):
-
-#     # extra compile args
-#     copt = {'msvc': ['/EHsc'],
-#             'unix': ['-ggdb'],
-#             'mingw32': [],
-#             }
-#     # extra link args
-#     lopt = {
-#         'msvc': [],
-#         'unix': [],
-#         'mingw32': [],
-#     }
-
-#     def initialize_options(self, *args):
-#         """omit -Wstrict-prototypes from CFLAGS since its only valid for C code."""
-#         import distutils.sysconfig
-#         cfg_vars = distutils.sysconfig.get_config_vars()
-
-#         build_ext.initialize_options(self)
-
-#     def _set_cflags(self):
-#         # set compiler flags
-#         c = self.compiler.compiler_type
-#         if c in self.copt:
-#             for e in self.extensions:
-#                 e.extra_compile_args = self.copt[c]
-#         if c in self.lopt:
-#             for e in self.extensions:
-#                 e.extra_link_args = self.lopt[c]
-
-#     def build_extensions(self):
-#         self._set_cflags()
-#         print("Building")
-
-#         # has to be last call
-#         build_ext.build_extensions(self)
 
 # shamelessly copied from https://github.com/pybind/cmake_example/blob/master/setup.py
 class CMakeExtension(Extension):
@@ -107,29 +70,6 @@ class CMakeBuild(build_ext):
         subprocess.check_call(['cmake', '--build', '.'] + build_args, cwd=self.build_temp)
         
 
-
-# class install(_install):
-
-
-#     def run(self):
-#         if sys.platform.startswith('linux'):
-#             previous_working_dir = os.getcwd()
-#             try:
-#                 os.mkdir('build_dir')
-#             except Exception:
-#                 pass
-#             os.chdir('build_dir')
-#             self.build_dir = os.getcwd()
-#             subprocess.call(['cmake', '..',
-#                              '-DCMAKE_BUILD_TYPE=Release', '-DBUILD_SHARED_LIBS=OFF'])
-#             subprocess.call(['make', '-j8'])
-#             os.chdir(previous_working_dir)
-
-#         else:
-#             RuntimeError('Currently only Linux build supported')
-
-#         _install.run(self)
-#         self.execute(self._post_install, (self.install_lib,))
 
 
 def setup_package():
