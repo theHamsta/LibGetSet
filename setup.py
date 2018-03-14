@@ -142,7 +142,7 @@ def setup_package():
          ext_modules=[CMakeExtension('_epipolar_consistency')],
           cmdclass={
         'build_ext': CMakeBuild},
-          use_pyscaffold=False
+          use_pyscaffold=True
         )
 
 
