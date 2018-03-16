@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Section Name="Fractal"> <!--Fractal-->
+  <Section Name="Center"> <!--Fractal/Center-->
+    <Key Name="Real" Type="double"/>
+    <Key Name="Imaginary" Type="double"/>
+  </Section>
+  <Key Name="Scale" Type="Slider" Min="0.25" Max="10" Value="1"/>
+</Section>
+<Section Name="Image"> <!--Image-->
+  <Key Name="File" Type="File" Extensions="Windows Bitmap image (*.bmp)" CreateNew="true"/>
+  <Key Name="Height" Type="int"/>
+  <Key Name="Width" Type="int"/>
+</Section>

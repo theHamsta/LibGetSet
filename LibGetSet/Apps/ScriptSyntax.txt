@@ -1,0 +1,90 @@
+This is a description of the GetSet scripting syntax
+
+*** List of available commands:
+exit help who set function call with if while for file input echo
+
+*** A Comment
+#comment
+
+*** Types understood by GetSet
+<string> := "some string" | some_string_no_whitespace
+aliases <varname> <file> <key>
+<value> := var <varname> | value <string> | key <key>
+alias <numeric value>, which will be converted to double (e.g. "123" or "1.23")
+
+##############################
+# synopsis
+##############################
+
+exit <value>
+
+help <command>
+
+who
+
+set var <varname> <value>
+set key <key> <value>
+set trigger <key>
+set key \"Personal/Last Name\" var user_name
+
+function <varname> ... endfunction
+function greetings
+   echo value Hallo!
+endfunction
+
+call <varname>
+call greetings
+
+with <section>
+with \"Personal\"
+set key \"Last Name\" value \"John\"
+with \"\"
+
+if <value> [not] <op> <value>
+<op>:=strequal numequal gequal lequal greater less
+if key \"Personal/Last Name\" not strequal \"John\"
+   echo value \"Name is not John\"
+endif
+
+while <varname> ... endwhile
+while var active
+   call do_something
+endwhile
+
+for each <varname> in <list> ... endfor
+<list>:=<value> with semicolon separated strings
+for each <varname> from <value> to <value> step <value> ... endfor
+for each i from value 5 to value 9
+   echo var i
+endfor
+
+file {load|save} ini <filename>
+file run <filename>
+file save ini \"./file.ini\"
+file run script.getset
+
+input <varname>
+echo value \"What's your name?\"
+input user_name
+
+echo <value>
+echo value \"Hello World\"
+echo key user_name
+echo var \"Personal/Last Name\"
+
+eval <varname> as <value> {plus|minus|times|over} <value>
+eval i as var i plus value 1
+
+
+##############################
+# syntax highlighting:
+##############################
+commands:
+	help call concat define discard echo eval exit file for if input set while who with enddefine endfor endif endwhile
+types:
+	key var value
+other keywords:
+	each in from to than step and ini load save get remove run trigger
+operators:
+	not strequal numequal gequal lequal greater less plus minus times
+	
