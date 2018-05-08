@@ -79,7 +79,6 @@ namespace GetSetGui {
 
 		/// Discard this property. Do NOT use this instance again after a call to discard.
 		virtual void discard() { node.super().removeNode(node.name); }
-
 		
 		/// Access multiple keys in this section at once. Optionally add a postfix to all strings in keys.
 		template <typename T>

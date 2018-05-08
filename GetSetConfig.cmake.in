@@ -1,5 +1,9 @@
-get_filename_component(myDir ${CMAKE_CURRENT_LIST_FILE} PATH) # get the directory where I myself am
-get_filename_component(rootDir ${myDir} ABSOLUTE) # get the chosen install prefix
+# defined since 2.8.3
+if (CMAKE_VERSION VERSION_LESS 2.8.3)
+  get_filename_component (CMAKE_CURRENT_LIST_DIR ${CMAKE_CURRENT_LIST_FILE} PATH)
+endif ()
+
+get_filename_component(CMAKE_CURRENT_LIST_DIR_ABSOLUTE ${CMAKE_CURRENT_LIST_DIR} ABSOLUTE) # get the chosen install prefix
 
 # set the version of myself
 set(GETSET_VERSION_MAJOR @GETSET_VERSION_MAJOR@)
@@ -8,11 +12,11 @@ set(GETSET_VERSION_PATCH @GETSET_VERSION_PATCH@)
 set(GETSET_VERSION ${GETSET_VERSION_MAJOR}.${GETSET_VERSION_MINOR}.${GETSET_VERSION_PATCH} )
 
 # what is my include directory
-set(GETSET_INCLUDE_DIRS "${rootDir}/include")
-set(GETSET_DIR "${rootDir}")
+set(GETSET_INCLUDE_DIRS "${CMAKE_CURRENT_LIST_DIR_ABSOLUTE}/include")
+set(GETSET_DIR "${CMAKE_CURRENT_LIST_DIR_ABSOLUTE}")
 
 # import the exported targets
-include(${myDir}/cmake/GetSetTargets.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/cmake/GetSetTargets.cmake)
 
 # set the expected library variable
 set(GETSET_LIBRARIES GetSet GetSetGui )
