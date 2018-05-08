@@ -12,7 +12,7 @@ add_library(GetSetGui
 )
 target_link_libraries(GetSetGui GetSet)
 qt5_use_modules(GetSetGui Widgets)
-set_target_properties(GetSetGui PROPERTIES VERSION ${GETSET_VERSION})
+set_target_properties(GetSetGui PROPERTIES VERSION ${GetSet_VERSION})
 
 # Install library
 install(FILES ${GETSETGUI_HEADERS} DESTINATION include/GetSetGui)
