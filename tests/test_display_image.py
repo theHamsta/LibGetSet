@@ -2,6 +2,7 @@ import _epipolar_consistency
 import numpy as np
 import time
 import pyconrad.autoinit
+import epipolar_consistency
 
 
 def test_display_noise():
@@ -15,8 +16,7 @@ def test_display_noise():
 def test_display_phantom():
     phantom = pyconrad.stanfordrsl().conrad.phantom.NumericalSheppLogan3D(
         50, 50, 50).getNumericalSheppLoganPhantom().as_numpy()
-    phantom = np.ascontiguousarray(phantom.astype(np.float32))
-    _epipolar_consistency.imshow(phantom, "phantom")
+    epipolar_consistency.imshow(phantom, "phantom")
 
 
 if __name__ == "__main__":

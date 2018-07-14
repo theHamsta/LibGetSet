@@ -5,3 +5,6 @@ try:
     __version__ = pkg_resources.get_distribution(__name__).version
 except:
     __version__ = 'unknown'
+
+from _epipolar_consistency import *
+from epipolar_consistency._utils import *

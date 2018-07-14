@@ -23,7 +23,9 @@ char* foo = ( char* )( "" );
 PYBIND11_MODULE( _epipolar_consistency, m )
 {
 
-	auto fromArray = [&]( py::array_t<float>& array ) {
+	py::class_<NRRD::Image<float>> self( m, "NrrdImage" );
+	self.def( py::init<const std::string&>() )
+	.def_static( "fromArray", [&]( py::array_t<float>& array ) {
 
 
 		if ( array.ndim() == 1 ) {
@@ -40,9 +42,8 @@ PYBIND11_MODULE( _epipolar_consistency, m )
 			return std::make_unique<NRRD::Image<float>>( array.shape()[2], array.shape()[1],  array.shape()[0], const_cast<float*>( array.data() ) );
 		}
 
-	};
-
-	auto nrrdImageShow = [&]( const NRRD::Image<float>& self, std::string title = "" ) {
+	} )
+	.def( "show", [&]( const NRRD::Image<float>& self, std::string title = "" ) {
 		// std::thread t( [&]() {
 		// 	std::cout << "thread function\n";
 		if ( !app ) {
@@ -64,19 +65,10 @@ PYBIND11_MODULE( _epipolar_consistency, m )
 		}
 
 		UtilsQt::FigureWindow::instance_delete_all();
-	};
-
-	py::class_<NRRD::Image<float>> self( m, "NrrdImage" );
-	self.def( py::init<const std::string&>() )
-	.def_static( "fromArray", fromArray )
-	.def( "show", nrrdImageShow, py::arg( "title" ) = "" );
+	}, py::arg( "title" ) = "" );
 
 	m.def( "make_projection_matrix", &Geometry::makeProjectionMatrix, "Makes a projections matrix." );
 	m.def( "make_calibration_matrix", &Geometry::makeCalibrationMatrix, "Makes a calibration matrix." );
-	m.def( "imshow", [&] ( py::array_t<float>& array, const std::string & title ) {
-		auto nrrdImage = fromArray( array );
-		nrrdImageShow( *nrrdImage, title );
-	}, py::arg( "array" ), py::arg( "title" ) = "" );
 
 
 
