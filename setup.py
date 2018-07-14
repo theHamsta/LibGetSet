@@ -19,7 +19,6 @@ import subprocess
 from distutils.version import LooseVersion
 
 
-
 # shamelessly copied from https://github.com/pybind/cmake_example/blob/master/setup.py
 class CMakeExtension(Extension):
     def __init__(self, name, sourcedir=''):
@@ -36,7 +35,8 @@ class CMakeBuild(build_ext):
                                ", ".join(e.name for e in self.extensions))
 
         if platform.system() == "Windows":
-            cmake_version = LooseVersion(re.search(r'version\s*([\d.]+)', out.decode()).group(1))
+            cmake_version = LooseVersion(
+                re.search(r'version\s*([\d.]+)', out.decode()).group(1))
             if cmake_version < '3.1.0':
                 raise RuntimeError("CMake >= 3.1.0 is required on Windows")
 
@@ -44,16 +44,19 @@ class CMakeBuild(build_ext):
             self.build_extension(ext)
 
     def build_extension(self, ext):
-        extdir = os.path.abspath(os.path.dirname(self.get_ext_fullpath(ext.name)))
+        extdir = os.path.abspath(os.path.dirname(
+            self.get_ext_fullpath(ext.name)))
         cmake_args = ['-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=' + extdir,
-                        '-DCMAKE_RUNTIME_OUTPUT_DIRECTORY=' + os.path.join(extdir,'epipolar_consistency') ,
+                      '-DCMAKE_RUNTIME_OUTPUT_DIRECTORY=' +
+                      os.path.join(extdir, 'epipolar_consistency'),
                       '-DPYTHON_EXECUTABLE=' + sys.executable]
 
         cfg = 'Debug' if self.debug else 'Release'
         build_args = ['--config', cfg]
 
         if platform.system() == "Windows":
-            cmake_args += ['-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{}={}'.format(cfg.upper(), extdir)]
+            cmake_args += [
+                '-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{}={}'.format(cfg.upper(), extdir)]
             if sys.maxsize > 2**32:
                 cmake_args += ['-A', 'x64']
             build_args += ['--', '/m']
@@ -66,10 +69,10 @@ class CMakeBuild(build_ext):
                                                               self.distribution.get_version())
         if not os.path.exists(self.build_temp):
             os.makedirs(self.build_temp)
-        subprocess.check_call(['cmake', ext.sourcedir] + cmake_args, cwd=self.build_temp, env=env)
-        subprocess.check_call(['cmake', '--build', '.'] + build_args, cwd=self.build_temp)
-        
-
+        subprocess.check_call(['cmake', ext.sourcedir] +
+                              cmake_args, cwd=self.build_temp, env=env)
+        subprocess.check_call(['cmake', '--build', '.'] +
+                              build_args, cwd=self.build_temp)
 
 
 def setup_package():
@@ -77,13 +80,13 @@ def setup_package():
     sphinx = ['sphinx'] if needs_sphinx else []
     setup(setup_requires=['six', 'pyscaffold>=2.5a0,<2.6a0'] + sphinx,
           packages=['epipolar_consistency'],
-        package_data={'epipolar_consistency': ['build_dir/*' ]},
-        #   cmdclass={ 'install': install},
-         ext_modules=[CMakeExtension('_epipolar_consistency')],
+          package_data={'epipolar_consistency': ['build_dir/*']},
+          #   cmdclass={ 'install': install},
+          ext_modules=[CMakeExtension('_epipolar_consistency')],
           cmdclass={
         'build_ext': CMakeBuild},
-          use_pyscaffold=True
-        )
+        use_pyscaffold=True
+    )
 
 
 if __name__ == "__main__":

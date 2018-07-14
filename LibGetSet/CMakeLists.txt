@@ -17,7 +17,7 @@ set(CMAKE_CONFIGURATION_TYPES "Debug;Release" CACHE STRING "limited configs" FOR
 
 # I'd rather use current standards
 if(CMAKE_COMPILER_IS_GNUCXX)
-    add_definitions(-std=c++11 -Wfatal-errors )
+    add_definitions(-std=c++14 -Wfatal-errors )
     # and a console window under windows
     if (WIN32)
         add_definitions(-mconsole)
