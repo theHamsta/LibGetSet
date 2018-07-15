@@ -16,8 +16,8 @@
 namespace py = pybind11;
 
 std::unique_ptr<QApplication> app;
-int NULL_INT = 1;
-char* foo = ( char* )( "" );
+int ONE_ARGUMENT_FOR_ARGC = 1;
+char* qtApplicationName = ( char* )( "" );
 
 
 PYBIND11_MODULE( _epipolar_consistency, m )

@@ -28,7 +28,7 @@ self.def( py::init<const std::string&>() )
 	// std::thread t( [&]() {
 	// 	std::cout << "thread function\n";
 	if ( !app ) {
-		app = std::make_unique<QApplication>( NULL_INT, &foo );
+		app = std::make_unique<QApplication>( ONE_ARGUMENT_FOR_ARGC, &qtApplicationName );
 	}
 
 
@@ -39,7 +39,7 @@ self.def( py::init<const std::string&>() )
 
 	UtilsQt::Figure( title, self );
 	// app->exec();
-	app->processEvents();
+	// app->processEvents();
 
 	while ( UtilsQt::FigureWindow::exists( title ) && blockingCall ) {
 		app->processEvents();
