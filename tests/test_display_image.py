@@ -25,6 +25,8 @@ def test_non_blocking():
         img = epipolar_consistency.NrrdImage.fromArray(noise)
         img.show("hallo", blocking_call=False)
 
+    img.show("hallo", blocking_call=True)
+
 
 if __name__ == "__main__":
     # test_display_noise()
