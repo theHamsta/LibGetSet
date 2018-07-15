@@ -28,7 +28,16 @@ def test_non_blocking():
     img.show("hallo", blocking_call=True)
 
 
+def test_imshow_non_float32():
+    for i in range(100):
+        noise = np.random.rand(100, 100, 20)
+        epipolar_consistency.imshow(noise, "hallo", blocking_call=False)
+
+    epipolar_consistency.imshow(noise, "hallo", blocking_call=True)
+
+
 if __name__ == "__main__":
     # test_display_noise()
     # test_display_phantom()
-    test_non_blocking()
+    # test_non_blocking()
+    test_imshow_non_float32()
