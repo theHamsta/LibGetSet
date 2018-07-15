@@ -1,4 +1,3 @@
-import _epipolar_consistency
 import numpy as np
 import time
 import pyconrad.autoinit
@@ -8,7 +7,7 @@ import epipolar_consistency
 def test_display_noise():
     noise = np.random.rand(100, 100, 20)
     noise = np.ascontiguousarray(noise.astype(np.float32))
-    img = _epipolar_consistency.NrrdImage.fromArray(noise)
+    img = epipolar_consistency.NrrdImage.fromArray(noise)
     img.show()
     img.show("hallo")
 
@@ -19,5 +18,15 @@ def test_display_phantom():
     epipolar_consistency.imshow(phantom, "phantom")
 
 
+def test_non_blocking():
+    for i in range(100):
+        noise = np.random.rand(100, 100, 20)
+        noise = np.ascontiguousarray(noise.astype(np.float32))
+        img = epipolar_consistency.NrrdImage.fromArray(noise)
+        img.show("hallo", blocking_call=False)
+
+
 if __name__ == "__main__":
-    test_display_phantom()
+    # test_display_noise()
+    # test_display_phantom()
+    test_non_blocking()
