@@ -32,6 +32,7 @@ def test_imshow_non_float32():
     for i in range(100):
         noise = np.random.rand(100, 100, 20)
         epipolar_consistency.imshow(noise, "hallo", blocking_call=False)
+        epipolar_consistency.imshow(noise+1, "huh", blocking_call=False)
 
     epipolar_consistency.imshow(noise, "hallo", blocking_call=True)
 
