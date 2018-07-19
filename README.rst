@@ -3,17 +3,16 @@ epipolar_consistency
 ====================
 
 
-Add a short description here!
+Python Bindings for (epipolar-consistency)[ https://github.com/aaichert/EpipolarConsistency ].
 
-
-Description
+Original C++ Project
 ===========
 
-A longer description of your project goes here...
+Copyrights Andre Aichert, aaichert@gmail.com, andre.aichert@cs.fau.de
+
+Epipolar Consistency of X-Ray Images
+
+This project provides both GPU and CPU implementations in C++/CUDA of the Epipolar Consistency Metric. The CPU version relies on Eigen 3 library and follows the 2016 CT-Meeting paper "Efficient Epipolar Consistency" by Aichert et al.
 
 
-Note
-====
 
-This project has been set up using PyScaffold 2.5.7.post0.dev6+ngcef9d7f. For details and usage
-information on PyScaffold see http://pyscaffold.readthedocs.org/.
