@@ -22,10 +22,15 @@ target_include_directories( _epipolar_consistency
 target_link_libraries(_epipolar_consistency 
     PUBLIC
    LibProjectiveGeometry
-   LibUtilsCuda
    LibUtilsQt
-   LibEpipolarConsistency
-   LibEpipolarConsistencyGui
    gomp
    Eigen3::Eigen
 )
+if(CUDA_FOUND)
+target_link_libraries(_epipolar_consistency 
+    PUBLIC
+   LibUtilsCuda
+   LibEpipolarConsistency
+   LibEpipolarConsistencyGui
+)
+endif()
