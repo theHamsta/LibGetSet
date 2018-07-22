@@ -6,6 +6,9 @@
 #include <memory>
 
 #include "LibProjectiveGeometry/ProjectionMatrix.h"
+#include "LibProjectiveGeometry/SingularValueDecomposition.h"
+#include "LibProjectiveGeometry/SourceDetectorGeometry.h"
+#include "LibProjectiveGeometry/GeometryVisualization.hxx"
 
 #include "NRRD/nrrd_image.hxx"
 #include "LibUtilsQt/Figure.hxx"
@@ -24,7 +27,7 @@ PYBIND11_MODULE( _epipolar_consistency, m )
 {
 
 #include "_nrrd_image.hpp"
-#include "_projection_matrix.hpp"
+#include "_projective_geometry.hpp"
 
 
 
