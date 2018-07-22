@@ -24,9 +24,8 @@ PYBIND11_MODULE( _epipolar_consistency, m )
 {
 
 #include "_nrrd_image.hpp"
+#include "_projection_matrix.hpp"
 
-	m.def( "make_projection_matrix", &Geometry::makeProjectionMatrix, "Makes a projections matrix." );
-	m.def( "make_calibration_matrix", &Geometry::makeCalibrationMatrix, "Makes a calibration matrix." );
 
 
 
