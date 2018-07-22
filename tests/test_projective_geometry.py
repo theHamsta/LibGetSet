@@ -19,8 +19,9 @@ def test_make_projection_matrix():
     proj.normalize_projection_matrix(matrix)
     print(matrix)
     print(proj.pseudo_inverse(matrix))
-
-    print(proj.pseudo_inverse_and_nullspace(matrix))
+    pinv, nullspace = proj.pseudo_inverse_and_nullspace(matrix)
+    print(pinv)
+    print(nullspace)
 
 
 def test_source_detector_geometry():
