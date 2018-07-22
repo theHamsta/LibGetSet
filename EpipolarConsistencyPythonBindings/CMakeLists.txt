@@ -1,7 +1,7 @@
 project( EpipolarConsistencyPythonBindings )
 cmake_minimum_required( VERSION 3.5 )
 
-find_package (Eigen3 3.3 REQUIRED NO_MODULE)
+find_package (Eigen3 3.0 REQUIRED NO_MODULE)
  
 
 set(CMAKE_CXX_STANDARD 14)
