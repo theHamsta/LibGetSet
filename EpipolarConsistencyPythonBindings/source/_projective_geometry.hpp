@@ -95,7 +95,7 @@ submodule_projective_geometry.def( "box",  &Geometry::box );
 // submodule_projective_geometry.def( "camera_frustrum",  &Geometry::cameraFrustum );
 submodule_projective_geometry.def( "intersect_line_with_convex",  &Geometry::intersectLineWithConvex );
 submodule_projective_geometry.def( "intersect_line_with_rect",  &Geometry::intersectLineWithRect );
-// GeometryVisualisation.h
+// // GeometryVisualisation.h
 
 
 
