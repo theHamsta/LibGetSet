@@ -16,7 +16,7 @@ def test_make_projection_matrix():
     matrix = 2 * proj.make_projection_matrix(
         np.ones((3, 3)), np.ones((3, 3)), np.ones((3, 1)))
     print(matrix)
-    proj.normalize_projection_matrix(matrix)
+    matrix = proj.normalized_projection_matrix(matrix)
     print(matrix)
     print(proj.pseudo_inverse(matrix))
     pinv, nullspace = proj.pseudo_inverse_and_nullspace(matrix)

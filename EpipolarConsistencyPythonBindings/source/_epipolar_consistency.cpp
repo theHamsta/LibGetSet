@@ -18,6 +18,7 @@
 
 
 namespace py = pybind11;
+using namespace pybind11::literals;
 
 std::unique_ptr<QApplication> app;
 int ONE_ARGUMENT_FOR_ARGC = 1;

@@ -3,13 +3,12 @@ auto submodule_projective_geometry = m.def_submodule( "projective_geometry" );
 
 submodule_projective_geometry.def( "make_projection_matrix", &Geometry::makeProjectionMatrix, "Makes a projections matrix." );
 submodule_projective_geometry.def( "make_calibration_matrix", &Geometry::makeCalibrationMatrix, "Makes a calibration matrix." );
-
-submodule_projective_geometry.def( "normalize_projection_matrix", &Geometry::normalizeProjectionMatrix, py::arg().noconvert() );
-// submodule_projective_geometry.def( "normalize_projection_matrix", [&]( Eigen::Ref<Geometry::ProjectionMatrix> matrix )
-// {
-// 	Geometry::normalizeProjectionMatrix( matrix );
-// 	return matrix;
-// } );
+// submodule_projective_geometry.def( "normalize_projection_matrix", &Geometry::normalizeProjectionMatrix, ""_a.noconvert() );
+submodule_projective_geometry.def( "normalized_projection_matrix", [&]( Geometry::ProjectionMatrix  matrix )
+{
+	Geometry::normalizeProjectionMatrix( matrix );
+	return matrix;
+}, "matrix"_a );
 // submodule_projective_geometry.def( "pseudo_inverse", py::overload_cast<const Geometry>(&Geometry::pseudoInverse ));
 submodule_projective_geometry.def( "projection_matrix_decompostion", &Geometry::projectionMatrixDecomposition );
 submodule_projective_geometry.def( "get_camera_instrinsics", &Geometry::getCameraIntrinsics );
