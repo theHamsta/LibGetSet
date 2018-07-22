@@ -20,7 +20,7 @@ def test_make_projection_matrix():
     print(matrix)
     print(proj.pseudo_inverse(matrix))
 
-    print(proj.pseudoinverse_and_nullspace(matrix))
+    print(proj.pseudo_inverse_and_nullspace(matrix))
 
 
 def test_source_detector_geometry():
