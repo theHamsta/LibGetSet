@@ -4,3 +4,6 @@
 [submodule "EpipolarConsistencyPythonBindings/pybind11"]
 	path = EpipolarConsistencyPythonBindings/pybind11
 	url = https://github.com/pybind/pybind11.git
+[submodule "LibGetSet/QCommandPalette"]
+	path = LibGetSet/QCommandPalette
+	url = https://github.com/theHamsta/QCommandPalette.git

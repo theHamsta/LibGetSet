@@ -48,6 +48,7 @@ set(CMAKE_AUTOMOC ON)
 
 add_subdirectory(GetSet)
 add_subdirectory(GetSetGui)
+add_subdirectory(QCommandPalette)
 
 # Utilities and tests
 add_subdirectory(Apps)

@@ -1,15 +1,15 @@
 //
 //  Library: GetSet
 //  c++ library for load/saving *typed* and *named* properties and automatic GUI.
-//  
-//  Copyright (c) by André Aichert (aaichert@gmail.com)
-//    
+//
+//  Copyright (c) by Andrï¿½ Aichert (aaichert@gmail.com)
+//
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
 //  You may obtain a copy of the License at
-//  
+//
 //    http://www.apache.org/licenses/LICENSE-2.0
-//    
+//
 //  Unless required by applicable law or agreed to in writing, software
 //  distributed under the License is distributed on an "AS IS" BASIS,
 //  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -40,51 +40,52 @@ namespace GetSetGui
 
 	class GetSetTabWidget : public QWidget, public GetSetInternal::Dictionary::Observer
 	{
-		Q_OBJECT
+			Q_OBJECT
 
-	protected slots:
-		void ctxMenu(const QPoint &pos);
-		void handle_action();
-		void about();
-		void rec_start();
-		void rec_stop();
-		void script_editor();
-		void script_run_default();
+		protected slots:
+			void ctxMenu( const QPoint& pos );
+			void handle_action();
+			void about();
+			void rec_start();
+			void rec_stop();
+			void script_editor();
+			void script_run_default();
 
-	protected:
-		std::string							m_about;
-		GetSetInternal::Dictionary&			m_dict;
-		std::string							m_path;
-		std::map<std::string,QMenu*>		m_menus;
-		std::map<std::string,QPushButton*>	m_push_buttons;
+		protected:
+			std::string							m_about;
+			GetSetInternal::Dictionary&			m_dict;
+			std::string							m_path;
+			std::map<std::string, QMenu*>		m_menus;
+			std::map<std::string, QPushButton*>	m_push_buttons;
 
-		void (*m_menu_callback)(const std::string& sender, const std::string& action);
+			void ( *m_menu_callback )( const std::string& sender, const std::string& action );
 
-	protected:
-		QVBoxLayout					*m_mainLayout;
-		QMenuBar					*m_menuBar;
-		QTabWidget					*m_tabWidget;
-		GetSetScriptRecorder		*m_script_recorder;
+		protected:
+			QVBoxLayout*					m_mainLayout;
+			QMenuBar*					m_menuBar;
+			QTabWidget*					m_tabWidget;
+			GetSetScriptRecorder*		m_script_recorder;
 
-		/// (Re-)Create the tabs and GetSetWidgets
-		void create(GetSetInternal::Section& section);
-	public:
-	
-		/// Settings dialog with a selection of sections from a dictionary
-		GetSetTabWidget(QWidget *parent=0x0, GetSetInternal::Section& section=GetSetGui::Section());
+			/// (Re-)Create the tabs and GetSetWidgets
+			void create( GetSetInternal::Section& section );
+		public:
 
-		/// Shortcut for example "Ctrl+O", If no action is supplied, a seperator will be added.
-		QAction* addMenuItem(const std::string& menu, const std::string& action="-", const std::string& shortcut="");
-		QPushButton* addButton(const std::string& action);
-		void setMenuCallBack(void (*gui)(const std::string& sender, const std::string& action));
+			/// Settings dialog with a selection of sections from a dictionary
+			GetSetTabWidget( QWidget* parent = 0x0, GetSetInternal::Section& section = GetSetGui::Section() );
 
-		void addDefaultFileMenu();
-		std::string& aboutText();
+			/// Shortcut for example "Ctrl+O", If no action is supplied, a seperator will be added.
+			QAction* addMenuItem( const std::string& menu, const std::string& action = "-", const std::string& shortcut = "" );
+			QPushButton* addButton( const std::string& action );
+			void setMenuCallBack( void ( *gui )( const std::string& sender, const std::string& action ) );
 
-		virtual ~GetSetTabWidget();
+			void addDefaultFileMenu();
+			std::string& aboutText();
+			QMenuBar* menuBar() {return m_menuBar;}
 
-		// GetSetInternal::Dictionary::Observer
-		virtual void notify(const GetSetInternal::Node& node, GetSetInternal::Dictionary::Signal signal);
+			virtual ~GetSetTabWidget();
+
+			// GetSetInternal::Dictionary::Observer
+			virtual void notify( const GetSetInternal::Node& node, GetSetInternal::Dictionary::Signal signal );
 	};
 
 } // namespace GetSetGui

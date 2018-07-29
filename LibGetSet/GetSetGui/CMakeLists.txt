@@ -1,6 +1,12 @@
 # Choose public headers
 set(GETSETGUI_HEADERS "GetSetGui.h;GetSetWidget.h;GetSetTabWidget.h;GetSetProgressWindow.h;GetSetScriptEdit.h;GetSetModalDialog.h")
 # Build library
+include_directories(
+	${CMAKE_CURRENT_SOURCE_DIR}/../QCommandPalette/include
+	${CMAKE_CURRENT_SOURCE_DIR}/../QCommandPalette/fuzzy-native/src
+)
+
+
 add_library(GetSetGui
 	${GETSETGUI_HEADERS}
 	GetSetGui.cpp
@@ -10,7 +16,7 @@ add_library(GetSetGui
 	GetSetScriptEdit.cpp
 	GetSetModalDialog.cpp
 )
-target_link_libraries(GetSetGui GetSet)
+target_link_libraries(GetSetGui GetSet qcommandpalette)
 qt5_use_modules(GetSetGui Widgets)
 set_target_properties(GetSetGui PROPERTIES VERSION ${GETSET_VERSION})
 
