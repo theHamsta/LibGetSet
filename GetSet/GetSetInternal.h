@@ -109,7 +109,7 @@ namespace GetSetInternal {
 
 	/// This function is defined in GetSet.hxx, because there are local types defined that have to be available internally.
 	/// Create a new Node of type (unless that type is a default type or unknown). The Node is not added to the Section (yet).
-	inline Node* createSpecialNode(Section& section, const std::string& key, const std::string& type);
+	Node* createSpecialNode(Section& section, const std::string& key, const std::string& type);
 
 	/// This is a (sub-)Section that can holds other Nodes.
 	class Section : public Node
