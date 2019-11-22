@@ -35,7 +35,7 @@
 namespace GetSetGui {
 	/// Pre-declaration: User's view of a GetSetInternal::Section
 	class Section;
-};
+}
 
 namespace GetSetInternal {
 
